@@ -4,15 +4,47 @@
   justify-content: space-between;
   gap: 12px;
   margin-bottom: 16px;
+  flex-wrap: wrap;
 }
 
 .title {
   font-size: 1.4rem;
   font-weight: 600;
+  color: #111827;
 }
 
 .actions {
   display: flex;
-  flex-wrap: wrap;
   gap: 8px;
+  flex-wrap: wrap;
+}
+
+/* Десктоп / по-широки екрани */
+@media (min-width: 768px) {
+  .header {
+    margin-bottom: 20px;
+  }
+
+  .title {
+    font-size: 1.6rem;
+  }
+}
+
+/* Мобилни екрани */
+@media (max-width: 767px) {
+  .header {
+    align-items: flex-start;
+  }
+
+  .title {
+    font-size: 1.25rem;
+  }
+
+  .actions {
+    width: 100%;
+  }
+
+  .actions button {
+    flex: 1 1 100%;
+  }
 }

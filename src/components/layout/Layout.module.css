@@ -1,11 +1,20 @@
-.app {
+.container {
   min-height: 100vh;
-  background-color: #f9fafb;
-  color: #111827;
+  display: flex;
+  flex-direction: column;
+  background-color: #f3f4f6; /* лек сив фон */
 }
 
 .main {
+  flex: 1;
   max-width: 960px;
   margin: 0 auto;
-  padding: 16px;
+  padding: 24px 16px 32px;
+}
+
+/* малко повече въздух на по-широки екрани */
+@media (min-width: 768px) {
+  .main {
+    padding: 32px 0 48px;
+  }
 }
