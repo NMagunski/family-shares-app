@@ -1,27 +1,79 @@
 import React from 'react';
-import Card from '@/components/ui/Card';
+import { useRouter } from 'next/router';
 import type { Trip } from '@/types/trip';
-import Link from 'next/link';
+import Button from '@/components/ui/Button';
+import styles from './TripCard.module.css';
 
-type TripCardProps = {
+type Props = {
   trip: Trip;
 };
 
-const tripTypeLabel: Record<Trip['type'], string> = {
-  beach: 'Море',
-  flight: 'Екскурзия',
-  other: 'Друго',
-};
+function getTypeIcon(type: Trip['type']) {
+  switch (type) {
+    case 'beach':
+      return '🏖️';
+    case 'flight':
+      return '✈️';
+    default:
+      return '🧳';
+  }
+}
 
-const TripCard: React.FC<TripCardProps> = ({ trip }) => {
+function getTypeLabel(type: Trip['type']) {
+  switch (type) {
+    case 'beach':
+      return 'Море';
+    case 'flight':
+      return 'Екскурзия';
+    default:
+      return 'Друго';
+  }
+}
+
+const TripCard: React.FC<Props> = ({ trip }) => {
+  const router = useRouter();
+
+  const createdDate = trip.createdAt
+    ? new Date(trip.createdAt).toLocaleDateString('bg-BG')
+    : '';
+
+  function handleOpen() {
+    router.push(`/trips/${trip.id}`);
+  }
+
   return (
-    <Card>
-      <h2 style={{ marginBottom: 4 }}>{trip.name}</h2>
-      <p style={{ marginBottom: 8, fontSize: '0.9rem', color: '#4b5563' }}>
-        Тип: {tripTypeLabel[trip.type]}
-      </p>
-      <Link href={`/trips/${trip.id}`}>Отвори пътуването</Link>
-    </Card>
+    <div className={styles.card} onClick={handleOpen}>
+      <div className={styles.iconWrapper}>
+        <span className={styles.icon}>{getTypeIcon(trip.type)}</span>
+      </div>
+
+      <div className={styles.content}>
+        <div className={styles.headerRow}>
+          <h3 className={styles.title}>{trip.name}</h3>
+        </div>
+
+        <div className={styles.meta}>
+          <span className={styles.type}>
+            Тип: <strong>{getTypeLabel(trip.type)}</strong>
+          </span>
+          {createdDate && (
+            <span className={styles.date}>Създадено: {createdDate}</span>
+          )}
+        </div>
+
+        <div className={styles.actions}>
+          <Button
+            type="button"
+            onClick={(e) => {
+              e.stopPropagation();
+              handleOpen();
+            }}
+          >
+            Отвори пътуването
+          </Button>
+        </div>
+      </div>
+    </div>
   );
 };
 

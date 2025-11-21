@@ -7,6 +7,7 @@ import ExpensesTable from '@/components/trips/ExpensesTable';
 import DebtsSummary from '@/components/trips/DebtsSummary';
 import AddFamilyModal from '@/components/trips/AddFamilyModal';
 import ShareTripModal from '@/components/trips/ShareTripModal';
+import SectionCard from '@/components/ui/SectionCard';
 import type { TripFamily, TripExpense } from '@/types/trip';
 import { fetchFamilies, createFamily } from '@/lib/families';
 import { fetchExpenses, createExpense } from '@/lib/expensesStore';
@@ -123,23 +124,32 @@ const TripPage: React.FC = () => {
       />
 
       <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-        {familiesLoading ? (
-          <p>Зареждане на семейства...</p>
-        ) : (
-          <FamiliesSection families={families} />
-        )}
+        {/* УЧАСТНИЦИ */}
+        <SectionCard title="Участници" icon="🧑‍🤝‍🧑">
+          {familiesLoading ? (
+            <p>Зареждане на семейства...</p>
+          ) : (
+            <FamiliesSection families={families} />
+          )}
+        </SectionCard>
 
-        {expensesLoading ? (
-          <p>Зареждане на разходи...</p>
-        ) : (
-          <ExpensesTable
-            families={families}
-            expenses={expenses}
-            onAddExpense={handleAddExpense}
-          />
-        )}
+        {/* РАЗХОДИ */}
+        <SectionCard title="Разходи" icon="💰">
+          {expensesLoading ? (
+            <p>Зареждане на разходи...</p>
+          ) : (
+            <ExpensesTable
+              families={families}
+              expenses={expenses}
+              onAddExpense={handleAddExpense}
+            />
+          )}
+        </SectionCard>
 
-        <DebtsSummary families={families} expenses={expenses} />
+        {/* БАЛАНС */}
+        <SectionCard title="Кой на кого колко дължи" icon="📊">
+          <DebtsSummary families={families} expenses={expenses} />
+        </SectionCard>
       </div>
 
       <AddFamilyModal
