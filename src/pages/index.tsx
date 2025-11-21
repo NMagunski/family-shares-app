@@ -7,46 +7,60 @@ import TripCard from '@/components/trips/TripCard';
 import CreateTripModal from '@/components/trips/CreateTripModal';
 import { useAuth } from '@/context/AuthContext';
 import { useRouter } from 'next/router';
-import { createTripForUser, fetchTripsForUser } from '@/lib/trips';
+import {
+  createTripForUser,
+  fetchTripsForUser,
+  fetchSharedTripsForUser,
+} from '@/lib/trips';
 
 const HomePage: React.FC = () => {
   const { user, loading: authLoading } = useAuth();
   const router = useRouter();
 
-  const [trips, setTrips] = React.useState<Trip[]>([]);
+  const [ownedTrips, setOwnedTrips] = React.useState<Trip[]>([]);
+  const [sharedTrips, setSharedTrips] = React.useState<Trip[]>([]);
   const [tripsLoading, setTripsLoading] = React.useState(false);
   const [error, setError] = React.useState<string | null>(null);
 
   const [selectedType, setSelectedType] = React.useState<TripType | null>(null);
   const [isModalOpen, setIsModalOpen] = React.useState(false);
 
-  // Зареждаме пътуванията от Firestore, когато имаме логнат потребител
+  // зареждаме пътуванията за текущия потребител
   React.useEffect(() => {
-    if (!user) {
-      setTrips([]);
-      return;
-    }
+  if (!user) {
+    setOwnedTrips([]);
+    setSharedTrips([]);
+    return;
+  }
 
-    async function loadTrips() {
-      try {
-        setError(null);
-        setTripsLoading(true);
-        const data = await fetchTripsForUser(user!.uid);
-        setTrips(data);
-      } catch (err) {
-        console.error(err);
-        setError('Проблем при зареждане на пътуванията.');
-      } finally {
-        setTripsLoading(false);
-      }
-    }
+  async function loadTrips() {
+    try {
+      setTripsLoading(true);
+      setError(null);
 
-    loadTrips();
-  }, [user]);
+      const [owned, sharedRaw] = await Promise.all([
+        fetchTripsForUser(user!.uid),
+        fetchSharedTripsForUser(user!.uid),
+      ]);
+
+      const shared = sharedRaw.filter((t) => t.ownerId !== user!.uid);
+
+      setOwnedTrips(owned);
+      setSharedTrips(shared);
+    } catch (err) {
+      console.error(err);
+      setError('Проблем при зареждане на пътуванията.');
+    } finally {
+      setTripsLoading(false);
+    }
+  }
+
+  loadTrips();
+}, [user]);
+
 
   function handleSelect(type: TripType) {
     if (!user) {
-      // ако не е логнат → към login
       router.push('/login');
       return;
     }
@@ -64,7 +78,7 @@ const HomePage: React.FC = () => {
 
     try {
       const newTrip = await createTripForUser(user.uid, selectedType, name);
-      setTrips((prev) => [newTrip, ...prev]);
+      setOwnedTrips((prev) => [newTrip, ...prev]);
       handleCloseModal();
     } catch (err) {
       console.error(err);
@@ -77,24 +91,44 @@ const HomePage: React.FC = () => {
       <Card>
         <h1 style={{ marginBottom: 8 }}>Моите пътувания</h1>
         <p style={{ marginBottom: 12, fontSize: '0.9rem' }}>
-          Избери тип пътуване, за да създадеш ново, или отвори миналите пътувания.
+          Избери тип пътуване, за да създадеш ново, или отвори вече съществуващо.
         </p>
         <TripTypeSelector onSelect={handleSelect} />
       </Card>
 
-      <div style={{ marginTop: 16, display: 'flex', flexDirection: 'column', gap: 12 }}>
-        <h2>Минали пътувания</h2>
-
+      <div style={{ marginTop: 16, display: 'flex', flexDirection: 'column', gap: 16 }}>
         {authLoading || tripsLoading ? (
           <p>Зареждане...</p>
         ) : !user ? (
-          <p>За да виждаш пътуванията си, първо влез в профила си.</p>
+          <p>За да виждаш и създаваш пътувания, първо влез в профила си.</p>
         ) : error ? (
           <p style={{ color: 'red' }}>{error}</p>
-        ) : trips.length === 0 ? (
-          <p>Все още нямаш запазени пътувания.</p>
         ) : (
-          trips.map((trip) => <TripCard key={trip.id} trip={trip} />)
+          <>
+            {/* МОИ ПЪТУВАНИЯ */}
+            <div>
+              <h2 style={{ marginBottom: 8 }}>Създадени от мен</h2>
+              {ownedTrips.length === 0 ? (
+                <p style={{ fontSize: '0.9rem' }}>Все още нямаш създадени пътувания.</p>
+              ) : (
+                ownedTrips.map((trip) => <TripCard key={trip.id} trip={trip} />)
+              )}
+            </div>
+
+            {/* СПОДЕЛЕНИ С МЕН */}
+            <div>
+              <h2 style={{ marginBottom: 8 }}>Пътувания, в които участвам</h2>
+              {sharedTrips.length === 0 ? (
+                <p style={{ fontSize: '0.9rem' }}>
+                  В момента не участваш в други пътувания.
+                  Сподели линк към някое твое пътуване или използвай линк,
+                  който получиш от приятел.
+                </p>
+              ) : (
+                sharedTrips.map((trip) => <TripCard key={trip.id} trip={trip} />)
+              )}
+            </div>
+          </>
         )}
       </div>
 
