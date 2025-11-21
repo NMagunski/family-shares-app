@@ -8,9 +8,10 @@ import DebtsSummary from '@/components/trips/DebtsSummary';
 import AddFamilyModal from '@/components/trips/AddFamilyModal';
 import ShareTripModal from '@/components/trips/ShareTripModal';
 import SectionCard from '@/components/ui/SectionCard';
-import type { TripFamily, TripExpense } from '@/types/trip';
+import type { Trip, TripFamily, TripExpense } from '@/types/trip';
 import { fetchFamilies, createFamily } from '@/lib/families';
 import { fetchExpenses, createExpense } from '@/lib/expensesStore';
+import { fetchTripById } from '@/lib/trips';
 import { useAuth } from '@/context/AuthContext';
 
 const TripPage: React.FC = () => {
@@ -29,6 +30,10 @@ const TripPage: React.FC = () => {
   }, []);
   const shareUrl = tripIdStr ? `${origin}/join/${tripIdStr}` : '';
 
+  // Данни за самото пътуване (за заглавието)
+  const [trip, setTrip] = React.useState<Trip | null>(null);
+  const [tripLoading, setTripLoading] = React.useState(false);
+
   // Семейства
   const [families, setFamilies] = React.useState<TripFamily[]>([]);
   const [familiesLoading, setFamiliesLoading] = React.useState(false);
@@ -40,6 +45,25 @@ const TripPage: React.FC = () => {
 
   // Share modal
   const [showShareModal, setShowShareModal] = React.useState(false);
+
+  // Зареждане на самото пътуване (за да вземем името му)
+  React.useEffect(() => {
+    if (!tripIdStr) return;
+
+    async function loadTrip() {
+      try {
+        setTripLoading(true);
+        const t = await fetchTripById(tripIdStr);
+        setTrip(t);
+      } catch (err) {
+        console.error('Грешка при зареждане на пътуването:', err);
+      } finally {
+        setTripLoading(false);
+      }
+    }
+
+    loadTrip();
+  }, [tripIdStr]);
 
   // Зареждане на семейства
   React.useEffect(() => {
@@ -112,7 +136,8 @@ const TripPage: React.FC = () => {
     }
   }
 
-    const tripName = 'Пътуване';
+  // Име на пътуването за хедъра
+  const tripName = trip?.name ?? 'Пътуване';
 
   return (
     <Layout>

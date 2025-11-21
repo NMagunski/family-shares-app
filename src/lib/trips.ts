@@ -13,6 +13,9 @@ import type { Trip, TripType } from '@/types/trip';
 const TRIPS_COLLECTION = 'trips';
 const FAMILIES_COLLECTION = 'families';
 
+/**
+ * Създаване на ново пътуване за даден потребител
+ */
 export async function createTripForUser(
   ownerId: string,
   type: TripType,
@@ -37,12 +40,12 @@ export async function createTripForUser(
 }
 
 /**
- * Пътувания, създадени от текущия потребител
+ * Пътувания, които потребителят е създал (той е owner)
  */
 export async function fetchTripsForUser(ownerId: string): Promise<Trip[]> {
   const q = query(
     collection(db, TRIPS_COLLECTION),
-    where('ownerId', '==', ownerId),
+    where('ownerId', '==', ownerId)
   );
 
   const snapshot = await getDocs(q);
@@ -65,10 +68,10 @@ export async function fetchTripsForUser(ownerId: string): Promise<Trip[]> {
 }
 
 /**
- * Пътувания, в които потребителят участва чрез семейство (споделени пътувания)
+ * Пътувания, в които потребителят участва чрез семейства (споделени trips)
  */
 export async function fetchSharedTripsForUser(userId: string): Promise<Trip[]> {
-  // 1) намираме всички семейства за този user
+  // 1) намираме всички семейства, където userId участва
   const famQuery = query(
     collection(db, FAMILIES_COLLECTION),
     where('userId', '==', userId)
@@ -76,14 +79,16 @@ export async function fetchSharedTripsForUser(userId: string): Promise<Trip[]> {
   const famSnapshot = await getDocs(famQuery);
 
   const tripIds = Array.from(
-    new Set(famSnapshot.docs.map((d) => (d.data() as any).tripId as string))
+    new Set(
+      famSnapshot.docs.map((d) => (d.data() as any).tripId as string)
+    )
   );
 
   if (tripIds.length === 0) {
     return [];
   }
 
-  // 2) взимаме съответните trips по ID
+  // 2) взимаме съответните пътувания по id
   const trips: Trip[] = [];
 
   for (const tid of tripIds) {
@@ -102,8 +107,32 @@ export async function fetchSharedTripsForUser(userId: string): Promise<Trip[]> {
     });
   }
 
-  // сортираме по дата
   trips.sort((a, b) => (a.createdAt < b.createdAt ? 1 : -1));
 
   return trips;
+}
+
+/**
+ * Взима конкретно пътуване по ID (за заглавието на екрана)
+ */
+export async function fetchTripById(tripId: string): Promise<Trip | null> {
+  const ref = doc(db, TRIPS_COLLECTION, tripId);
+  const snap = await getDoc(ref);
+
+  if (!snap.exists()) {
+    return null;
+  }
+
+  const data = snap.data() as any;
+
+  const trip: Trip = {
+    id: snap.id,
+    ownerId: data.ownerId,
+    type: data.type,
+    name: data.name,
+    createdAt: data.createdAt ?? '',
+    archived: data.archived ?? false,
+  };
+
+  return trip;
 }
