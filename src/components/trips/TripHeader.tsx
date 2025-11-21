@@ -1,26 +1,29 @@
 import React from 'react';
-import Button from '@/components/ui/Button';
 import styles from './TripHeader.module.css';
+import Button from '@/components/ui/Button';
 
-type TripHeaderProps = {
-  name: string;
-  onAddFamily?: () => void;
-  onOpenLists?: () => void;
-  onShare?: () => void;
+type Props = {
+  tripName: string;
+  onAddFamily: () => void;
+  onOpenLists: () => void;
+  onShare: () => void;
 };
 
-const TripHeader: React.FC<TripHeaderProps> = ({ name, onAddFamily, onOpenLists, onShare }) => {
+const TripHeader: React.FC<Props> = ({ tripName, onAddFamily, onOpenLists, onShare }) => {
   return (
     <div className={styles.header}>
-      <h1 className={styles.title}>{name}</h1>
+      <h1 className={styles.title}>{tripName}</h1>
+
       <div className={styles.actions}>
         <Button onClick={onAddFamily}>Добави семейство</Button>
-        <Button variant="secondary" onClick={onOpenLists}>
+
+        <button className={styles.secondaryBtn} onClick={onOpenLists}>
           Списъци
-        </Button>
-        <Button variant="secondary" onClick={onShare}>
+        </button>
+
+        <button className={styles.secondaryBtn} onClick={onShare}>
           Сподели
-        </Button>
+        </button>
       </div>
     </div>
   );

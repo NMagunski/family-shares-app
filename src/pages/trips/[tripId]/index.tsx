@@ -112,12 +112,12 @@ const TripPage: React.FC = () => {
     }
   }
 
-  const tripName = tripIdStr ? `Пътуване ${tripIdStr}` : 'Пътуване';
+    const tripName = 'Пътуване';
 
   return (
     <Layout>
       <TripHeader
-        name={tripName}
+        tripName={tripName}
         onAddFamily={() => setShowFamilyModal(true)}
         onOpenLists={() => router.push(`/trips/${tripIdStr}/lists`)}
         onShare={() => setShowShareModal(true)}
