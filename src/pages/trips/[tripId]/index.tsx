@@ -8,8 +8,15 @@ import DebtsSummary from '@/components/trips/DebtsSummary';
 import AddFamilyModal from '@/components/trips/AddFamilyModal';
 import ShareTripModal from '@/components/trips/ShareTripModal';
 import SectionCard from '@/components/ui/SectionCard';
+import EditFamilyModal from '@/components/trips/EditFamilyModal';
+import ConfirmModal from '@/components/ui/ConfirmModal';
 import type { Trip, TripFamily, TripExpense } from '@/types/trip';
-import { fetchFamilies, createFamily } from '@/lib/families';
+import {
+  fetchFamilies,
+  createFamily,
+  updateFamilyName,
+  deleteFamilyAndExpenses,
+} from '@/lib/families';
 import { fetchExpenses, createExpense } from '@/lib/expensesStore';
 import { fetchTripById } from '@/lib/trips';
 import { useAuth } from '@/context/AuthContext';
@@ -30,9 +37,8 @@ const TripPage: React.FC = () => {
   }, []);
   const shareUrl = tripIdStr ? `${origin}/join/${tripIdStr}` : '';
 
-  // Данни за самото пътуване (за заглавието)
+  // Данни за пътуването
   const [trip, setTrip] = React.useState<Trip | null>(null);
-  const [tripLoading, setTripLoading] = React.useState(false);
 
   // Семейства
   const [families, setFamilies] = React.useState<TripFamily[]>([]);
@@ -46,19 +52,29 @@ const TripPage: React.FC = () => {
   // Share modal
   const [showShareModal, setShowShareModal] = React.useState(false);
 
-  // Зареждане на самото пътуване (за да вземем името му)
+  // Edit family modal
+  const [editingFamily, setEditingFamily] = React.useState<TripFamily | null>(
+    null
+  );
+  const [isEditModalOpen, setIsEditModalOpen] = React.useState(false);
+
+  // Delete family modal
+  const [deletingFamily, setDeletingFamily] = React.useState<TripFamily | null>(
+    null
+  );
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = React.useState(false);
+  const [deleteLoading, setDeleteLoading] = React.useState(false);
+
+  // Зареждане на пътуване
   React.useEffect(() => {
     if (!tripIdStr) return;
 
     async function loadTrip() {
       try {
-        setTripLoading(true);
         const t = await fetchTripById(tripIdStr);
         setTrip(t);
       } catch (err) {
         console.error('Грешка при зареждане на пътуването:', err);
-      } finally {
-        setTripLoading(false);
       }
     }
 
@@ -136,7 +152,66 @@ const TripPage: React.FC = () => {
     }
   }
 
-  // Име на пътуването за хедъра
+  // Отваряне на модал за редакция
+  function handleEditFamily(family: TripFamily) {
+    setEditingFamily(family);
+    setIsEditModalOpen(true);
+  }
+
+  async function handleSaveEditFamily(newName: string) {
+    if (!editingFamily) return;
+
+    try {
+      await updateFamilyName(editingFamily.id, newName);
+      setFamilies((prev) =>
+        prev.map((f) =>
+          f.id === editingFamily.id ? { ...f, name: newName } : f
+        )
+      );
+      setIsEditModalOpen(false);
+      setEditingFamily(null);
+    } catch (err) {
+      console.error(err);
+      alert('Грешка при редакция на семейство');
+    }
+  }
+
+  // Отваряне на модал за изтриване
+  function handleAskDeleteFamily(family: TripFamily) {
+    setDeletingFamily(family);
+    setIsDeleteModalOpen(true);
+  }
+
+  // Потвърждение за изтриване
+  async function handleConfirmDeleteFamily() {
+    if (!deletingFamily || !tripIdStr) return;
+
+    try {
+      setDeleteLoading(true);
+      await deleteFamilyAndExpenses(tripIdStr, deletingFamily.id);
+
+      // махаме семейството от стейта
+      setFamilies((prev) => prev.filter((f) => f.id !== deletingFamily.id));
+
+      // махаме всички разходи, свързани с това семейство
+      setExpenses((prev) =>
+        prev.filter(
+          (exp) =>
+            exp.paidByFamilyId !== deletingFamily.id &&
+            !exp.involvedFamilyIds.includes(deletingFamily.id)
+        )
+      );
+
+      setIsDeleteModalOpen(false);
+      setDeletingFamily(null);
+    } catch (err) {
+      console.error(err);
+      alert('Грешка при изтриване на семейство');
+    } finally {
+      setDeleteLoading(false);
+    }
+  }
+
   const tripName = trip?.name ?? 'Пътуване';
 
   return (
@@ -154,7 +229,11 @@ const TripPage: React.FC = () => {
           {familiesLoading ? (
             <p>Зареждане на семейства...</p>
           ) : (
-            <FamiliesSection families={families} />
+            <FamiliesSection
+              families={families}
+              onEditFamily={handleEditFamily}
+              onDeleteFamily={handleAskDeleteFamily}
+            />
           )}
         </SectionCard>
 
@@ -187,6 +266,34 @@ const TripPage: React.FC = () => {
         isOpen={showShareModal}
         onClose={() => setShowShareModal(false)}
         shareUrl={shareUrl}
+      />
+
+      <EditFamilyModal
+        isOpen={isEditModalOpen}
+        initialName={editingFamily?.name ?? ''}
+        onClose={() => {
+          setIsEditModalOpen(false);
+          setEditingFamily(null);
+        }}
+        onSave={handleSaveEditFamily}
+      />
+
+      <ConfirmModal
+        isOpen={isDeleteModalOpen}
+        title="Изтриване на семейство"
+        description={
+          deletingFamily
+            ? `Семейство "${deletingFamily.name}" и всички разходи, в които участва, ще бъдат изтрити. Сигурен ли си?`
+            : ''
+        }
+        confirmLabel={deleteLoading ? 'Изтриване...' : 'Изтрий'}
+        cancelLabel="Отказ"
+        onConfirm={handleConfirmDeleteFamily}
+        onClose={() => {
+          if (deleteLoading) return;
+          setIsDeleteModalOpen(false);
+          setDeletingFamily(null);
+        }}
       />
     </Layout>
   );

@@ -50,6 +50,17 @@
   font-weight: 600;
   color: #111827;
   margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.archivedBadge {
+  font-size: 0.75rem;
+  background: #f97316;
+  color: #fff;
+  padding: 2px 6px;
+  border-radius: 999px;
 }
 
 .meta {
@@ -73,7 +84,41 @@
   margin-top: 8px;
 }
 
-/* Mobile */
+.manageRow {
+  margin-top: 8px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.secondaryBtn {
+  border-radius: 999px;
+  border: 1px solid #d1d5db;
+  background: #f3f4f6;
+  padding: 6px 12px;
+  font-size: 0.85rem;
+  cursor: pointer;
+}
+
+.secondaryBtn:hover {
+  background: #e5e7eb;
+}
+
+.dangerBtn {
+  border-radius: 999px;
+  border: 1px solid #fca5a5;
+  background: #fee2e2;
+  padding: 6px 12px;
+  font-size: 0.85rem;
+  cursor: pointer;
+  color: #b91c1c;
+}
+
+.dangerBtn:hover {
+  background: #fecaca;
+}
+
+/* Мобилни екрани */
 @media (max-width: 640px) {
   .card {
     padding: 12px 12px;
@@ -94,5 +139,15 @@
 
   .actions button {
     width: 100%;
+  }
+
+  .manageRow {
+    flex-direction: row;
+  }
+
+  .secondaryBtn,
+  .dangerBtn {
+    flex: 1 1 auto;
+    text-align: center;
   }
 }

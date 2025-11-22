@@ -7,11 +7,15 @@ import {
   where,
   doc,
   getDoc,
+  updateDoc,
+  deleteDoc,
 } from 'firebase/firestore';
 import type { Trip, TripType } from '@/types/trip';
 
 const TRIPS_COLLECTION = 'trips';
 const FAMILIES_COLLECTION = 'families';
+const EXPENSES_COLLECTION = 'expenses';
+const LISTS_COLLECTION = 'lists';
 
 /**
  * Създаване на ново пътуване за даден потребител
@@ -71,7 +75,6 @@ export async function fetchTripsForUser(ownerId: string): Promise<Trip[]> {
  * Пътувания, в които потребителят участва чрез семейства (споделени trips)
  */
 export async function fetchSharedTripsForUser(userId: string): Promise<Trip[]> {
-  // 1) намираме всички семейства, където userId участва
   const famQuery = query(
     collection(db, FAMILIES_COLLECTION),
     where('userId', '==', userId)
@@ -88,7 +91,6 @@ export async function fetchSharedTripsForUser(userId: string): Promise<Trip[]> {
     return [];
   }
 
-  // 2) взимаме съответните пътувания по id
   const trips: Trip[] = [];
 
   for (const tid of tripIds) {
@@ -135,4 +137,62 @@ export async function fetchTripById(tripId: string): Promise<Trip | null> {
   };
 
   return trip;
+}
+
+/**
+ * Архивира / деархивира пътуване
+ */
+export async function setTripArchived(
+  tripId: string,
+  archived: boolean
+): Promise<void> {
+  const ref = doc(db, TRIPS_COLLECTION, tripId);
+  await updateDoc(ref, { archived });
+}
+
+/**
+ * Изтрива пътуване + всички свързани семейства, разходи и списъци
+ */
+export async function deleteTripCompletely(tripId: string): Promise<void> {
+  // трием всички семейства за това пътуване
+  const famQuery = query(
+    collection(db, FAMILIES_COLLECTION),
+    where('tripId', '==', tripId)
+  );
+  const famSnap = await getDocs(famQuery);
+
+  const famDeletions: Promise<void>[] = [];
+  famSnap.forEach((docSnap) => {
+    famDeletions.push(deleteDoc(docSnap.ref));
+  });
+
+  // трием всички разходи за това пътуване
+  const expQuery = query(
+    collection(db, EXPENSES_COLLECTION),
+    where('tripId', '==', tripId)
+  );
+  const expSnap = await getDocs(expQuery);
+
+  const expDeletions: Promise<void>[] = [];
+  expSnap.forEach((docSnap) => {
+    expDeletions.push(deleteDoc(docSnap.ref));
+  });
+
+  // трием всички списъци за това пътуване (ако има)
+  const listQuery = query(
+    collection(db, LISTS_COLLECTION),
+    where('tripId', '==', tripId)
+  );
+  const listSnap = await getDocs(listQuery);
+
+  const listDeletions: Promise<void>[] = [];
+  listSnap.forEach((docSnap) => {
+    listDeletions.push(deleteDoc(docSnap.ref));
+  });
+
+  await Promise.all([...famDeletions, ...expDeletions, ...listDeletions]);
+
+  // трием самото пътуване
+  const tripRef = doc(db, TRIPS_COLLECTION, tripId);
+  await deleteDoc(tripRef);
 }

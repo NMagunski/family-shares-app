@@ -5,15 +5,15 @@ export type Trip = {
   ownerId: string;
   type: TripType;
   name: string;
-  createdAt: string; // ISO
+  createdAt: string; // ISO string
   archived?: boolean;
 };
 
 export type TripFamily = {
   id: string;
   tripId: string;
-  name: string;
-  userId: string;       // кой потребител „държи“ това семейство
+  name: string;        // "Семейство Иванови"
+  userId: string;      // uid на потребителя, който е създал това семейство
   isOwnerFamily?: boolean;
   createdAt?: string;
 };
@@ -21,8 +21,8 @@ export type TripFamily = {
 export type TripExpense = {
   id: string;
   tripId: string;
-  paidByFamilyId: string;
-  involvedFamilyIds: string[];
+  paidByFamilyId: string;      // кой е платил
+  involvedFamilyIds: string[]; // между кои семейства се дели
   amount: number;
   currency: 'BGN' | 'EUR';
   comment?: string;
@@ -32,7 +32,7 @@ export type TripExpense = {
 export type TripList = {
   id: string;
   tripId: string;
-  familyId?: string;
+  familyId?: string; // undefined → общ списък
   name: string;
   type: 'packing' | 'shopping' | 'custom';
 };

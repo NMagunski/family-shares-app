@@ -6,6 +6,9 @@ import styles from './TripCard.module.css';
 
 type Props = {
   trip: Trip;
+  showManageActions?: boolean;
+  onArchiveToggle?: (trip: Trip) => void;
+  onDelete?: (trip: Trip) => void;
 };
 
 function getTypeIcon(type: Trip['type']) {
@@ -30,7 +33,12 @@ function getTypeLabel(type: Trip['type']) {
   }
 }
 
-const TripCard: React.FC<Props> = ({ trip }) => {
+const TripCard: React.FC<Props> = ({
+  trip,
+  showManageActions = false,
+  onArchiveToggle,
+  onDelete,
+}) => {
   const router = useRouter();
 
   const createdDate = trip.createdAt
@@ -41,6 +49,8 @@ const TripCard: React.FC<Props> = ({ trip }) => {
     router.push(`/trips/${trip.id}`);
   }
 
+  const isArchived = !!trip.archived;
+
   return (
     <div className={styles.card} onClick={handleOpen}>
       <div className={styles.iconWrapper}>
@@ -49,7 +59,12 @@ const TripCard: React.FC<Props> = ({ trip }) => {
 
       <div className={styles.content}>
         <div className={styles.headerRow}>
-          <h3 className={styles.title}>{trip.name}</h3>
+          <h3 className={styles.title}>
+            {trip.name}
+            {isArchived && (
+              <span className={styles.archivedBadge}>Архивирано</span>
+            )}
+          </h3>
         </div>
 
         <div className={styles.meta}>
@@ -72,6 +87,35 @@ const TripCard: React.FC<Props> = ({ trip }) => {
             Отвори пътуването
           </Button>
         </div>
+
+        {showManageActions && (
+          <div className={styles.manageRow}>
+            {onArchiveToggle && (
+              <button
+                type="button"
+                className={styles.secondaryBtn}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onArchiveToggle(trip);
+                }}
+              >
+                {isArchived ? 'Върни от архив' : 'Архивирай'}
+              </button>
+            )}
+            {onDelete && (
+              <button
+                type="button"
+                className={styles.dangerBtn}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onDelete(trip);
+                }}
+              >
+                Изтрий
+              </button>
+            )}
+          </div>
+        )}
       </div>
     </div>
   );

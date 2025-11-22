@@ -1,0 +1,63 @@
+.list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: #f9fafb;
+  padding: 12px 14px;
+  border-radius: 12px;
+  border: 1px solid #e5e7eb;
+}
+
+.left {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.familyIcon {
+  font-size: 1.4rem;
+}
+
+.name {
+  font-size: 1rem;
+  font-weight: 500;
+  color: #111827;
+}
+
+.meBadge {
+  background: #2563eb;
+  color: white;
+  font-size: 0.75rem;
+  padding: 2px 6px;
+  border-radius: 6px;
+  margin-left: 8px;
+}
+
+.actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.actionBtn {
+  background: #f3f4f6;
+  border: none;
+  padding: 6px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 1rem;
+}
+
+.actionBtn:hover {
+  background: #e5e7eb;
+}
+
+.actionBtn:active {
+  transform: scale(0.95);
+}
