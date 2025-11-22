@@ -1,42 +1,68 @@
 .card {
+  /* лек peach градиент, да не е чисто бяло */
+  background: linear-gradient(135deg, #ffffff, #fff7ed);
+  border-radius: var(--radius-lg);
+  padding: 16px 18px;
+  box-shadow: var(--shadow-soft);
+  border: 1px solid var(--color-border-subtle);
   margin-bottom: 12px;
-  background: #ffffff;
-  border-radius: 16px;
-  box-shadow: 0 8px 20px rgba(15, 23, 42, 0.06);
-  border: 1px solid #e5e7eb;
 }
 
+/* Header с икона и заглавие */
 .header {
   display: flex;
   align-items: center;
-  gap: 8px;
-  margin-bottom: 10px;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.titleWrap {
+  display: flex;
+  align-items: center;
+  gap: 10px;
 }
 
 .icon {
-  font-size: 1.3rem;
+  width: 32px;
+  height: 32px;
+  border-radius: var(--radius-pill);
+  background: var(--color-primary-soft);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
 }
 
 .title {
-  font-size: 1.05rem;
-  font-weight: 600;
-  color: #111827;
-  margin: 0;
+  font-size: 17px;
+  font-weight: 700;
+  color: var(--color-text-main);
 }
 
+.subtitle {
+  font-size: 13px;
+  color: var(--color-text-soft);
+}
+
+/* съдържание */
 .body {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
+  font-size: 14px;
 }
 
-/* Mobile */
+/* mobile */
 @media (max-width: 640px) {
   .card {
-    border-radius: 14px;
+    padding: 14px 14px;
   }
 
   .title {
-    font-size: 1rem;
+    font-size: 16px;
+  }
+
+  .icon {
+    width: 28px;
+    height: 28px;
+    font-size: 16px;
   }
 }

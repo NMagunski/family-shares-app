@@ -1,0 +1,7 @@
+<!-- trip-flight.svg -->
+<svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <path d="M6 22L26 8" stroke="#111827" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"></path>
+  <path d="M12 8L15 15" stroke="#111827" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"></path>
+  <path d="M8 20L15 17" stroke="#111827" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"></path>
+  <path d="M18 24L20 21" stroke="#111827" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"></path>
+</svg>

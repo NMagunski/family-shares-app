@@ -1,14 +1,17 @@
-import React from 'react';
-import styles from './Card.module.css';
+import React from "react";
+import styles from "./Card.module.css";
 
 type CardProps = {
   children: React.ReactNode;
-  className?: string;
+  compact?: boolean;
 };
 
-const Card: React.FC<CardProps> = ({ children, className = '' }) => {
-  const cls = [styles.card, className].filter(Boolean).join(' ');
-  return <div className={cls}>{children}</div>;
+const Card: React.FC<CardProps> = ({ children, compact }) => {
+  return (
+    <div className={compact ? styles.cardCompact : styles.card}>
+      {children}
+    </div>
+  );
 };
 
 export default Card;

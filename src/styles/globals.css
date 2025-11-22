@@ -1,11 +1,58 @@
-/* Global reset */
+/* ---------- ГЛОБАЛНИ ПРЕМЕНЛИ ---------- */
+
+:root {
+  /* Tropical Pastel палитра */
+
+  /* Основни фонове */
+  --color-bg: #fff7ed;          /* топъл peach фон */
+  --color-surface: #ffffff;     /* повърхности / карти */
+
+  /* Primary – по-наситено пастелно mint/зелено */
+  --color-primary: #34d399;         /* mint */
+  --color-primary-hover: #22c55e;   /* малко по-наситен за hover */
+  --color-primary-soft: #d1fae5;    /* светъл фон за секции / акценти */
+
+  /* Accent – по-ярко peach / sunset */
+  --color-accent: #fb923c;
+  --color-accent-soft: #ffedd5;
+
+  /* Бордери */
+  --color-border-subtle: #f1e4d8;
+  --color-border-strong: #e0ccb8;
+
+  /* Текст */
+  --color-text-main: #1f2933;
+  --color-text-soft: #4b5563;
+  --color-text-muted: #6b7280;
+
+  /* Сянка и заобляния */
+  --shadow-soft: 0 10px 25px rgba(15, 23, 42, 0.06);
+  --radius-lg: 18px;
+  --radius-md: 12px;
+  --radius-pill: 999px;
+}
+
+/* ---------- RESET / BODY ---------- */
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+/* Тук правим общия фон по-„tropical“:
+   peach → по-светъл peach → лек mint */
+html,
 body {
+  background: linear-gradient(
+    180deg,
+    #fff7ed 0%,
+    #fffbeb 45%,
+    #ecfeff 100%
+  );
   margin: 0;
-  padding: 0;
-  background-color: #f9fafb;
-  font-family: -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Oxygen,
-    Ubuntu, Cantarell, Fira Sans, Droid Sans, Helvetica Neue, sans-serif;
-  color: #111827;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  color: var(--color-text-main);
 }
 
 a {
@@ -13,6 +60,44 @@ a {
   text-decoration: none;
 }
 
-* {
-  box-sizing: border-box;
+button {
+  font-family: inherit;
+}
+
+body {
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ---------- LAYOUT ---------- */
+
+#__next {
+  min-height: 100vh;
+}
+
+.main-shell {
+  max-width: 960px;
+  margin: 0 auto;
+  padding: 16px;
+}
+
+/* Дребни помощни класове */
+
+.text-soft {
+  color: var(--color-text-soft);
+}
+
+.text-muted {
+  color: var(--color-text-muted);
+}
+
+/* Скролбар – малко по-неутрален */
+::-webkit-scrollbar {
+  width: 8px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: #d1d5db;
+  border-radius: 999px;
 }

@@ -1,5 +1,6 @@
 import React from 'react';
 import styles from './AddExpenseForm.module.css';
+import Button from '@/components/ui/Button';
 
 type Props = {
   families: { id: string; name: string }[];
@@ -107,10 +108,9 @@ const AddExpenseForm: React.FC<Props> = ({ families, onAdd }) => {
         onChange={(e) => setComment(e.target.value)}
         placeholder="пример: вечеря, бензин, хот-дог..."
       />
-
-      <button type="submit" className={styles.addButton}>
-        ➕ Добави разход
-      </button>
+<Button type="submit" style={{ width: '100%' }}>
+  Добави разход
+</Button>
     </form>
   );
 };

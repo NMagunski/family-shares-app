@@ -1,0 +1,14 @@
+<!-- trip-other-luggage.svg -->
+<svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+
+  <!-- дръжка -->
+  <path d="M12 10V8.5C12 7.1 13.1 6 14.5 6H17.5C18.9 6 20 7.1 20 8.5V10" stroke="#111827" stroke-width="1.8" stroke-linecap="round"></path>
+
+  <!-- куфар -->
+  <rect x="9" y="10" width="14" height="16" rx="3" stroke="#111827" stroke-width="1.8"></rect>
+
+  <!-- вътрешни линии (детайл) -->
+  <path d="M14 10V26" stroke="#111827" stroke-width="1.6" stroke-linecap="round"></path>
+  <path d="M18 10V26" stroke="#111827" stroke-width="1.6" stroke-linecap="round"></path>
+
+</svg>

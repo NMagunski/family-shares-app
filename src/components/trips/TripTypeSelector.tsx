@@ -1,40 +1,46 @@
 import React from 'react';
 import type { TripType } from '@/types/trip';
-import styles from './TripTypeSelector.module.css';
+import Button from '@/components/ui/Button';
 
-type Props = {
+type TripTypeSelectorProps = {
   onSelect: (type: TripType) => void;
 };
 
-const TripTypeSelector: React.FC<Props> = ({ onSelect }) => {
+const TripTypeSelector: React.FC<TripTypeSelectorProps> = ({ onSelect }) => {
   return (
-    <div className={styles.container}>
-      <button
+    <div
+      style={{
+        display: 'flex',
+        flexWrap: 'wrap',
+        gap: 8,
+      }}
+    >
+      <Button
         type="button"
-        className={styles.optionButton}
+        variant="primary"
+        size="md"
         onClick={() => onSelect('beach')}
       >
-        <span className={styles.emoji}>🏖️</span>
-        <span className={styles.label}>Море</span>
-      </button>
+        🏖 Море
+      </Button>
 
-      <button
+      <Button
         type="button"
-        className={styles.optionButton}
+        variant="primary"
+        size="md"
         onClick={() => onSelect('flight')}
       >
-        <span className={styles.emoji}>✈️</span>
-        <span className={styles.label}>Екскурзия</span>
-      </button>
+        ✈️ Екскурзия
+      </Button>
 
-      <button
+      <Button
         type="button"
-        className={styles.optionButton}
+        variant="primary"
+        size="md"
         onClick={() => onSelect('other')}
       >
-        <span className={styles.emoji}>🧳</span>
-        <span className={styles.label}>Друго</span>
-      </button>
+        🧳 Друго
+      </Button>
     </div>
   );
 };

@@ -1,7 +1,23 @@
 .card {
-  background-color: #ffffff;
-  border-radius: 8px;
-  border: 1px solid #e5e7eb;
-  padding: 16px;
-  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
+  /* Ясен tropical фон – да НЕ изглежда бяло :) */
+  background: radial-gradient(circle at top left, #fff3d1 0%, #ffe1d1 35%, #ffffff 100%);
+  border-radius: var(--radius-lg);
+  padding: 18px 22px;
+  box-shadow: var(--shadow-soft);
+  border: 1px solid var(--color-border-subtle);
+}
+
+/* По-компактен вариант, ако го ползваме някъде */
+.cardCompact {
+  background: radial-gradient(circle at top left, #fff3d1 0%, #ffe1d1 35%, #ffffff 100%);
+  border-radius: var(--radius-md);
+  padding: 14px 16px;
+  box-shadow: var(--shadow-soft);
+  border: 1px solid var(--color-border-subtle);
+}
+
+@media (max-width: 640px) {
+  .card {
+    padding: 16px 16px;
+  }
 }

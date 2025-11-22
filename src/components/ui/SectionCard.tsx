@@ -1,22 +1,33 @@
 import React from 'react';
-import Card from '@/components/ui/Card';
 import styles from './SectionCard.module.css';
 
 type SectionCardProps = {
   title: string;
-  icon?: string;
+  icon?: React.ReactNode;   // може да е емоджи или икона
+  subtitle?: string;        // по желание – малък текст под заглавието
   children: React.ReactNode;
 };
 
-const SectionCard: React.FC<SectionCardProps> = ({ title, icon, children }) => {
+const SectionCard: React.FC<SectionCardProps> = ({
+  title,
+  icon,
+  subtitle,
+  children,
+}) => {
   return (
-    <Card className={styles.card}>
-      <div className={styles.header}>
-        {icon && <span className={styles.icon}>{icon}</span>}
-        <h2 className={styles.title}>{title}</h2>
-      </div>
+    <section className={styles.card}>
+      <header className={styles.header}>
+        <div className={styles.titleWrap}>
+          {icon && <div className={styles.icon}>{icon}</div>}
+          <div>
+            <div className={styles.title}>{title}</div>
+            {subtitle && <div className={styles.subtitle}>{subtitle}</div>}
+          </div>
+        </div>
+      </header>
+
       <div className={styles.body}>{children}</div>
-    </Card>
+    </section>
   );
 };
 
