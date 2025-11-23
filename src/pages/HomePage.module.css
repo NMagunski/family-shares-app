@@ -1,81 +1,70 @@
 .mainTitle {
-  margin: 0 0 6px 0;
-  font-size: 1.2rem;
-  font-weight: 600;
-  color: #0f172a;
+  font-size: 2.1rem;
+  font-weight: 700;
+  color: #143F2C;
+  margin: 0 0 4px 0;
+  text-align: center; /* центриране */
 }
 
 .mainSubtitle {
-  margin: 0 0 12px 0;
-  font-size: 0.9rem;
-  color: #64748b;
+  margin: 0;
+  font-size: 0.98rem;
+  color: #6b8376;
+  line-height: 1.5;
+  text-align: center; /* центриране */
 }
 
-/* Контейнер за секциите със списъци */
+/* Отделяме секцията "Моите пътувания" от останалото съдържание */
 .sectionsWrapper {
-  margin-top: 16px;
+  margin-top: 28px;
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: 24px;
 }
 
-/* Една секция (активни, архивирани, споделени) */
 .section {
-  padding: 4px 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
 }
 
 .sectionTitle {
-  margin: 0 0 8px 0;
-  font-size: 1rem;
+  font-size: 1.1rem;
   font-weight: 600;
-  color: #0f172a;
+  color: #143F2C;
+  margin: 0 0 4px 0;
 }
 
 .sectionEmptyText {
+  margin: 0;
   font-size: 0.9rem;
-  color: #64748b;
+  color: #6b8376;
 }
 
-/* Списък от TripCard-ове */
 .tripsList {
   display: flex;
   flex-direction: column;
   gap: 12px;
 }
 
-/* Статусни съобщения (зареждане, без логин, грешка) */
-
 .statusText {
-  font-size: 0.9rem;
-  color: #475569;
+  font-size: 0.95rem;
+  color: #6b8376;
 }
 
 .errorText {
-  font-size: 0.9rem;
+  font-size: 0.95rem;
   color: #b91c1c;
 }
 
-/* Мобилен изглед */
-
+/* Малко по-стегнат вид на мобилно */
 @media (max-width: 640px) {
-  .sectionsWrapper {
-    margin-top: 12px;
-    gap: 12px;
-  }
-
-  .sectionTitle {
-    font-size: 0.95rem;
-  }
-
   .mainTitle {
-    font-size: 1.05rem;
+    font-size: 1.8rem;
   }
 
-  .mainSubtitle {
-    font-size: 0.85rem;
-  }
-
-  .tripsList {
-    gap: 10px;
+  .sectionsWrapper {
+    margin-top: 20px;
+    gap: 18px;
   }
 }

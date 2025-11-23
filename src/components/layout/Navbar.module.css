@@ -2,9 +2,9 @@
   position: sticky;
   top: 0;
   z-index: 40;
-  background: rgba(255, 255, 255, 0.92);
+  background: rgba(250, 247, 242, 0.96); /* #FAF7F2 с леко прозрачно */
   backdrop-filter: blur(12px);
-  border-bottom: 1px solid rgba(15, 23, 42, 0.06);
+  border-bottom: 1px solid rgba(20, 63, 44, 0.08); /* #143F2C с ниска прозрачност */
 }
 
 .inner {
@@ -34,7 +34,7 @@
   font-size: 1rem;
   font-weight: 700;
   letter-spacing: 0.03em;
-  color: #0f172a;
+  color: #143F2C; /* тъмно зелено – основен текстов цвят */
 }
 
 /* Навигационни линкове – десктоп */
@@ -50,7 +50,7 @@
 .navLink {
   font-size: 0.9rem;
   text-decoration: none;
-  color: #475569;
+  color: #406a57; /* по-светъл вариант на тъмнозеленото */
   padding: 6px 10px;
   border-radius: 999px;
   transition:
@@ -59,8 +59,8 @@
 }
 
 .navLink:hover {
-  background-color: #e0f2fe;
-  color: #0f172a;
+  background-color: #d8f4e8; /* светъл емералд фон */
+  color: #143F2C;
 }
 
 /* Дясна част – auth десктоп */
@@ -73,7 +73,7 @@
 
 .userEmail {
   font-size: 0.8rem;
-  color: #64748b;
+  color: #6b8376; /* неутрално зеленикаво-сиво */
 }
 
 /* Линкове за вход / регистрация */
@@ -92,23 +92,23 @@
 
 .authLink {
   background-color: transparent;
-  color: #0f172a;
+  color: #143F2C;
 }
 
 .authLink:hover {
-  background-color: #e5e7eb;
+  background-color: #e4ece5; /* лек неутрален фон */
 }
 
 .authPrimaryLink {
-  background-color: #0ea5e9;
+  background-color: #2BB57C; /* primary */
   color: #ffffff;
   font-weight: 500;
-  box-shadow: 0 4px 10px rgba(14, 165, 233, 0.35);
+  box-shadow: 0 4px 10px rgba(43, 181, 124, 0.35);
 }
 
 .authPrimaryLink:hover {
-  background-color: #0284c7;
-  box-shadow: 0 6px 14px rgba(14, 165, 233, 0.45);
+  background-color: #229565; /* леко потъмнен емералд */
+  box-shadow: 0 6px 14px rgba(43, 181, 124, 0.45);
 }
 
 /* Logout бутон */
@@ -120,7 +120,7 @@
   font-size: 0.8rem;
   padding: 6px 12px;
   border-radius: 999px;
-  background-color: #fee2e2;
+  background-color: #fee2e2; /* оставяме класически “danger” в червено */
   color: #b91c1c;
   font-weight: 500;
   transition:
@@ -153,14 +153,14 @@
   width: 18px;
   height: 2px;
   border-radius: 999px;
-  background-color: #0f172a;
+  background-color: #143F2C; /* тъмно зелено вместо тъмносиньо */
   + .mobileToggleBar {
     margin-top: 4px;
   }
 }
 
 .mobileToggle:hover {
-  background-color: #e5e7eb;
+  background-color: #e4ece5;
   transform: translateY(-1px);
 }
 
@@ -168,8 +168,8 @@
 
 .mobileMenu {
   display: none;
-  border-top: 1px solid rgba(15, 23, 42, 0.04);
-  background-color: #ffffff;
+  border-top: 1px solid rgba(20, 63, 44, 0.06);
+  background-color: #FAF7F2;
 }
 
 .mobileMenuOpen {
@@ -184,7 +184,7 @@
 }
 
 .mobileNavSection {
-  border-bottom: 1px solid rgba(15, 23, 42, 0.04);
+  border-bottom: 1px solid rgba(20, 63, 44, 0.06);
 }
 
 .mobileNavLink {
@@ -192,7 +192,7 @@
   text-decoration: none;
   font-size: 0.95rem;
   padding: 8px 0;
-  color: #0f172a;
+  color: #143F2C;
 }
 
 /* В мобилното меню линковете/бутоните са на пълна ширина */

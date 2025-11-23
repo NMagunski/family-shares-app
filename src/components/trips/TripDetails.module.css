@@ -38,7 +38,10 @@
   gap: 2px;
   padding: 8px 10px;
   border-radius: 10px;
-  background-color: #f8fafc;
+
+  /* Нов фон – крем, в духа на бранда */
+  background-color: #FAF7F2;
+  border: 1px solid rgba(20, 63, 44, 0.06); /* леко тъмнозелено бордерче */
 }
 
 .summaryItemFull {
@@ -47,7 +50,7 @@
 
 .summaryLabel {
   font-size: 0.78rem;
-  color: #94a3b8;
+  color: #6b8376; /* muted зеленикаво-сиво вместо синьо */
   text-transform: uppercase;
   letter-spacing: 0.04em;
 }
@@ -55,19 +58,19 @@
 .summaryValue {
   font-size: 0.95rem;
   font-weight: 600;
-  color: #0f172a;
+  color: #143F2C; /* тъмно зелено – основен текстов цвят */
 }
 
 .summaryValueSmall {
   font-size: 0.8rem;
-  color: #0f172a;
+  color: #143F2C;
   word-break: break-all;
 }
 
 /* Текстове */
 .mutedText {
   font-size: 0.9rem;
-  color: #64748b;
+  color: #6b8376; /* същото muted зеленикаво-сиво */
 }
 
 /* Мобилен / таблет изглед */

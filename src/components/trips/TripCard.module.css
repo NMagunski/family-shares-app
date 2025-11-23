@@ -4,9 +4,10 @@
   gap: 16px;
   padding: 16px 18px;
   border-radius: 14px;
-  background-color: #ffffff;
-  border: 1px solid rgba(15, 23, 42, 0.06);
-  box-shadow: 0 8px 18px rgba(15, 23, 42, 0.06);
+  background-color: #ffffff; /* бял фон, по-корпоративен */
+  border: 1px solid rgba(20, 63, 44, 0.08); /* леко тъмнозелено бордерче */
+  box-shadow:
+    0 8px 18px rgba(20, 63, 44, 0.04); /* по-мека, зеленикава сянка */;
   cursor: pointer;
   transition:
     transform 0.12s ease-out,
@@ -17,9 +18,11 @@
 
 .card:hover {
   transform: translateY(-2px);
-  box-shadow: 0 14px 28px rgba(15, 23, 42, 0.12);
-  border-color: rgba(56, 189, 248, 0.5);
-  background-color: #f9feff;
+  box-shadow:
+    0 12px 24px rgba(20, 63, 44, 0.08),
+    0 18px 38px rgba(43, 181, 124, 0.12); /* лек emerald glow */
+  border-color: rgba(43, 181, 124, 0.5); /* emerald */
+  background-color: #f5fbf8; /* много светъл зеленикав tint */
 }
 
 .iconWrapper {
@@ -27,7 +30,8 @@
   width: 52px;
   height: 52px;
   border-radius: 16px;
-  background: radial-gradient(circle at 0% 0%, #e0f2fe, #f5f3ff);
+  background: radial-gradient(circle at 0% 0%, #e6f4ee, #d8f4e8);
+  /* по-еко, зеленикаво вместо синьо-лилаво */
   display: flex;
   align-items: center;
   justify-content: center;
@@ -62,7 +66,7 @@
   margin: 0;
   font-size: 1.05rem;
   font-weight: 600;
-  color: #0f172a;
+  color: #143F2C; /* тъмно зелено – основен текстов цвят */
   word-break: break-word;
 }
 
@@ -80,13 +84,13 @@
   border-radius: 999px;
   font-size: 0.8rem;
   font-weight: 500;
-  background-color: #e0f2fe;
-  color: #0369a1;
+  background-color: #E6F4EE; /* светъл emerald фон */
+  color: #166A4B; /* по-тъмно зелено за текста */
 }
 
 .metaText {
   font-size: 0.8rem;
-  color: #64748b;
+  color: #64748b; /* неутрален сиво-син тон – остава четим и дискретен */
 }
 
 .archivedBadge {
@@ -132,16 +136,18 @@
     transform 0.08s ease-out;
 }
 
+/* Secondary бутони вътре в картата – съобразени с палитрата */
 .secondaryBtn {
-  background-color: #e5e7eb;
-  color: #111827;
+  background-color: #E6F0EA; /* леко зеленикаво/кремово */
+  color: #143F2C;
 }
 
 .secondaryBtn:hover {
-  background-color: #d1d5db;
+  background-color: #d4e4da;
   transform: translateY(-1px);
 }
 
+/* Danger остава класически червен */
 .dangerBtn {
   background-color: #fee2e2;
   color: #b91c1c;

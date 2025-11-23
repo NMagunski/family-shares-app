@@ -178,7 +178,7 @@ const HomePage: React.FC = () => {
   return (
     <Layout>
       <Card>
-        <h1 className={styles.mainTitle}>Моите пътувания</h1>
+        <h1 className={styles.mainTitle}>Вид пътуване</h1>
         <p className={styles.mainSubtitle}>
           Избери тип пътуване, за да създадеш ново, или отвори вече съществуващо.
         </p>

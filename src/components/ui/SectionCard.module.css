@@ -1,9 +1,30 @@
 .card {
-  margin-bottom: 12px;
+  margin-bottom: 16px;
   background: #ffffff;
   border-radius: 16px;
-  box-shadow: 0 8px 20px rgba(15, 23, 42, 0.06);
-  border: 1px solid #e5e7eb;
+
+  /* повече вътрешен въздух -> картата става по-"главна" */
+  padding: 18px 20px;
+
+  border: 1px solid rgba(20, 63, 44, 0.08);
+  box-shadow:
+    0 8px 18px rgba(20, 63, 44, 0.04),
+    0 14px 32px rgba(43, 181, 124, 0.06);
+
+  transition:
+    border-color 0.15s ease-out,
+    box-shadow 0.15s ease-out,
+    background-color 0.15s ease-out,
+    transform 0.12s ease-out;
+}
+
+.card:hover {
+  transform: translateY(-2px);
+  background-color: #f5fbf8;
+  border-color: rgba(43, 181, 124, 0.5);
+  box-shadow:
+    0 12px 24px rgba(20, 63, 44, 0.08),
+    0 20px 40px rgba(43, 181, 124, 0.10);
 }
 
 .header {
@@ -14,29 +35,30 @@
 }
 
 .icon {
-  font-size: 1.3rem;
+  font-size: 1.4rem;
 }
 
 .title {
-  font-size: 1.05rem;
+  font-size: 1.15rem; /* леко по-голямо заглавие */
   font-weight: 600;
-  color: #111827;
+  color: #143F2C;
   margin: 0;
 }
 
 .body {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 10px;
 }
 
 /* Mobile */
 @media (max-width: 640px) {
   .card {
     border-radius: 14px;
+    padding: 16px 14px;
   }
 
   .title {
-    font-size: 1rem;
+    font-size: 1.05rem;
   }
 }

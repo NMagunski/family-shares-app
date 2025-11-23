@@ -18,38 +18,41 @@
   height: 40px;
 }
 
-/* PRIMARY – СИН */
+/* PRIMARY – EMERALD (основен брандов цвят) */
 .primary {
-  background: #3b82f6;
-  border: 1px solid #2563eb;
-  color: white;
+  background: #2BB57C;        /* emerald */
+  border: 1px solid #229565;  /* по-тъмен emerald */
+  color: #ffffff;
 }
 
 .primary:hover {
-  background: #2563eb;
+  background: #229565;
+  border-color: #1b7652;
+  box-shadow: 0 4px 10px rgba(43, 181, 124, 0.35);
 }
 
 .primary:active {
   transform: translateY(1px);
+  box-shadow: 0 2px 6px rgba(43, 181, 124, 0.25);
 }
 
-/* SECONDARY – БЯЛ С OUTLINE */
+/* SECONDARY – КРЕМ ФОН С ЛЕК OUTLINE */
 .secondary {
-  background: #ffffff;
-  border: 1px solid #d1d5db;
-  color: #374151;
+  background: #FAF7F2;        /* крем, бранд фон */
+  border: 1px solid #d4ddd6;  /* неутрално, леко зеленикаво-сиво */
+  color: #143F2C;             /* тъмно зелено, основен текст */
 }
 
 .secondary:hover {
-  background: #f3f4f6;
-  border-color: #9ca3af;
+  background: #e6f0ea;        /* леко потъмнен крем/зеленикав */
+  border-color: #9fb2a6;
 }
 
 .secondary:active {
   transform: translateY(1px);
 }
 
-/* DANGER – ЧЕРВЕН OUTLINE */
+/* DANGER – ЧЕРВЕН OUTLINE (оставяме класически) */
 .danger {
   background: #fef2f2;
   border: 1px solid #ef4444;
@@ -65,19 +68,18 @@
   transform: translateY(1px);
 }
 
-/* GHOST – ПРОЗРАЧЕН */
+/* GHOST – ПРОЗРАЧЕН С ТЪМНО ЗЕЛЕН ТЕКСТ */
 .ghost {
   background: transparent;
   border: 1px solid transparent;
-  color: #374151;
+  color: #143F2C;
 }
 
 .ghost:hover {
-  background: #f3f4f6;
-  border-color: #e5e7eb;
+  background: #E6F4EE;        /* много светъл emerald фон */
+  border-color: #C4E2D3;
 }
 
 .ghost:active {
   transform: translateY(1px);
 }
-

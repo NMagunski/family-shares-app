@@ -6,18 +6,22 @@
 
 .label {
   font-size: 0.85rem;
-  color: #4b5563;
+  color: #6b8376; /* muted зеленикаво-сиво */
 }
 
 .select {
   padding: 8px 10px;
   border-radius: 6px;
-  border: 1px solid #d1d5db;
+  border: 1px solid #d4ddd6; /* леко зеленикаво-сиво */
   font-size: 0.95rem;
+  background-color: #ffffff;
+  transition:
+    border-color 0.12s ease-out,
+    box-shadow 0.12s ease-out;
 }
 
 .select:focus {
   outline: none;
-  border-color: #2563eb;
-  box-shadow: 0 0 0 1px rgba(37, 99, 235, 0.2);
+  border-color: #2BB57C; /* emerald */
+  box-shadow: 0 0 0 2px rgba(43, 181, 124, 0.25); /* emerald glow */
 }

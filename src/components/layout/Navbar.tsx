@@ -1,5 +1,6 @@
 import React from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import styles from './Navbar.module.css';
 import { useAuth } from '@/context/AuthContext';
 
@@ -58,8 +59,14 @@ const Navbar: React.FC = () => {
       <div className={styles.inner}>
         {/* ЛОГО / БРАНД */}
         <Link href="/" className={styles.brand} onClick={handleCloseMobile}>
-          <span className={styles.logoIcon}>👨‍👩‍👧‍👦</span>
-          <span className={styles.logoText}>Family&nbsp;Shares</span>
+          <Image
+            src="/tripsplitly-logo.png"   // сложи файла в /public с това име
+            alt="TripSplitly logo"
+            width={32}
+            height={32}
+            className={styles.logoIcon}
+          />
+          <span className={styles.logoText}>TripSplitly</span>
         </Link>
 
         {/* ГЛАВНИ ЛИНКОВЕ – десктоп */}

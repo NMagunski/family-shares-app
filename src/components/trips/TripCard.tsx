@@ -1,7 +1,6 @@
 import React from 'react';
 import { useRouter } from 'next/router';
 import type { Trip } from '@/types/trip';
-import Button from '@/components/ui/Button';
 import styles from './TripCard.module.css';
 
 type Props = {
@@ -61,32 +60,26 @@ const TripCard: React.FC<Props> = ({
         <div className={styles.headerRow}>
           <div className={styles.titleBlock}>
             <h3 className={styles.title}>{trip.name}</h3>
+
             <div className={styles.subtitleRow}>
               <span className={styles.typeBadge}>{getTypeLabel(trip.type)}</span>
+
               {createdDate && (
-                <span className={styles.metaText}>Създадено: {createdDate}</span>
+                <span className={styles.metaText}>
+                  Създадено: {createdDate}
+                </span>
               )}
             </div>
           </div>
 
           {isArchived && (
-            <span className={styles.archivedBadge}>Архивирано</span>
+            <span className={styles.archivedBadge}>
+              Архивирано
+            </span>
           )}
         </div>
 
         <div className={styles.footerRow}>
-          <div className={styles.primaryAction}>
-            <Button
-              type="button"
-              onClick={(e) => {
-                e.stopPropagation();
-                handleOpen();
-              }}
-            >
-              Отвори пътуването
-            </Button>
-          </div>
-
           {showManageActions && (
             <div className={styles.manageRow}>
               {onArchiveToggle && (
@@ -101,6 +94,7 @@ const TripCard: React.FC<Props> = ({
                   {isArchived ? 'Върни от архив' : 'Архивирай'}
                 </button>
               )}
+
               {onDelete && (
                 <button
                   type="button"
