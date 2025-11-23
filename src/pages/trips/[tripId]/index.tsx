@@ -20,6 +20,7 @@ import {
 import { fetchExpenses, createExpense } from '@/lib/expensesStore';
 import { fetchTripById } from '@/lib/trips';
 import { useAuth } from '@/context/AuthContext';
+import styles from '@/components/trips/TripDetails.module.css';
 
 const TripPage: React.FC = () => {
   const router = useRouter();
@@ -213,49 +214,90 @@ const TripPage: React.FC = () => {
   }
 
   const tripName = trip?.name ?? 'Пътуване';
+  const familiesCount = families.length;
+  const expensesCount = expenses.length;
+  const tripStatus = trip?.archived ? 'Архивирано' : 'Активно';
 
   return (
     <Layout>
-      <TripHeader
-        tripName={tripName}
-        onAddFamily={() => setShowFamilyModal(true)}
-        onOpenLists={() => router.push(`/trips/${tripIdStr}/lists`)}
-        onShare={() => setShowShareModal(true)}
-      />
+      <div className={styles.pageWrapper}>
+        {/* HEADER НА ПЪТУВАНЕТО */}
+        <TripHeader
+          tripName={tripName}
+          onAddFamily={() => setShowFamilyModal(true)}
+          onOpenLists={() => router.push(`/trips/${tripIdStr}/lists`)}
+          onShare={() => setShowShareModal(true)}
+        />
 
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-        {/* УЧАСТНИЦИ */}
-        <SectionCard title="Участници" icon="🧑‍🤝‍🧑">
-          {familiesLoading ? (
-            <p>Зареждане на семейства...</p>
-          ) : (
-            <FamiliesSection
-              families={families}
-              onEditFamily={handleEditFamily}
-              onDeleteFamily={handleAskDeleteFamily}
-            />
-          )}
-        </SectionCard>
+        {/* GRID LAYOUT */}
+        <div className={styles.sectionsGrid}>
+          {/* ЛЯВА КОЛОНА – основни секции */}
+          <div className={styles.mainColumn}>
+            <SectionCard title="Участници" icon="🧑‍🤝‍🧑">
+              {familiesLoading ? (
+                <p className={styles.mutedText}>Зареждане на семейства...</p>
+              ) : (
+                <FamiliesSection
+                  families={families}
+                  onEditFamily={handleEditFamily}
+                  onDeleteFamily={handleAskDeleteFamily}
+                />
+              )}
+            </SectionCard>
 
-        {/* РАЗХОДИ */}
-        <SectionCard title="Разходи" icon="💰">
-          {expensesLoading ? (
-            <p>Зареждане на разходи...</p>
-          ) : (
-            <ExpensesTable
-              families={families}
-              expenses={expenses}
-              onAddExpense={handleAddExpense}
-            />
-          )}
-        </SectionCard>
+            <SectionCard title="Разходи" icon="💰">
+              {expensesLoading ? (
+                <p className={styles.mutedText}>Зареждане на разходи...</p>
+              ) : (
+                <ExpensesTable
+                  families={families}
+                  expenses={expenses}
+                  onAddExpense={handleAddExpense}
+                />
+              )}
+            </SectionCard>
 
-        {/* БАЛАНС */}
-        <SectionCard title="Кой на кого колко дължи" icon="📊">
-          <DebtsSummary families={families} expenses={expenses} />
-        </SectionCard>
+            <SectionCard title="Кой на кого колко дължи" icon="📊">
+              <DebtsSummary families={families} expenses={expenses} />
+            </SectionCard>
+          </div>
+
+          {/* ДЯСНА КОЛОНА – резюме и инфо */}
+          <div className={styles.sideColumn}>
+            <SectionCard title="Резюме на пътуването" icon="📌">
+              <div className={styles.summaryGrid}>
+                <div className={styles.summaryItem}>
+                  <span className={styles.summaryLabel}>Статус</span>
+                  <span className={styles.summaryValue}>{tripStatus}</span>
+                </div>
+                <div className={styles.summaryItem}>
+                  <span className={styles.summaryLabel}>Брой семейства</span>
+                  <span className={styles.summaryValue}>{familiesCount}</span>
+                </div>
+                <div className={styles.summaryItem}>
+                  <span className={styles.summaryLabel}>Брой разходи</span>
+                  <span className={styles.summaryValue}>{expensesCount}</span>
+                </div>
+                {shareUrl && (
+                  <div className={styles.summaryItemFull}>
+                    <span className={styles.summaryLabel}>Линк за споделяне</span>
+                    <span className={styles.summaryValueSmall}>{shareUrl}</span>
+                  </div>
+                )}
+              </div>
+            </SectionCard>
+
+            <SectionCard title="Съвет" icon="💡">
+              <p className={styles.mutedText}>
+                Добави всички участващи семейства и отбелязвай кой какво плаща.
+                Накрая автоматично ще видиш кой на кого колко дължи.
+              </p>
+            </SectionCard>
+          </div>
+        </div>
       </div>
 
+      {/* МОДАЛИ */}
       <AddFamilyModal
         isOpen={showFamilyModal}
         onClose={() => setShowFamilyModal(false)}

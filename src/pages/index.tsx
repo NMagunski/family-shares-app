@@ -4,7 +4,6 @@ import TripTypeSelector from '@/components/trips/TripTypeSelector';
 import Card from '@/components/ui/Card';
 import TripCard from '@/components/trips/TripCard';
 import CreateTripModal from '@/components/trips/CreateTripModal';
-import ConfirmModal from '@/components/ui/ConfirmModal';
 import { useAuth } from '@/context/AuthContext';
 import type { Trip, TripType } from '@/types/trip';
 import {
@@ -14,6 +13,8 @@ import {
   setTripArchived,
   deleteTripCompletely,
 } from '@/lib/trips';
+import DeleteModal from '@/components/trips/DeleteModal';
+import ArchiveModal from '@/components/trips/ArchiveModal';
 
 const HomePage: React.FC = () => {
   const { user, loading: authLoading } = useAuth();
@@ -32,6 +33,11 @@ const HomePage: React.FC = () => {
   const [deleteModalOpen, setDeleteModalOpen] = React.useState(false);
   const [deleteLoading, setDeleteLoading] = React.useState(false);
 
+  // Архивиране / връщане от архив
+  const [tripToArchive, setTripToArchive] = React.useState<Trip | null>(null);
+  const [archiveModalOpen, setArchiveModalOpen] = React.useState(false);
+  const [archiveLoading, setArchiveLoading] = React.useState(false);
+
   React.useEffect(() => {
     if (!user) {
       setOwnedTrips([]);
@@ -45,28 +51,22 @@ const HomePage: React.FC = () => {
         setTripsLoading(true);
         setError(null);
 
-if (!user) {
-  setOwnedTrips([]);
-  setArchivedTrips([]);
-  setSharedTrips([]);
-  return;
-}
+        if (!user) {
+          setError('Не си влязъл в профила си.');
+          setTripsLoading(false);
+          return;
+        }
 
-const userId = user.uid;
+        const userId = user.uid;
 
-const [owned, sharedRaw] = await Promise.all([
-  fetchTripsForUser(userId),
-  fetchSharedTripsForUser(userId),
-]);
+        const [owned, sharedRaw] = await Promise.all([
+          fetchTripsForUser(userId),
+          fetchSharedTripsForUser(userId),
+        ]);
 
-const activeOwned = owned.filter((t) => !t.archived);
-const archived = owned.filter((t) => t.archived);
-const shared = sharedRaw.filter((t) => t.ownerId !== userId);
-
-setOwnedTrips(activeOwned);
-setArchivedTrips(archived);
-setSharedTrips(shared);
-
+        const activeOwned = owned.filter((t) => !t.archived);
+        const archived = owned.filter((t) => t.archived);
+        const shared = sharedRaw.filter((t) => t.ownerId !== userId);
 
         setOwnedTrips(activeOwned);
         setArchivedTrips(archived);
@@ -106,30 +106,54 @@ setSharedTrips(shared);
     }
   }
 
-  async function handleArchiveToggle(trip: Trip) {
-    try {
-      await setTripArchived(trip.id, !trip.archived);
+  // 👉 Отваряме модала за архивиране
+  function handleAskArchiveTrip(trip: Trip) {
+    setTripToArchive(trip);
+    setArchiveModalOpen(true);
+  }
 
-      if (trip.archived) {
+  // 👉 Потвърждение за архивиране / връщане от архив
+  async function handleConfirmArchiveTrip() {
+    if (!tripToArchive) return;
+
+    try {
+      setArchiveLoading(true);
+
+      await setTripArchived(tripToArchive.id, !tripToArchive.archived);
+
+      if (tripToArchive.archived) {
         // връщаме от архив → към активните
-        setArchivedTrips((prev) => prev.filter((t) => t.id !== trip.id));
-        setOwnedTrips((prev) => [{ ...trip, archived: false }, ...prev]);
+        setArchivedTrips((prev) => prev.filter((t) => t.id !== tripToArchive.id));
+        setOwnedTrips((prev) => [
+          { ...tripToArchive, archived: false },
+          ...prev,
+        ]);
       } else {
         // архивираме → махаме от активните, слагаме в архив
-        setOwnedTrips((prev) => prev.filter((t) => t.id !== trip.id));
-        setArchivedTrips((prev) => [{ ...trip, archived: true }, ...prev]);
+        setOwnedTrips((prev) => prev.filter((t) => t.id !== tripToArchive.id));
+        setArchivedTrips((prev) => [
+          { ...tripToArchive, archived: true },
+          ...prev,
+        ]);
       }
+
+      setArchiveModalOpen(false);
+      setTripToArchive(null);
     } catch (err) {
       console.error(err);
       alert('Грешка при промяна на статуса на пътуването.');
+    } finally {
+      setArchiveLoading(false);
     }
   }
 
+  // 👉 Отваряме модала за изтриване
   function handleAskDeleteTrip(trip: Trip) {
     setTripToDelete(trip);
     setDeleteModalOpen(true);
   }
 
+  // 👉 Потвърждение за изтриване
   async function handleConfirmDeleteTrip() {
     if (!tripToDelete) return;
 
@@ -189,7 +213,7 @@ setSharedTrips(shared);
                     key={trip.id}
                     trip={trip}
                     showManageActions
-                    onArchiveToggle={handleArchiveToggle}
+                    onArchiveToggle={handleAskArchiveTrip}
                     onDelete={handleAskDeleteTrip}
                   />
                 ))
@@ -207,7 +231,7 @@ setSharedTrips(shared);
                     key={trip.id}
                     trip={trip}
                     showManageActions
-                    onArchiveToggle={handleArchiveToggle}
+                    onArchiveToggle={handleAskArchiveTrip}
                     onDelete={handleAskDeleteTrip}
                   />
                 ))
@@ -240,23 +264,33 @@ setSharedTrips(shared);
         />
       )}
 
-      <ConfirmModal
-        isOpen={deleteModalOpen}
-        title="Изтриване на пътуване"
-        description={
-          tripToDelete
-            ? `Пътуването "${tripToDelete.name}" и всички свързани данни (семейства, разходи, списъци) ще бъдат изтрити. Сигурен ли си?`
-            : ''
-        }
-        confirmLabel={deleteLoading ? 'Изтриване...' : 'Изтрий'}
-        cancelLabel="Отказ"
-        onConfirm={handleConfirmDeleteTrip}
-        onClose={() => {
-          if (deleteLoading) return;
-          setDeleteModalOpen(false);
-          setTripToDelete(null);
-        }}
-      />
+      {/* Модал за ИЗТРИВАНЕ */}
+      {tripToDelete && (
+        <DeleteModal
+          open={deleteModalOpen}
+          trip={tripToDelete}
+          onConfirm={handleConfirmDeleteTrip}
+          onClose={() => {
+            if (deleteLoading) return;
+            setDeleteModalOpen(false);
+            setTripToDelete(null);
+          }}
+        />
+      )}
+
+      {/* Модал за АРХИВИРАНЕ / ВРЪЩАНЕ ОТ АРХИВ */}
+      {tripToArchive && (
+        <ArchiveModal
+          open={archiveModalOpen}
+          trip={tripToArchive}
+          onConfirm={handleConfirmArchiveTrip}
+          onClose={() => {
+            if (archiveLoading) return;
+            setArchiveModalOpen(false);
+            setTripToArchive(null);
+          }}
+        />
+      )}
     </Layout>
   );
 };

@@ -1,47 +1,234 @@
 .navbar {
+  position: sticky;
+  top: 0;
+  z-index: 40;
+  background: rgba(255, 255, 255, 0.92);
+  backdrop-filter: blur(12px);
+  border-bottom: 1px solid rgba(15, 23, 42, 0.06);
+}
+
+.inner {
+  max-width: 960px;
+  margin: 0 auto;
+  padding: 10px 16px;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 12px 16px;
-  border-bottom: 1px solid #e5e5e5;
-  background-color: #ffffff;
+  gap: 16px;
 }
 
-.logo a {
+/* Лого / бранд */
+
+.brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  text-decoration: none;
+}
+
+.logoIcon {
+  font-size: 1.4rem;
+}
+
+.logoText {
+  font-size: 1rem;
   font-weight: 700;
-  font-size: 1.1rem;
-  text-decoration: none;
-  color: #111827;
+  letter-spacing: 0.03em;
+  color: #0f172a;
 }
 
-.links {
+/* Навигационни линкове – десктоп */
+
+.navLinks {
   display: flex;
+  align-items: center;
   gap: 12px;
+  flex: 1;
+  justify-content: center;
 }
 
-.links a {
-  text-decoration: none;
-  color: #374151;
-  font-size: 0.95rem;
-}
-
-.links a:hover {
-  text-decoration: underline;
-}
-.userEmail {
+.navLink {
   font-size: 0.9rem;
-  color: #111827;
+  text-decoration: none;
+  color: #475569;
+  padding: 6px 10px;
+  border-radius: 999px;
+  transition:
+    background-color 0.12s ease-out,
+    color 0.12s ease-out;
 }
+
+.navLink:hover {
+  background-color: #e0f2fe;
+  color: #0f172a;
+}
+
+/* Дясна част – auth десктоп */
+
+.authArea {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.userEmail {
+  font-size: 0.8rem;
+  color: #64748b;
+}
+
+/* Линкове за вход / регистрация */
+
+.authLink,
+.authPrimaryLink {
+  font-size: 0.85rem;
+  text-decoration: none;
+  padding: 6px 12px;
+  border-radius: 999px;
+  transition:
+    background-color 0.12s ease-out,
+    color 0.12s ease-out,
+    box-shadow 0.12s ease-out;
+}
+
+.authLink {
+  background-color: transparent;
+  color: #0f172a;
+}
+
+.authLink:hover {
+  background-color: #e5e7eb;
+}
+
+.authPrimaryLink {
+  background-color: #0ea5e9;
+  color: #ffffff;
+  font-weight: 500;
+  box-shadow: 0 4px 10px rgba(14, 165, 233, 0.35);
+}
+
+.authPrimaryLink:hover {
+  background-color: #0284c7;
+  box-shadow: 0 6px 14px rgba(14, 165, 233, 0.45);
+}
+
+/* Logout бутон */
 
 .logoutButton {
   border: none;
-  background: transparent;
+  outline: none;
   cursor: pointer;
-  color: #2563eb;
-  font-size: 0.9rem;
-  padding: 0;
+  font-size: 0.8rem;
+  padding: 6px 12px;
+  border-radius: 999px;
+  background-color: #fee2e2;
+  color: #b91c1c;
+  font-weight: 500;
+  transition:
+    background-color 0.12s ease-out,
+    transform 0.08s ease-out;
 }
 
 .logoutButton:hover {
-  text-decoration: underline;
+  background-color: #fecaca;
+  transform: translateY(-1px);
+}
+
+/* Бургер бутон – по подразбиране скрит (десктоп) */
+
+.mobileToggle {
+  display: none;
+  margin-left: 4px;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 8px;
+  transition:
+    background-color 0.12s ease-out,
+    transform 0.08s ease-out;
+}
+
+.mobileToggleBar {
+  display: block;
+  width: 18px;
+  height: 2px;
+  border-radius: 999px;
+  background-color: #0f172a;
+  + .mobileToggleBar {
+    margin-top: 4px;
+  }
+}
+
+.mobileToggle:hover {
+  background-color: #e5e7eb;
+  transform: translateY(-1px);
+}
+
+/* Мобилно меню – по подразбиране скрито */
+
+.mobileMenu {
+  display: none;
+  border-top: 1px solid rgba(15, 23, 42, 0.04);
+  background-color: #ffffff;
+}
+
+.mobileMenuOpen {
+  display: block;
+}
+
+.mobileNavSection,
+.mobileAuthSection {
+  max-width: 960px;
+  margin: 0 auto;
+  padding: 8px 16px 12px;
+}
+
+.mobileNavSection {
+  border-bottom: 1px solid rgba(15, 23, 42, 0.04);
+}
+
+.mobileNavLink {
+  display: block;
+  text-decoration: none;
+  font-size: 0.95rem;
+  padding: 8px 0;
+  color: #0f172a;
+}
+
+/* В мобилното меню линковете/бутоните са на пълна ширина */
+
+.mobileAuthSection a,
+.mobileAuthSection button {
+  display: block;
+  width: 100%;
+  text-align: center;
+  margin-top: 6px;
+}
+
+/* Адаптация за мобилни */
+
+@media (max-width: 640px) {
+  .inner {
+    padding: 8px 12px;
+    gap: 10px;
+  }
+
+  .navLinks {
+    display: none;
+  }
+
+  .authArea {
+    display: none;
+  }
+
+  .userEmail {
+    display: none;
+  }
+
+  .mobileToggle {
+    display: inline-flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+  }
 }

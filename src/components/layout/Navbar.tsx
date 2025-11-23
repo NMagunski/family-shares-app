@@ -5,29 +5,105 @@ import { useAuth } from '@/context/AuthContext';
 
 const Navbar: React.FC = () => {
   const { user, loading, logout } = useAuth();
+  const [isMobileOpen, setIsMobileOpen] = React.useState(false);
+
+  const handleToggleMobile = () => {
+    setIsMobileOpen((prev) => !prev);
+  };
+
+  const handleCloseMobile = () => {
+    setIsMobileOpen(false);
+  };
+
+  const handleLogout = async () => {
+    try {
+      await logout();
+    } finally {
+      setIsMobileOpen(false);
+    }
+  };
+
+  const authContent = loading
+    ? null
+    : user
+    ? (
+        <>
+          <span className={styles.userEmail}>{user.email}</span>
+          <button
+            type="button"
+            className={styles.logoutButton}
+            onClick={handleLogout}
+          >
+            Изход
+          </button>
+        </>
+      )
+    : (
+        <>
+          <Link href="/login" className={styles.authLink} onClick={handleCloseMobile}>
+            Вход
+          </Link>
+          <Link
+            href="/register"
+            className={styles.authPrimaryLink}
+            onClick={handleCloseMobile}
+          >
+            Регистрация
+          </Link>
+        </>
+      );
 
   return (
     <header className={styles.navbar}>
-      <div className={styles.logo}>
-        <Link href="/">Family Shares</Link>
-      </div>
-      <nav className={styles.links}>
-        <Link href="/">Пътувания</Link>
+      <div className={styles.inner}>
+        {/* ЛОГО / БРАНД */}
+        <Link href="/" className={styles.brand} onClick={handleCloseMobile}>
+          <span className={styles.logoIcon}>👨‍👩‍👧‍👦</span>
+          <span className={styles.logoText}>Family&nbsp;Shares</span>
+        </Link>
 
-        {loading ? null : user ? (
-          <>
-            <span className={styles.userEmail}>{user.email}</span>
-            <button className={styles.logoutButton} onClick={logout}>
-              Изход
-            </button>
-          </>
-        ) : (
-          <>
-            <Link href="/login">Вход</Link>
-            <Link href="/register">Регистрация</Link>
-          </>
-        )}
-      </nav>
+        {/* ГЛАВНИ ЛИНКОВЕ – десктоп */}
+        <nav className={styles.navLinks}>
+          <Link href="/" className={styles.navLink}>
+            Пътувания
+          </Link>
+        </nav>
+
+        {/* АВТЕНТИКАЦИЯ – десктоп */}
+        <div className={styles.authArea}>{authContent}</div>
+
+        {/* БУРГЕР БУТОН – мобилен */}
+        <button
+          type="button"
+          className={styles.mobileToggle}
+          onClick={handleToggleMobile}
+          aria-label="Навигационно меню"
+          aria-expanded={isMobileOpen}
+        >
+          <span className={styles.mobileToggleBar} />
+          <span className={styles.mobileToggleBar} />
+          <span className={styles.mobileToggleBar} />
+        </button>
+      </div>
+
+      {/* МОБИЛНО МЕНЮ */}
+      <div
+        className={`${styles.mobileMenu} ${
+          isMobileOpen ? styles.mobileMenuOpen : ''
+        }`}
+      >
+        <nav className={styles.mobileNavSection}>
+          <Link
+            href="/"
+            className={styles.mobileNavLink}
+            onClick={handleCloseMobile}
+          >
+            Пътувания
+          </Link>
+        </nav>
+
+        <div className={styles.mobileAuthSection}>{authContent}</div>
+      </div>
     </header>
   );
 };

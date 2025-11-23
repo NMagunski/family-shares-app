@@ -1,0 +1,82 @@
+.pageWrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+/* Основен layout: лява и дясна колона */
+.sectionsGrid {
+  display: grid;
+  grid-template-columns: minmax(0, 3fr) minmax(0, 2fr);
+  gap: 16px;
+  align-items: flex-start;
+}
+
+.mainColumn {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.sideColumn {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+/* Резюме */
+.summaryGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.summaryItem,
+.summaryItemFull {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 8px 10px;
+  border-radius: 10px;
+  background-color: #f8fafc;
+}
+
+.summaryItemFull {
+  grid-column: 1 / -1;
+}
+
+.summaryLabel {
+  font-size: 0.78rem;
+  color: #94a3b8;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.summaryValue {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: #0f172a;
+}
+
+.summaryValueSmall {
+  font-size: 0.8rem;
+  color: #0f172a;
+  word-break: break-all;
+}
+
+/* Текстове */
+.mutedText {
+  font-size: 0.9rem;
+  color: #64748b;
+}
+
+/* Мобилен изглед */
+@media (max-width: 900px) {
+  .sectionsGrid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .sideColumn {
+    order: -1; /* Резюмето да е отгоре на мобилни */
+  }
+}

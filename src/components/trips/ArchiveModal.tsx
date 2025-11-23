@@ -1,61 +1,83 @@
-import React from "react";
-import type { Trip } from "@/types/trip";
+import React from 'react';
+import type { Trip } from '@/types/trip';
 
-type ArchiveModalProps = {
+interface ArchiveModalProps {
   open: boolean;
-  trip: Trip | null;
+  trip: Trip;
+  onConfirm: () => void | Promise<void>;
   onClose: () => void;
+}
+
+const overlayStyle: React.CSSProperties = {
+  position: 'fixed',
+  inset: 0,
+  backgroundColor: 'rgba(0,0,0,0.4)',
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'center',
+  zIndex: 1000,
 };
 
-const ArchiveModal: React.FC<ArchiveModalProps> = ({ open, trip, onClose }) => {
-  if (!open || !trip) return null;
+const modalStyle: React.CSSProperties = {
+  backgroundColor: '#fff',
+  borderRadius: 8,
+  padding: 20,
+  maxWidth: 400,
+  width: '90%',
+  boxShadow: '0 10px 30px rgba(0,0,0,0.2)',
+};
+
+const buttonsRowStyle: React.CSSProperties = {
+  marginTop: 16,
+  display: 'flex',
+  justifyContent: 'flex-end',
+  gap: 8,
+};
+
+const buttonStyle: React.CSSProperties = {
+  padding: '6px 12px',
+  borderRadius: 4,
+  border: 'none',
+  cursor: 'pointer',
+  fontSize: '0.9rem',
+};
+
+const ArchiveModal: React.FC<ArchiveModalProps> = ({
+  open,
+  trip,
+  onConfirm,
+  onClose,
+}) => {
+  if (!open) return null;
+
+  const isArchived = trip.archived;
+  const title = isArchived ? 'Връщане от архив' : 'Архивиране на пътуване';
+  const description = isArchived
+    ? `Сигурен ли си, че искаш да върнеш от архив пътуването „${trip.name}“?`
+    : `Сигурен ли си, че искаш да архивираш пътуването „${trip.name}“?`;
 
   return (
-    <div
-      onClick={onClose}
-      style={{
-        position: "fixed",
-        inset: 0,
-        backgroundColor: "rgba(15, 23, 42, 0.35)",
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        zIndex: 50,
-      }}
-    >
-      <div
-        onClick={(e) => e.stopPropagation()}
-        style={{
-          background: "#ffffff",
-          borderRadius: 18,
-          padding: 24,
-          maxWidth: 420,
-          width: "90%",
-          boxShadow: "0 18px 45px rgba(15, 23, 42, 0.18)",
-        }}
-      >
-        <h2 style={{ marginTop: 0, marginBottom: 8 }}>Архивиране на пътуване</h2>
-        <p style={{ marginTop: 0, marginBottom: 20, fontSize: 14, lineHeight: 1.5 }}>
-          Засега този модал е само визуален. По-късно можем да вържем реалното
-          архивиране за пътуването <strong>„{trip.name}“</strong>.
-        </p>
+    <div style={overlayStyle}>
+      <div style={modalStyle}>
+        <h2 style={{ marginTop: 0 }}>{title}</h2>
+        <p style={{ fontSize: '0.95rem' }}>{description}</p>
 
-        <button
-          type="button"
-          onClick={onClose}
-          style={{
-            width: "100%",
-            padding: "10px 16px",
-            borderRadius: 999,
-            border: "none",
-            background: "#34d399", // пастелно зелено
-            color: "#0f172a",
-            fontWeight: 600,
-            cursor: "pointer",
-          }}
-        >
-          Добре
-        </button>
+        <div style={buttonsRowStyle}>
+          <button
+            type="button"
+            style={{ ...buttonStyle, backgroundColor: '#e5e5e5' }}
+            onClick={onClose}
+          >
+            Отказ
+          </button>
+          <button
+            type="button"
+            style={{ ...buttonStyle, backgroundColor: '#2563eb', color: '#fff' }}
+            onClick={onConfirm}
+          >
+            Потвърди
+          </button>
+        </div>
       </div>
     </div>
   );
