@@ -1,28 +1,83 @@
-.button {
+/* Основен базов стил за всички бутони */
+.base {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  padding: 8px 14px;
-  border-radius: 6px;
-  border: 1px solid #2563eb;
-  background-color: #2563eb;
-  color: #ffffff;
+  padding: 8px 18px;
+  border-radius: 999px;
   font-size: 0.95rem;
+  font-weight: 500;
   cursor: pointer;
-  transition: background-color 0.15s ease, border-color 0.15s ease;
+  transition: 
+    background-color 0.15s ease-out,
+    border-color 0.15s ease-out,
+    box-shadow 0.15s ease-out,
+    transform 0.1s ease-out;
+  user-select: none;
+  white-space: nowrap;
+  height: 40px;
 }
 
-.button:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
+/* PRIMARY – СИН */
+.primary {
+  background: #3b82f6;
+  border: 1px solid #2563eb;
+  color: white;
 }
 
-.buttonSecondary {
-  border-color: #d1d5db;
-  background-color: #ffffff;
-  color: #111827;
+.primary:hover {
+  background: #2563eb;
 }
 
-.button:hover:not(:disabled) {
-  background-color: #1d4ed8;
+.primary:active {
+  transform: translateY(1px);
 }
+
+/* SECONDARY – БЯЛ С OUTLINE */
+.secondary {
+  background: #ffffff;
+  border: 1px solid #d1d5db;
+  color: #374151;
+}
+
+.secondary:hover {
+  background: #f3f4f6;
+  border-color: #9ca3af;
+}
+
+.secondary:active {
+  transform: translateY(1px);
+}
+
+/* DANGER – ЧЕРВЕН OUTLINE */
+.danger {
+  background: #fef2f2;
+  border: 1px solid #ef4444;
+  color: #b91c1c;
+}
+
+.danger:hover {
+  background: #fee2e2;
+  border-color: #dc2626;
+}
+
+.danger:active {
+  transform: translateY(1px);
+}
+
+/* GHOST – ПРОЗРАЧЕН */
+.ghost {
+  background: transparent;
+  border: 1px solid transparent;
+  color: #374151;
+}
+
+.ghost:hover {
+  background: #f3f4f6;
+  border-color: #e5e7eb;
+}
+
+.ghost:active {
+  transform: translateY(1px);
+}
+

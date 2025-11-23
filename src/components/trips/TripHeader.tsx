@@ -7,23 +7,36 @@ type Props = {
   onAddFamily: () => void;
   onOpenLists: () => void;
   onShare: () => void;
+  onOpenSettings: () => void;
 };
 
-const TripHeader: React.FC<Props> = ({ tripName, onAddFamily, onOpenLists, onShare }) => {
+const TripHeader: React.FC<Props> = ({
+  tripName,
+  onAddFamily,
+  onOpenLists,
+  onShare,
+  onOpenSettings,
+}) => {
   return (
     <div className={styles.header}>
       <h1 className={styles.title}>{tripName}</h1>
 
       <div className={styles.actions}>
-        <Button onClick={onAddFamily}>Добави семейство</Button>
+        <Button variant="primary" onClick={onAddFamily}>
+          + Добави семейство
+        </Button>
 
-        <button className={styles.secondaryBtn} onClick={onOpenLists}>
-          Списъци
-        </button>
+        <Button variant="secondary" onClick={onOpenLists}>
+          📝 Списъци
+        </Button>
 
-        <button className={styles.secondaryBtn} onClick={onShare}>
-          Сподели
-        </button>
+        <Button variant="secondary" onClick={onShare}>
+          🔗 Сподели
+        </Button>
+
+        <Button variant="secondary" onClick={onOpenSettings}>
+          ⚙️ Настройки
+        </Button>
       </div>
     </div>
   );

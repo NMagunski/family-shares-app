@@ -70,13 +70,36 @@
   color: #64748b;
 }
 
-/* Мобилен изглед */
+/* Мобилен / таблет изглед */
 @media (max-width: 900px) {
   .sectionsGrid {
     grid-template-columns: minmax(0, 1fr);
+    gap: 12px;
   }
 
+  .mainColumn,
   .sideColumn {
-    order: -1; /* Резюмето да е отгоре на мобилни */
+    gap: 12px;
+  }
+
+  /* Резюме-то да се чете по-лесно на тесен екран */
+  .summaryGrid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .summaryItem,
+  .summaryItemFull {
+    padding: 8px 8px;
+  }
+}
+
+/* Много малки екрани */
+@media (max-width: 600px) {
+  .pageWrapper {
+    gap: 12px;
+  }
+
+  .mutedText {
+    font-size: 0.85rem;
   }
 }

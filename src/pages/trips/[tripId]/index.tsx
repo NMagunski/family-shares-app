@@ -227,6 +227,7 @@ const TripPage: React.FC = () => {
           onAddFamily={() => setShowFamilyModal(true)}
           onOpenLists={() => router.push(`/trips/${tripIdStr}/lists`)}
           onShare={() => setShowShareModal(true)}
+          onOpenSettings={() => router.push(`/trips/${tripIdStr}/settings`)} // ➕ нов проп
         />
 
         {/* GRID LAYOUT */}
