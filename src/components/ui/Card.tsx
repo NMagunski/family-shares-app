@@ -1,14 +1,14 @@
 import React from "react";
+import clsx from "clsx";
 import styles from "./Card.module.css";
 
-type CardProps = {
+type CardProps = React.HTMLAttributes<HTMLDivElement> & {
   children: React.ReactNode;
-  compact?: boolean;
 };
 
-const Card: React.FC<CardProps> = ({ children, compact }) => {
+const Card: React.FC<CardProps> = ({ children, className, ...rest }) => {
   return (
-    <div className={compact ? styles.cardCompact : styles.card}>
+    <div className={clsx(styles.card, className)} {...rest}>
       {children}
     </div>
   );
