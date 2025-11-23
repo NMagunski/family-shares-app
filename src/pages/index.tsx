@@ -15,6 +15,7 @@ import {
 } from '@/lib/trips';
 import DeleteModal from '@/components/trips/DeleteModal';
 import ArchiveModal from '@/components/trips/ArchiveModal';
+import styles from './HomePage.module.css';
 
 const HomePage: React.FC = () => {
   const { user, loading: authLoading } = useAuth();
@@ -177,78 +178,83 @@ const HomePage: React.FC = () => {
   return (
     <Layout>
       <Card>
-        <h1 style={{ marginBottom: 8 }}>Моите пътувания</h1>
-        <p style={{ marginBottom: 12, fontSize: '0.9rem' }}>
+        <h1 className={styles.mainTitle}>Моите пътувания</h1>
+        <p className={styles.mainSubtitle}>
           Избери тип пътуване, за да създадеш ново, или отвори вече съществуващо.
         </p>
         <TripTypeSelector onSelect={handleSelect} />
       </Card>
 
-      <div
-        style={{
-          marginTop: 16,
-          display: 'flex',
-          flexDirection: 'column',
-          gap: 16,
-        }}
-      >
+      <div className={styles.sectionsWrapper}>
         {authLoading || tripsLoading ? (
-          <p>Зареждане...</p>
+          <p className={styles.statusText}>Зареждане...</p>
         ) : !user ? (
-          <p>За да виждаш и създаваш пътувания, първо влез в профила си.</p>
+          <p className={styles.statusText}>
+            За да виждаш и създаваш пътувания, първо влез в профила си.
+          </p>
         ) : error ? (
-          <p style={{ color: 'red' }}>{error}</p>
+          <p className={styles.errorText}>{error}</p>
         ) : (
           <>
             {/* МОИ АКТИВНИ ПЪТУВАНИЯ */}
-            <div>
-              <h2 style={{ marginBottom: 8 }}>Създадени от мен</h2>
+            <div className={styles.section}>
+              <h2 className={styles.sectionTitle}>Създадени от мен</h2>
               {ownedTrips.length === 0 ? (
-                <p style={{ fontSize: '0.9rem' }}>
+                <p className={styles.sectionEmptyText}>
                   Все още нямаш активни пътувания.
                 </p>
               ) : (
-                ownedTrips.map((trip) => (
-                  <TripCard
-                    key={trip.id}
-                    trip={trip}
-                    showManageActions
-                    onArchiveToggle={handleAskArchiveTrip}
-                    onDelete={handleAskDeleteTrip}
-                  />
-                ))
+                <div className={styles.tripsList}>
+                  {ownedTrips.map((trip) => (
+                    <TripCard
+                      key={trip.id}
+                      trip={trip}
+                      showManageActions
+                      onArchiveToggle={handleAskArchiveTrip}
+                      onDelete={handleAskDeleteTrip}
+                    />
+                  ))}
+                </div>
               )}
             </div>
 
             {/* АРХИВИРАНИ ПЪТУВАНИЯ */}
-            <div>
-              <h2 style={{ marginBottom: 8 }}>Архивирани пътувания</h2>
+            <div className={styles.section}>
+              <h2 className={styles.sectionTitle}>Архивирани пътувания</h2>
               {archivedTrips.length === 0 ? (
-                <p style={{ fontSize: '0.9rem' }}>Нямаш архивирани пътувания.</p>
+                <p className={styles.sectionEmptyText}>
+                  Нямаш архивирани пътувания.
+                </p>
               ) : (
-                archivedTrips.map((trip) => (
-                  <TripCard
-                    key={trip.id}
-                    trip={trip}
-                    showManageActions
-                    onArchiveToggle={handleAskArchiveTrip}
-                    onDelete={handleAskDeleteTrip}
-                  />
-                ))
+                <div className={styles.tripsList}>
+                  {archivedTrips.map((trip) => (
+                    <TripCard
+                      key={trip.id}
+                      trip={trip}
+                      showManageActions
+                      onArchiveToggle={handleAskArchiveTrip}
+                      onDelete={handleAskDeleteTrip}
+                    />
+                  ))}
+                </div>
               )}
             </div>
 
             {/* ПЪТУВАНИЯ, В КОИТО УЧАСТВАМ */}
-            <div>
-              <h2 style={{ marginBottom: 8 }}>Пътувания, в които участвам</h2>
+            <div className={styles.section}>
+              <h2 className={styles.sectionTitle}>Пътувания, в които участвам</h2>
               {sharedTrips.length === 0 ? (
-                <p style={{ fontSize: '0.9rem' }}>
+                <p className={styles.sectionEmptyText}>
                   В момента не участваш в други пътувания. Сподели линк към
                   някое твое пътуване или използвай линк, който получиш от
                   приятел.
                 </p>
               ) : (
-                sharedTrips.map((trip) => <TripCard key={trip.id} trip={trip} />)
+                <div className={styles.tripsList}>
+                  {sharedTrips.map((trip) => (
+                    <TripCard key={trip.id} trip={trip} />
+                  ))}
+                </div>
               )}
             </div>
           </>

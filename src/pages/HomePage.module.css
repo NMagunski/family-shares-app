@@ -1,0 +1,81 @@
+.mainTitle {
+  margin: 0 0 6px 0;
+  font-size: 1.2rem;
+  font-weight: 600;
+  color: #0f172a;
+}
+
+.mainSubtitle {
+  margin: 0 0 12px 0;
+  font-size: 0.9rem;
+  color: #64748b;
+}
+
+/* Контейнер за секциите със списъци */
+.sectionsWrapper {
+  margin-top: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+/* Една секция (активни, архивирани, споделени) */
+.section {
+  padding: 4px 0;
+}
+
+.sectionTitle {
+  margin: 0 0 8px 0;
+  font-size: 1rem;
+  font-weight: 600;
+  color: #0f172a;
+}
+
+.sectionEmptyText {
+  font-size: 0.9rem;
+  color: #64748b;
+}
+
+/* Списък от TripCard-ове */
+.tripsList {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+/* Статусни съобщения (зареждане, без логин, грешка) */
+
+.statusText {
+  font-size: 0.9rem;
+  color: #475569;
+}
+
+.errorText {
+  font-size: 0.9rem;
+  color: #b91c1c;
+}
+
+/* Мобилен изглед */
+
+@media (max-width: 640px) {
+  .sectionsWrapper {
+    margin-top: 12px;
+    gap: 12px;
+  }
+
+  .sectionTitle {
+    font-size: 0.95rem;
+  }
+
+  .mainTitle {
+    font-size: 1.05rem;
+  }
+
+  .mainSubtitle {
+    font-size: 0.85rem;
+  }
+
+  .tripsList {
+    gap: 10px;
+  }
+}
