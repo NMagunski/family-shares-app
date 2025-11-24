@@ -53,6 +53,7 @@ const TripCard: React.FC<Props> = ({
     <div
       onClick={handleOpen}
       className="
+        w-full
         cursor-pointer 
         bg-eco-surface 
         border border-eco-border
@@ -63,6 +64,7 @@ const TripCard: React.FC<Props> = ({
         gap-4
         hover:bg-eco-surface-soft 
         transition
+        box-border
       "
     >
       {/* Икона */}
@@ -74,20 +76,21 @@ const TripCard: React.FC<Props> = ({
           bg-eco-surface-soft 
           border border-eco-border
           text-3xl
+          flex-shrink-0
         "
       >
         {getTypeIcon(trip.type)}
       </div>
 
       {/* Съдържание */}
-      <div className="flex flex-col flex-1">
+      <div className="flex flex-col flex-1 min-w-0">
         <div className="flex items-start justify-between gap-3">
           <div className="min-w-0">
             <h3 className="text-lg font-semibold text-eco-text mb-1 truncate">
               {trip.name}
             </h3>
 
-            <div className="flex items-center gap-3 text-sm text-eco-text-muted">
+            <div className="flex flex-wrap items-center gap-3 text-sm text-eco-text-muted">
               {/* Badge за типа */}
               <span className="px-2 py-0.5 rounded-full bg-eco-surface-soft border border-eco-border">
                 {getTypeLabel(trip.type)}
@@ -104,7 +107,7 @@ const TripCard: React.FC<Props> = ({
 
         {/* Управление */}
         {showManageActions && (
-          <div className="flex gap-3 mt-4">
+          <div className="flex flex-wrap gap-3 mt-4">
             {onArchiveToggle && (
               <button
                 type="button"
@@ -140,6 +143,7 @@ const TripCard: React.FC<Props> = ({
                   text-white 
                   hover:bg-red-700 
                   transition
+                  flex-shrink-0
                 "
               >
                 Изтрий

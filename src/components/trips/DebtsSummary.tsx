@@ -1,7 +1,6 @@
 import React from 'react';
 import type { TripFamily, TripExpense } from '@/types/trip';
 import { calculateFamilyBalances, calculateDebts } from '@/lib/expenses';
-import Card from '@/components/ui/Card';
 
 type DebtsSummaryProps = {
   families: TripFamily[];
@@ -22,19 +21,15 @@ const DebtsSummary: React.FC<DebtsSummaryProps> = ({ families, expenses }) => {
 
   if (debts.length === 0) {
     return (
-      <Card className="bg-eco-surface px-4 py-3 shadow-eco-soft">
-        <p className="text-eco-text">Всички семейства са изчистили сметките си. 🎉</p>
-      </Card>
+      <p className="text-sm md:text-base text-eco-text">
+        Всички семейства са изчистили сметките си. 🎉
+      </p>
     );
   }
 
   return (
-    <Card className="bg-eco-surface px-4 py-4 shadow-eco-soft">
-      <h2 className="mb-3 text-lg font-semibold text-eco-text">
-        Кой на кого колко дължи
-      </h2>
-
-      <ul className="list-disc pl-5 space-y-1 text-eco-text-muted">
+    <div className="space-y-2">
+      <ul className="list-disc pl-5 space-y-1 text-sm md:text-base text-eco-text-muted">
         {debts.map((d, idx) => (
           <li key={idx}>
             <span className="text-eco-text font-medium">
@@ -52,7 +47,7 @@ const DebtsSummary: React.FC<DebtsSummaryProps> = ({ families, expenses }) => {
           </li>
         ))}
       </ul>
-    </Card>
+    </div>
   );
 };
 

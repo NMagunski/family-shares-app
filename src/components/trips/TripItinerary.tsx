@@ -1,12 +1,16 @@
 import React from 'react';
 import type { TripItineraryItem } from '@/types/trip';
 import Button from '@/components/ui/Button';
-import Input from '@/components/ui/Input';
 
 type TripItineraryProps = {
   items: TripItineraryItem[];
   onChange?: (items: TripItineraryItem[]) => void;
 };
+
+const inputBaseClasses =
+  'w-full rounded-xl border border-emerald-400/60 bg-eco-surface-soft ' +
+  'px-3 py-2 text-sm text-eco-text placeholder:text-eco-text-muted ' +
+  'focus:outline-none focus:ring-2 focus:ring-emerald-500/80 focus:border-emerald-300';
 
 const TripItinerary: React.FC<TripItineraryProps> = ({ items, onChange }) => {
   const [localItems, setLocalItems] = React.useState<TripItineraryItem[]>(items || []);
@@ -25,9 +29,10 @@ const TripItinerary: React.FC<TripItineraryProps> = ({ items, onChange }) => {
       localItems.length > 0 ? Math.max(...localItems.map((i) => i.day)) + 1 : 1;
 
     const newItem: TripItineraryItem = {
-      id: typeof crypto !== 'undefined' && 'randomUUID' in crypto
-        ? crypto.randomUUID()
-        : `${Date.now()}-${Math.random().toString(16).slice(2)}`,
+      id:
+        typeof crypto !== 'undefined' && 'randomUUID' in crypto
+          ? crypto.randomUUID()
+          : `${Date.now()}-${Math.random().toString(16).slice(2)}`,
       day: nextDay,
       title: '',
       time: '',
@@ -68,50 +73,100 @@ const TripItinerary: React.FC<TripItineraryProps> = ({ items, onChange }) => {
           .map((item) => (
             <div
               key={item.id}
-              className="p-4 rounded-xl border border-eco-border bg-eco-surface-soft shadow-eco-soft"
+              className="rounded-2xl border border-emerald-500/30 bg-eco-surface-soft p-4 shadow-eco-soft"
             >
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                {/* Ден */}
+                <div className="space-y-2">
+                  <label
+                    htmlFor={`day-${item.id}`}
+                    className="block text-xs font-medium text-eco-text-muted"
+                  >
+                    Ден
+                  </label>
+                  <input
+                    id={`day-${item.id}`}
+                    type="number"
+                    min={1}
+                    value={item.day}
+                    className={inputBaseClasses}
+                    onChange={(e) =>
+                      handleUpdate(item.id, {
+                        day: Number(e.target.value) || 1,
+                      })
+                    }
+                  />
+                </div>
 
-                <Input
-                  label="Ден"
-                  type="number"
-                  value={item.day}
-                  min={1}
-                  onChange={(e) =>
-                    handleUpdate(item.id, { day: Number(e.target.value) || 1 })
-                  }
-                />
+                {/* Дата */}
+                <div className="space-y-2">
+                  <label
+                    htmlFor={`date-${item.id}`}
+                    className="block text-xs font-medium text-eco-text-muted"
+                  >
+                    Дата
+                  </label>
+                  <input
+                    id={`date-${item.id}`}
+                    type="date"
+                    value={item.date || ''}
+                    className={inputBaseClasses}
+                    onChange={(e) =>
+                      handleUpdate(item.id, {
+                        date: e.target.value,
+                      })
+                    }
+                  />
+                </div>
 
-                <Input
-                  label="Дата"
-                  type="date"
-                  value={item.date || ''}
-                  onChange={(e) =>
-                    handleUpdate(item.id, { date: e.target.value })
-                  }
-                />
+                {/* Час / интервал */}
+                <div className="space-y-2">
+                  <label
+                    htmlFor={`time-${item.id}`}
+                    className="block text-xs font-medium text-eco-text-muted"
+                  >
+                    Час / интервал
+                  </label>
+                  <input
+                    id={`time-${item.id}`}
+                    type="text"
+                    placeholder="например 10:00–13:00"
+                    value={item.time || ''}
+                    className={inputBaseClasses}
+                    onChange={(e) =>
+                      handleUpdate(item.id, {
+                        time: e.target.value,
+                      })
+                    }
+                  />
+                </div>
 
-                <Input
-                  label="Час / интервал"
-                  placeholder="например 10:00–13:00"
-                  value={item.time || ''}
-                  onChange={(e) =>
-                    handleUpdate(item.id, { time: e.target.value })
-                  }
-                />
+                {/* Активност */}
+                <div className="space-y-2 sm:col-span-2 lg:col-span-3">
+                  <label
+                    htmlFor={`title-${item.id}`}
+                    className="block text-xs font-medium text-eco-text-muted"
+                  >
+                    Активност
+                  </label>
+                  <input
+                    id={`title-${item.id}`}
+                    type="text"
+                    placeholder="Разходка в стария град"
+                    value={item.title}
+                    required
+                    className={inputBaseClasses}
+                    onChange={(e) =>
+                      handleUpdate(item.id, {
+                        title: e.target.value,
+                      })
+                    }
+                  />
+                </div>
 
-                <Input
-                  label="Активност"
-                  placeholder="Разходка в стария град"
-                  value={item.title}
-                  onChange={(e) =>
-                    handleUpdate(item.id, { title: e.target.value })
-                  }
-                  required
-                />
-
-                <div className="col-span-full">
-                  <label className="block text-xs mb-1 text-eco-text-muted">
+                {/* Бележки */}
+                <div className="col-span-full space-y-2">
+                  <label className="block text-xs font-medium text-eco-text-muted">
                     Бележки
                   </label>
                   <textarea
@@ -121,15 +176,15 @@ const TripItinerary: React.FC<TripItineraryProps> = ({ items, onChange }) => {
                     }
                     rows={2}
                     placeholder="Подробности, адрес, билети…"
-                    className="
-                      w-full resize-y rounded-lg 
-                      bg-eco-surface border border-eco-border 
-                      p-2 text-eco-text text-sm
-                      focus:outline-none focus:ring-2 focus:ring-eco-accent
-                    "
+                    className={
+                      'w-full resize-y rounded-xl border border-emerald-400/60 bg-eco-surface-soft ' +
+                      'px-3 py-2 text-sm text-eco-text placeholder:text-eco-text-muted ' +
+                      'focus:outline-none focus:ring-2 focus:ring-emerald-500/80 focus:border-emerald-300'
+                    }
                   />
                 </div>
 
+                {/* Бутон за изтриване */}
                 <div className="col-span-full flex justify-end">
                   <Button
                     type="button"

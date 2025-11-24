@@ -21,24 +21,24 @@ const TripHeader: React.FC<Props> = ({
   return (
     <div
       className="
-        mb-8 
+        mb-5 md:mb-8 
         flex flex-col 
         items-center
-        gap-4
+        gap-3 md:gap-4
         text-center
       "
     >
       {/* Заглавие */}
-      <h1 className="text-2xl md:text-3xl font-semibold text-eco-text">
+      <h1 className="text-lg sm:text-2xl md:text-3xl font-semibold text-eco-text">
         {tripName}
       </h1>
 
       {/* Бутони */}
-      <div className="flex flex-wrap justify-center gap-3">
+      <div className="grid w-full gap-2 sm:flex sm:flex-wrap sm:justify-center sm:gap-3">
         <Button
           variant="primary"
           onClick={onAddFamily}
-          className="whitespace-nowrap"
+          className="w-full sm:w-auto whitespace-nowrap text-sm py-2"
         >
           + Добави семейство
         </Button>
@@ -46,7 +46,7 @@ const TripHeader: React.FC<Props> = ({
         <Button
           variant="secondary"
           onClick={onOpenLists}
-          className="whitespace-nowrap"
+          className="w-full sm:w-auto whitespace-nowrap text-sm py-2"
         >
           📝 Списъци
         </Button>
@@ -54,7 +54,7 @@ const TripHeader: React.FC<Props> = ({
         <Button
           variant="secondary"
           onClick={onOpenItinerary}
-          className="whitespace-nowrap"
+          className="w-full sm:w-auto whitespace-nowrap text-sm py-2"
         >
           🗓️ Програма
         </Button>
@@ -62,7 +62,7 @@ const TripHeader: React.FC<Props> = ({
         <Button
           variant="secondary"
           onClick={onShare}
-          className="whitespace-nowrap"
+          className="w-full sm:w-auto whitespace-nowrap text-sm py-2"
         >
           🔗 Сподели
         </Button>
@@ -70,7 +70,7 @@ const TripHeader: React.FC<Props> = ({
         <Button
           variant="secondary"
           onClick={onOpenSettings}
-          className="whitespace-nowrap"
+          className="w-full sm:w-auto whitespace-nowrap text-sm py-2"
         >
           ⚙️ Настройки
         </Button>

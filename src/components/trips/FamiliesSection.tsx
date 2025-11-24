@@ -23,38 +23,74 @@ const FamiliesSection: React.FC<Props> = ({
         return (
           <div
             key={f.id}
-            className="flex items-center justify-between p-4 rounded-xl 
-                       bg-eco-surface-soft border border-eco-border 
-                       shadow-eco-soft"
+            className="
+              flex flex-col sm:flex-row
+              items-start sm:items-center
+              justify-between
+              gap-2 sm:gap-3
+              p-3 sm:p-4
+              rounded-xl 
+              bg-eco-surface-soft 
+              border border-eco-border 
+              shadow-eco-soft
+            "
           >
             {/* LEFT SIDE */}
             <div className="flex items-center gap-3">
-              <span className="text-xl">🧑‍🤝‍🧑</span>
+              <span className="text-lg sm:text-xl">🧑‍🤝‍🧑</span>
 
-              <span className="text-eco-text font-medium">{f.name}</span>
+              <span className="text-eco-text font-medium break-words">
+                {f.name}
+              </span>
 
               {isMe && (
-                <span className="px-2 py-0.5 text-xs rounded-md 
-                                 bg-eco-accent/20 text-eco-accent font-semibold">
+                <span
+                  className="
+                    px-2 py-0.5 
+                    text-[11px] sm:text-xs 
+                    rounded-md 
+                    bg-eco-accent/20 
+                    text-eco-accent 
+                    font-semibold
+                  "
+                >
                   Вие
                 </span>
               )}
             </div>
 
             {/* ACTION BUTTONS */}
-            <div className="flex items-center gap-3">
+            <div
+              className="
+                flex items-center gap-3
+                self-stretch sm:self-auto
+                justify-end
+              "
+            >
               <button
+                type="button"
                 title="Редактирай"
                 onClick={() => onEditFamily?.(f)}
-                className="text-eco-text-muted hover:text-eco-accent transition"
+                className="
+                  text-base sm:text-lg
+                  text-eco-text-muted 
+                  hover:text-eco-accent 
+                  transition
+                "
               >
                 ✏️
               </button>
 
               <button
+                type="button"
                 title="Изтрий"
                 onClick={() => onDeleteFamily?.(f)}
-                className="text-eco-text-muted hover:text-red-400 transition"
+                className="
+                  text-base sm:text-lg
+                  text-eco-text-muted 
+                  hover:text-red-400 
+                  transition
+                "
               >
                 🗑️
               </button>

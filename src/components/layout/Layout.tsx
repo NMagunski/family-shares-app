@@ -11,7 +11,15 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
       {/* Глобален футуристичен фон */}
       <div className="min-h-screen bg-[radial-gradient(circle_at_top,_rgba(16,185,129,0.18),_transparent_60%),radial-gradient(circle_at_bottom,_rgba(16,185,129,0.12),_transparent_60%)]">
         <Navbar />
-        <main className="mx-auto max-w-6xl px-4 py-6 md:py-8">
+        <main
+          className="
+            mx-auto 
+            w-full 
+            max-w-4xl 
+            px-4 sm:px-5 
+            py-6 md:py-8
+          "
+        >
           {children}
         </main>
       </div>
