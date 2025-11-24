@@ -12,13 +12,16 @@ const LoginPage: React.FC = () => {
   const router = useRouter();
   const { redirect } = router.query;
 
+  // 👉 безопасна цел за redirect – само вътрешни пътища, започващи с "/"
+  const redirectTarget =
+    typeof redirect === 'string' && redirect.startsWith('/')
+      ? redirect
+      : '/';
+
   const [email, setEmail] = React.useState('');
   const [password, setPassword] = React.useState('');
   const [error, setError] = React.useState<string | null>(null);
   const [loading, setLoading] = React.useState(false);
-
-  const redirectTarget =
-    typeof redirect === 'string' && redirect.length > 0 ? redirect : '/';
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -27,7 +30,9 @@ const LoginPage: React.FC = () => {
 
     try {
       await signInWithEmailAndPassword(auth, email, password);
-      router.push(redirectTarget);
+
+      // 👉 връщаме към първоначално поисканата страница (trip, lists, itinerary и т.н.)
+      await router.replace(redirectTarget);
     } catch (err: any) {
       console.error(err);
       const code = err?.code as string | undefined;
@@ -45,7 +50,7 @@ const LoginPage: React.FC = () => {
   }
 
   const registerHref =
-    typeof redirect === 'string' && redirect.length > 0
+    typeof redirect === 'string' && redirect.startsWith('/')
       ? `/register?redirect=${encodeURIComponent(redirect)}`
       : '/register';
 

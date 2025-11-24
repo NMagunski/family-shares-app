@@ -17,15 +17,16 @@ const JoinTripPage: React.FC = () => {
   const [loadingFamilies, setLoadingFamilies] = React.useState(false);
   const [showModal, setShowModal] = React.useState(false);
 
-  // ако не е логнат – пращаме към login (redirect още не обработваме, но е ок за MVP)
+  // 👉 Guard: ако не е логнат – пращаме към login с redirect обратно към join
   React.useEffect(() => {
-      if (!tripIdStr) return;
-      if (!authLoading && !user) {
-       router.push(`/login?redirect=/join/${tripIdStr}`);
-}
+    if (!tripIdStr) return;
+    if (!authLoading && !user) {
+      const target = router.asPath || `/join/${tripIdStr}`;
+      router.replace(`/login?redirect=${encodeURIComponent(target)}`);
+    }
   }, [tripIdStr, authLoading, user, router]);
 
-  // зареждаме семействата когато има user
+  // Зареждаме семействата когато има user
   React.useEffect(() => {
     if (!tripIdStr || !user) return;
 
@@ -44,9 +45,10 @@ const JoinTripPage: React.FC = () => {
     loadFamilies();
   }, [tripIdStr, user]);
 
-  // проверка дали user вече има семейство в това пътуване
+  // Проверка дали user вече има семейство в това пътуване
   React.useEffect(() => {
     if (!user || !tripIdStr) return;
+
     if (families.length === 0 && !loadingFamilies) {
       // няма семейства – директно показваме popup
       setShowModal(true);
@@ -74,10 +76,20 @@ const JoinTripPage: React.FC = () => {
     }
   }
 
+  // Докато auth се зарежда или още нямаме user → показваме само loader
+  if (authLoading || !user) {
+    return (
+      <Layout>
+        <h1>Присъединяване към пътуване</h1>
+        <p>Зареждане...</p>
+      </Layout>
+    );
+  }
+
   return (
     <Layout>
       <h1>Присъединяване към пътуване</h1>
-      {authLoading || loadingFamilies ? (
+      {loadingFamilies ? (
         <p>Зареждане...</p>
       ) : (
         <p>Подготвяме твоето семейство за това пътуване...</p>

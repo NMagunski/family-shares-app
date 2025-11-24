@@ -25,9 +25,18 @@ import styles from '@/components/trips/TripDetails.module.css';
 const TripPage: React.FC = () => {
   const router = useRouter();
   const { tripId } = router.query;
-  const { user } = useAuth();
+  const { user, loading: authLoading } = useAuth();
 
   const tripIdStr = typeof tripId === 'string' ? tripId : '';
+
+  // 👉 Guard: ако не сме логнати, пращаме към /login
+React.useEffect(() => {
+  if (!authLoading && !user) {
+    // запомняме кой точно URL е искал потребителят
+    const target = router.asPath || `/trips/${tripIdStr}`;
+    router.replace(`/login?redirect=${encodeURIComponent(target)}`);
+  }
+}, [authLoading, user, router, tripIdStr]);
 
   // URL за споделяне
   const [origin, setOrigin] = React.useState('');
@@ -218,6 +227,15 @@ const TripPage: React.FC = () => {
   const expensesCount = expenses.length;
   const tripStatus = trip?.archived ? 'Архивирано' : 'Активно';
 
+  // Докато auth се зарежда или правим redirect → не показваме детайлите
+  if (authLoading || !user) {
+    return (
+      <Layout>
+        <p className={styles.mutedText}>Зареждане...</p>
+      </Layout>
+    );
+  }
+
   return (
     <Layout>
       <div className={styles.pageWrapper}>
@@ -226,8 +244,9 @@ const TripPage: React.FC = () => {
           tripName={tripName}
           onAddFamily={() => setShowFamilyModal(true)}
           onOpenLists={() => router.push(`/trips/${tripIdStr}/lists`)}
+          onOpenItinerary={() => router.push(`/trips/${tripIdStr}/itinerary`)}
           onShare={() => setShowShareModal(true)}
-          onOpenSettings={() => router.push(`/trips/${tripIdStr}/settings`)} // ➕ нов проп
+          onOpenSettings={() => router.push(`/trips/${tripIdStr}/settings`)}
         />
 
         {/* GRID LAYOUT */}

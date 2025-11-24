@@ -9,11 +9,14 @@ import type { Trip } from '@/types/trip';
 import { fetchTripById, setTripArchived, deleteTripCompletely } from '@/lib/trips';
 import { db } from '@/lib/firebase';
 import { doc, updateDoc } from 'firebase/firestore';
+import { useAuth } from '@/context/AuthContext';
 
 const TripSettingsPage: React.FC = () => {
   const router = useRouter();
   const { tripId } = router.query;
   const tripIdStr = typeof tripId === 'string' ? tripId : '';
+
+  const { user, loading: authLoading } = useAuth();
 
   const [trip, setTrip] = React.useState<Trip | null>(null);
   const [loading, setLoading] = React.useState(false);
@@ -28,9 +31,17 @@ const TripSettingsPage: React.FC = () => {
   const [deleteModalOpen, setDeleteModalOpen] = React.useState(false);
   const [deleteLoading, setDeleteLoading] = React.useState(false);
 
+  // 👉 Guard за неавторизирани потребители
+  React.useEffect(() => {
+    if (!authLoading && !user) {
+      const target = router.asPath || `/trips/${tripIdStr}/settings`;
+      router.replace(`/login?redirect=${encodeURIComponent(target)}`);
+    }
+  }, [authLoading, user, router, tripIdStr]);
+
   // Зареждаме пътуването
   React.useEffect(() => {
-    if (!tripIdStr) return;
+    if (!tripIdStr || !user) return;
 
     async function loadTrip() {
       try {
@@ -53,7 +64,7 @@ const TripSettingsPage: React.FC = () => {
     }
 
     loadTrip();
-  }, [tripIdStr]);
+  }, [tripIdStr, user]);
 
   const isDirty =
     !!trip && (name.trim() !== trip.name || type !== trip.type);
@@ -68,7 +79,6 @@ const TripSettingsPage: React.FC = () => {
 
       const trimmedName = name.trim() || trip.name;
 
-      // директен update в колекция "trips"
       const ref = doc(db, 'trips', tripIdStr);
       await updateDoc(ref, {
         name: trimmedName,
@@ -123,7 +133,6 @@ const TripSettingsPage: React.FC = () => {
       setDeleteLoading(true);
       await deleteTripCompletely(tripIdStr);
       setDeleteModalOpen(false);
-      // връщаме към списъка с пътувания
       router.push('/');
     } catch (err) {
       console.error(err);
@@ -134,6 +143,15 @@ const TripSettingsPage: React.FC = () => {
   }
 
   const tripName = trip?.name ?? '';
+
+  // Докато auth се зарежда → избягваме мигания
+  if (authLoading || !user) {
+    return (
+      <Layout>
+        <p className={styles.statusText}>Зареждане...</p>
+      </Layout>
+    );
+  }
 
   return (
     <Layout>
@@ -158,7 +176,6 @@ const TripSettingsPage: React.FC = () => {
           <p className={styles.errorText}>Пътуването не беше намерено.</p>
         ) : (
           <>
-            {/* Основни настройки */}
             <form className={styles.form} onSubmit={handleSave}>
               <div className={styles.fieldGroup}>
                 <label className={styles.label} htmlFor="tripName">
@@ -170,7 +187,6 @@ const TripSettingsPage: React.FC = () => {
                   className={styles.textInput}
                   value={name}
                   onChange={(e) => setName(e.target.value)}
-                  placeholder="Напр. Море 2025, Почивка в планината..."
                 />
               </div>
 
@@ -208,15 +224,13 @@ const TripSettingsPage: React.FC = () => {
               </div>
             </form>
 
-            {/* Статус: архивирано/активно */}
             <div className={styles.section}>
               <h2 className={styles.sectionTitle}>Статус на пътуването</h2>
               <p className={styles.sectionText}>
                 В момента пътуването е{' '}
                 <strong>
                   {trip.archived ? 'архивирано' : 'активно'}
-                </strong>
-                .
+                </strong>.
               </p>
               <button
                 type="button"
@@ -232,12 +246,11 @@ const TripSettingsPage: React.FC = () => {
               </button>
             </div>
 
-            {/* Опасна зона */}
             <div className={styles.dangerSection}>
               <h2 className={styles.sectionTitle}>Опасна зона</h2>
               <p className={styles.sectionText}>
                 Изтриването на пътуването е необратимо. Всички участници,
-                разходи и списъци, свързани с него, ще бъдат изтрити.
+                разходи и списъци ще бъдат изтрити.
               </p>
               <button
                 type="button"
@@ -251,14 +264,13 @@ const TripSettingsPage: React.FC = () => {
         )}
       </Card>
 
-      {/* Модал за изтриване */}
       <ConfirmModal
         isOpen={deleteModalOpen}
         title="Изтриване на пътуване"
         description={
           tripName
             ? `Пътуване „${tripName}“ и всички данни към него ще бъдат изтрити. Сигурен ли си?`
-            : 'Пътуването и всички данни към него ще бъдат изтрити. Сигурен ли си?'
+            : 'Пътуването ще бъде изтрито напълно.'
         }
         confirmLabel={deleteLoading ? 'Изтриване...' : 'Изтрий'}
         cancelLabel="Отказ"

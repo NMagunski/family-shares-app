@@ -10,7 +10,7 @@ import {
   updateDoc,
   deleteDoc,
 } from 'firebase/firestore';
-import type { Trip, TripType } from '@/types/trip';
+import type { Trip, TripType, TripItineraryItem } from '@/types/trip';
 
 const TRIPS_COLLECTION = 'trips';
 const FAMILIES_COLLECTION = 'families';
@@ -31,6 +31,7 @@ export async function createTripForUser(
     name,
     createdAt: new Date().toISOString(),
     archived: false,
+    // itinerary не е задължително поле – може да го пропуснем
   };
 
   const docRef = await addDoc(collection(db, TRIPS_COLLECTION), payload);
@@ -63,6 +64,7 @@ export async function fetchTripsForUser(ownerId: string): Promise<Trip[]> {
       name: data.name,
       createdAt: data.createdAt ?? '',
       archived: data.archived ?? false,
+      // itinerary не ни трябва в списъка – оставяме го undefined
     };
   });
 
@@ -106,6 +108,7 @@ export async function fetchSharedTripsForUser(userId: string): Promise<Trip[]> {
       name: data.name,
       createdAt: data.createdAt ?? '',
       archived: data.archived ?? false,
+      // itinerary тук също не е нужен
     });
   }
 
@@ -134,6 +137,8 @@ export async function fetchTripById(tripId: string): Promise<Trip | null> {
     name: data.name,
     createdAt: data.createdAt ?? '',
     archived: data.archived ?? false,
+    // 👉 ако вече има itinerary в документа – взимаме го, иначе оставяме undefined
+    itinerary: (data.itinerary as TripItineraryItem[] | undefined) ?? undefined,
   };
 
   return trip;
@@ -148,6 +153,19 @@ export async function setTripArchived(
 ): Promise<void> {
   const ref = doc(db, TRIPS_COLLECTION, tripId);
   await updateDoc(ref, { archived });
+}
+
+/**
+ * Обновява програмата (itinerary) на пътуването
+ */
+export async function updateTripItinerary(
+  tripId: string,
+  items: TripItineraryItem[]
+): Promise<void> {
+  const ref = doc(db, TRIPS_COLLECTION, tripId);
+  await updateDoc(ref, {
+    itinerary: items,
+  });
 }
 
 /**

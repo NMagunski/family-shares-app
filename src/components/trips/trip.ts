@@ -7,6 +7,7 @@ export type Trip = {
   name: string;
   createdAt: string; // ISO string
   archived?: boolean;
+  
 };
 
 export type TripFamily = {
@@ -41,3 +42,12 @@ export type TripListItem = {
   text: string;
   checked: boolean;
 };
+// export type TripItineraryItem = {
+//   id: string;
+//   day: number;        // Ден 1, 2, 3...
+//   date?: string;      // ISO дата: '2025-07-15'
+//   time?: string;      // '10:00–13:00'
+//   title: string;      // Заглавие на активността
+//   location?: string;  // По желание
+//   notes?: string;     // Бележки / детайли
+// };

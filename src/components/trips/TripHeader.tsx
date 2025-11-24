@@ -6,6 +6,7 @@ type Props = {
   tripName: string;
   onAddFamily: () => void;
   onOpenLists: () => void;
+  onOpenItinerary: () => void; 
   onShare: () => void;
   onOpenSettings: () => void;
 };
@@ -14,6 +15,7 @@ const TripHeader: React.FC<Props> = ({
   tripName,
   onAddFamily,
   onOpenLists,
+  onOpenItinerary,
   onShare,
   onOpenSettings,
 }) => {
@@ -29,7 +31,9 @@ const TripHeader: React.FC<Props> = ({
         <Button variant="secondary" onClick={onOpenLists}>
           📝 Списъци
         </Button>
-
+        <Button variant="secondary" onClick={onOpenItinerary}>
+          🗓️ Програма
+        </Button>
         <Button variant="secondary" onClick={onShare}>
           🔗 Сподели
         </Button>

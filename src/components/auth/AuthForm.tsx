@@ -20,6 +20,7 @@ const AuthForm: React.FC<AuthFormProps> = ({ mode, onSubmit }) => {
     e.preventDefault();
     setError(null);
     setLoading(true);
+
     try {
       await onSubmit?.({ email, password });
     } catch (err: any) {
@@ -34,9 +35,15 @@ const AuthForm: React.FC<AuthFormProps> = ({ mode, onSubmit }) => {
   return (
     <Card>
       <h1 style={{ marginBottom: 12 }}>{title}</h1>
+
       <form
         onSubmit={handleSubmit}
-        style={{ display: 'flex', flexDirection: 'column', gap: 12, maxWidth: 360 }}
+        style={{
+          display: 'flex',
+          flexDirection: 'column',
+          gap: 12,
+          maxWidth: 360,
+        }}
       >
         <Input
           label="Email"

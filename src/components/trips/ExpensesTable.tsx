@@ -29,15 +29,16 @@ const ExpensesTable: React.FC<ExpensesTableProps> = ({
 
   return (
     <Card>
-      <h2 style={{ marginBottom: 8 }}>Разходи</h2>
 
-      {/* НОВА МОДЕРНА ФОРМА ЗА ДОБАВЯНЕ НА РАЗХОД */}
+      {/* ❗ Премахнахме <h2>Разходи</h2> за да не се дублира */}
+
+      {/* Форма за добавяне на разход */}
       <AddExpenseForm
         families={families.map((f) => ({ id: f.id, name: f.name }))}
         onAdd={handleAdd}
       />
 
-      {/* СПИСЪК СЪС СЪЩЕСТВУВАЩИ РАЗХОДИ */}
+      {/* Списък с разходи */}
       {expenses.length === 0 ? (
         <p style={{ marginTop: 12 }}>Все още няма разходи.</p>
       ) : (

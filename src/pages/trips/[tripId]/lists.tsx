@@ -2,6 +2,7 @@ import React from 'react';
 import { useRouter } from 'next/router';
 import Layout from '@/components/layout/Layout';
 import Card from '@/components/ui/Card';
+import Button from '@/components/ui/Button';
 import styles from './TripListsPage.module.css';
 import {
   fetchListsWithItemsForTrip,
@@ -14,11 +15,14 @@ import {
   TripListWithItems,
 } from '@/lib/tripLists';
 import { fetchTripById } from '@/lib/trips';
+import { useAuth } from '@/context/AuthContext';
 
 const TripListsPage: React.FC = () => {
   const router = useRouter();
   const { tripId } = router.query;
   const tripIdStr = typeof tripId === 'string' ? tripId : '';
+
+  const { user, loading: authLoading } = useAuth();
 
   const [tripName, setTripName] = React.useState('');
   const [lists, setLists] = React.useState<TripListWithItems[]>([]);
@@ -28,9 +32,17 @@ const TripListsPage: React.FC = () => {
   const [newListName, setNewListName] = React.useState('');
   const [creatingList, setCreatingList] = React.useState(false);
 
+  // 👉 Guard за неавторизирани потребители
+  React.useEffect(() => {
+    if (!authLoading && !user) {
+      const target = router.asPath || `/trips/${tripIdStr}/lists`;
+      router.replace(`/login?redirect=${encodeURIComponent(target)}`);
+    }
+  }, [authLoading, user, router, tripIdStr]);
+
   // Зареждаме името на пътуването
   React.useEffect(() => {
-    if (!tripIdStr) return;
+    if (!tripIdStr || !user) return;
 
     async function loadTrip() {
       try {
@@ -42,11 +54,11 @@ const TripListsPage: React.FC = () => {
     }
 
     loadTrip();
-  }, [tripIdStr]);
+  }, [tripIdStr, user]);
 
   // Зареждаме списъците
   React.useEffect(() => {
-    if (!tripIdStr) return;
+    if (!tripIdStr || !user) return;
 
     async function loadLists() {
       try {
@@ -63,7 +75,7 @@ const TripListsPage: React.FC = () => {
     }
 
     loadLists();
-  }, [tripIdStr]);
+  }, [tripIdStr, user]);
 
   function handleStartCreateList() {
     setCreatingList(true);
@@ -178,16 +190,47 @@ const TripListsPage: React.FC = () => {
     }
   }
 
+  // Докато auth се зарежда или правим redirect → не показваме съдържанието
+  if (authLoading || !user) {
+    return (
+      <Layout>
+        <p className={styles.statusText}>Зареждане...</p>
+      </Layout>
+    );
+  }
+
   return (
     <Layout>
       <Card>
-        <h1 className={styles.pageTitle}>
-          Списъци за пътуване {tripName || '...'}
-        </h1>
-        <p className={styles.pageSubtitle}>
-          Организирай задачите и багажа за това пътуване с един или повече
-          списъци. Отметнатите задачи се преместват най-отдолу.
-        </p>
+        {/* Header с заглавие + бутон "← Към детайли" */}
+        <div
+          style={{
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            gap: '1rem',
+            marginBottom: '1rem',
+            flexWrap: 'wrap',
+          }}
+        >
+          <div>
+            <h1 className={styles.pageTitle}>
+              Списъци за пътуване {tripName || '...'}
+            </h1>
+            <p className={styles.pageSubtitle}>
+              Организирай задачите и багажа за това пътуване с един или повече
+              списъци. Отметнатите задачи се преместват най-отдолу.
+            </p>
+          </div>
+
+          <Button
+            type="button"
+            variant="secondary"
+            onClick={() => router.push(`/trips/${tripIdStr}`)}
+          >
+            ← Към детайли
+          </Button>
+        </div>
 
         <div className={styles.actionsRow}>
           {!creatingList ? (

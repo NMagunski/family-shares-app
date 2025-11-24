@@ -1,4 +1,5 @@
 import React from 'react';
+import { useRouter } from 'next/router';
 import Layout from '@/components/layout/Layout';
 import TripTypeSelector from '@/components/trips/TripTypeSelector';
 import Card from '@/components/ui/Card';
@@ -15,10 +16,12 @@ import {
 } from '@/lib/trips';
 import DeleteModal from '@/components/trips/DeleteModal';
 import ArchiveModal from '@/components/trips/ArchiveModal';
+import Button from '@/components/ui/Button';
 import styles from './HomePage.module.css';
 
 const HomePage: React.FC = () => {
   const { user, loading: authLoading } = useAuth();
+  const router = useRouter();
 
   const [ownedTrips, setOwnedTrips] = React.useState<Trip[]>([]);
   const [archivedTrips, setArchivedTrips] = React.useState<Trip[]>([]);
@@ -175,6 +178,60 @@ const HomePage: React.FC = () => {
     }
   }
 
+  // 👉 1) Докато auth се зарежда
+  if (authLoading) {
+    return (
+      <Layout>
+        <p className={styles.statusText}>Зареждане...</p>
+      </Layout>
+    );
+  }
+
+  // 👉 2) Ако потребителят НЕ е логнат → показваме landing с CTA за вход/регистрация
+  if (!user) {
+    return (
+      <Layout>
+        <Card>
+          <h1 className={styles.mainTitle}>Добре дошъл в TripSplitly</h1>
+          <p className={styles.mainSubtitle}>
+            Влез или се регистрирай, за да планираш пътувания, да разделяш разходи
+            и да управляваш семейните приключения на едно място.
+          </p>
+
+          <div
+            style={{
+              marginTop: '1.5rem',
+              display: 'flex',
+              gap: '1rem',
+              flexWrap: 'wrap',
+            }}
+          >
+            <Button
+              type="button"
+              onClick={() => router.push('/login')}
+              className={styles.primaryButton}
+            >
+              Вход
+            </Button>
+
+            <Button
+              type="button"
+              onClick={() => router.push('/register')}
+              className={styles.secondaryButton}
+            >
+              Създай акаунт
+            </Button>
+          </div>
+
+          <p className={styles.statusText} style={{ marginTop: '1rem' }}>
+            Нямаш регистрация? Създай акаунт за по-малко от минута.
+          </p>
+        </Card>
+      </Layout>
+    );
+  }
+
+  // 👉 3) Логнат потребител → показваме hero + списъци с пътувания
   return (
     <Layout>
       <Card>
@@ -186,12 +243,8 @@ const HomePage: React.FC = () => {
       </Card>
 
       <div className={styles.sectionsWrapper}>
-        {authLoading || tripsLoading ? (
+        {tripsLoading ? (
           <p className={styles.statusText}>Зареждане...</p>
-        ) : !user ? (
-          <p className={styles.statusText}>
-            За да виждаш и създаваш пътувания, първо влез в профила си.
-          </p>
         ) : error ? (
           <p className={styles.errorText}>{error}</p>
         ) : (

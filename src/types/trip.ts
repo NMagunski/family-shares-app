@@ -1,5 +1,15 @@
 export type TripType = 'beach' | 'flight' | 'other';
 
+export type TripItineraryItem = {
+  id: string;
+  day: number;
+  date?: string;
+  time?: string;
+  title: string;
+  location?: string;
+  notes?: string;
+};
+
 export type Trip = {
   id: string;
   ownerId: string;
@@ -7,6 +17,9 @@ export type Trip = {
   name: string;
   createdAt: string; // ISO string
   archived?: boolean;
+
+  // 👉 новото поле – програмата на пътуването (по избор)
+  itinerary?: TripItineraryItem[];
 };
 
 export type TripFamily = {
