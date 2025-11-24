@@ -1,5 +1,4 @@
 import React from 'react';
-import styles from './AddExpenseForm.module.css';
 
 type Props = {
   families: { id: string; name: string }[];
@@ -37,7 +36,6 @@ const AddExpenseForm: React.FC<Props> = ({ families, onAdd }) => {
       comment,
     });
 
-    // reset
     setPaidBy('');
     setInvolved([]);
     setAmount('');
@@ -45,13 +43,18 @@ const AddExpenseForm: React.FC<Props> = ({ families, onAdd }) => {
   }
 
   return (
-    <form className={styles.form} onSubmit={handleSubmit}>
-      <h3 className={styles.heading}>Добави нов разход</h3>
+    <form
+      onSubmit={handleSubmit}
+      className="mt-4 mb-6 flex flex-col gap-4 rounded-xl bg-eco-surface p-4 shadow-eco-soft"
+    >
+      <h3 className="text-lg font-semibold text-eco-text">Добави нов разход</h3>
 
-      {/* ПЛАТЕНО ОТ */}
-      <label className={styles.label}>Платено от</label>
+      {/* Платено от */}
+      <label className="text-sm font-medium text-eco-text-muted">
+        Платено от
+      </label>
       <select
-        className={styles.select}
+        className="w-full rounded-lg border border-eco-border bg-eco-surface-soft px-3 py-2 text-sm text-eco-text focus:border-eco-accent focus:outline-none focus:ring-2 focus:ring-eco-accent"
         value={paidBy}
         onChange={(e) => setPaidBy(e.target.value)}
       >
@@ -63,34 +66,41 @@ const AddExpenseForm: React.FC<Props> = ({ families, onAdd }) => {
         ))}
       </select>
 
-      {/* РАЗПРЕДЕЛЕН МЕЖДУ */}
-      <label className={styles.label}>Разпределено между</label>
-      <div className={styles.checklist}>
+      {/* Разпределено между */}
+      <label className="text-sm font-medium text-eco-text-muted">
+        Разпределено между
+      </label>
+      <div className="flex flex-col gap-2">
         {families.map((f) => (
-          <label key={f.id} className={styles.checkItem}>
+          <label
+            key={f.id}
+            className="flex items-center gap-2 text-sm text-eco-text"
+          >
             <input
               type="checkbox"
               checked={involved.includes(f.id)}
               onChange={() => toggleInvolved(f.id)}
+              className="h-4 w-4 rounded border-eco-border bg-eco-surface-soft text-eco-accent focus:ring-eco-accent"
             />
             {f.name}
           </label>
         ))}
       </div>
 
-      {/* СУМА */}
-      <label className={styles.label}>Сума</label>
-      <div className={styles.amountRow}>
+      {/* Сума */}
+      <label className="text-sm font-medium text-eco-text-muted">Сума</label>
+      <div className="flex gap-2">
         <input
           type="number"
-          className={styles.amountInput}
-          value={amount}
-          onChange={(e) => setAmount(e.target.value)}
           placeholder="0.00"
           step="0.01"
+          className="flex-1 rounded-lg border border-eco-border bg-eco-surface-soft px-3 py-2 text-sm text-eco-text placeholder:text-eco-text-muted focus:border-eco-accent focus:outline-none focus:ring-2 focus:ring-eco-accent"
+          value={amount}
+          onChange={(e) => setAmount(e.target.value)}
         />
+
         <select
-          className={styles.currency}
+          className="w-20 rounded-lg border border-eco-border bg-eco-surface-soft px-2 py-2 text-sm text-eco-text focus:border-eco-accent focus:outline-none focus:ring-2 focus:ring-eco-accent"
           value={currency}
           onChange={(e) => setCurrency(e.target.value as 'BGN' | 'EUR')}
         >
@@ -99,16 +109,21 @@ const AddExpenseForm: React.FC<Props> = ({ families, onAdd }) => {
         </select>
       </div>
 
-      {/* КОМЕНТАР */}
-      <label className={styles.label}>Коментар (по избор)</label>
+      {/* Коментар */}
+      <label className="text-sm font-medium text-eco-text-muted">
+        Коментар (по избор)
+      </label>
       <input
-        className={styles.input}
+        placeholder="пример: вечеря, бензин, хот-дог..."
+        className="w-full rounded-lg border border-eco-border bg-eco-surface-soft px-3 py-2 text-sm text-eco-text placeholder:text-eco-text-muted focus:border-eco-accent focus:outline-none focus:ring-2 focus:ring-eco-accent"
         value={comment}
         onChange={(e) => setComment(e.target.value)}
-        placeholder="пример: вечеря, бензин, хот-дог..."
       />
 
-      <button type="submit" className={styles.addButton}>
+      <button
+        type="submit"
+        className="mt-2 w-full rounded-lg bg-eco-accent-strong px-4 py-2 text-sm font-semibold text-white shadow-md hover:bg-eco-accent transition"
+      >
         ➕ Добави разход
       </button>
     </form>

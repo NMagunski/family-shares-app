@@ -12,13 +12,16 @@ const RegisterPage: React.FC = () => {
   const router = useRouter();
   const { redirect } = router.query;
 
+  // безопасен redirect – само вътрешни пътища
+  const redirectTarget =
+    typeof redirect === 'string' && redirect.startsWith('/')
+      ? redirect
+      : '/';
+
   const [email, setEmail] = React.useState('');
   const [password, setPassword] = React.useState('');
   const [error, setError] = React.useState<string | null>(null);
   const [loading, setLoading] = React.useState(false);
-
-  const redirectTarget =
-    typeof redirect === 'string' && redirect.length > 0 ? redirect : '/';
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -27,7 +30,7 @@ const RegisterPage: React.FC = () => {
 
     try {
       await createUserWithEmailAndPassword(auth, email, password);
-      router.push(redirectTarget);
+      await router.replace(redirectTarget);
     } catch (err: any) {
       console.error(err);
       const code = err?.code as string | undefined;
@@ -45,23 +48,21 @@ const RegisterPage: React.FC = () => {
   }
 
   const loginHref =
-    typeof redirect === 'string' && redirect.length > 0
+    typeof redirect === 'string' && redirect.startsWith('/')
       ? `/login?redirect=${encodeURIComponent(redirect)}`
       : '/login';
 
   return (
     <Layout>
-      <div
-        style={{
-          maxWidth: 480,
-          margin: '40px auto',
-        }}
-      >
-        <Card>
-          <h1 style={{ marginBottom: 16 }}>Регистрация</h1>
+      <div className="max-w-md mx-auto mt-12 px-4">
+        <Card className="p-6">
+          <h1 className="text-xl font-semibold text-eco-text mb-4">
+            Регистрация
+          </h1>
+
           <form
             onSubmit={handleSubmit}
-            style={{ display: 'flex', flexDirection: 'column', gap: 12 }}
+            className="flex flex-col gap-4"
           >
             <Input
               label="Email"
@@ -80,7 +81,7 @@ const RegisterPage: React.FC = () => {
             />
 
             {error && (
-              <p style={{ color: 'red', fontSize: '0.9rem' }}>
+              <p className="text-red-400 text-sm">
                 {error}
               </p>
             )}
@@ -90,9 +91,9 @@ const RegisterPage: React.FC = () => {
             </Button>
           </form>
 
-          <p style={{ marginTop: 12, fontSize: '0.9rem' }}>
+          <p className="mt-4 text-sm text-eco-text-muted">
             Вече имаш акаунт?{' '}
-            <Link href={loginHref} style={{ color: '#2563eb' }}>
+            <Link href={loginHref} className="text-eco-accent hover:underline">
               Влез
             </Link>
           </p>

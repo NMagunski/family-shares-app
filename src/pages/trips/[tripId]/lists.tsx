@@ -3,7 +3,6 @@ import { useRouter } from 'next/router';
 import Layout from '@/components/layout/Layout';
 import Card from '@/components/ui/Card';
 import Button from '@/components/ui/Button';
-import styles from './TripListsPage.module.css';
 import {
   fetchListsWithItemsForTrip,
   createTripList,
@@ -194,7 +193,7 @@ const TripListsPage: React.FC = () => {
   if (authLoading || !user) {
     return (
       <Layout>
-        <p className={styles.statusText}>Зареждане...</p>
+        <p className="text-sm text-eco-text-muted">Зареждане...</p>
       </Layout>
     );
   }
@@ -203,21 +202,12 @@ const TripListsPage: React.FC = () => {
     <Layout>
       <Card>
         {/* Header с заглавие + бутон "← Към детайли" */}
-        <div
-          style={{
-            display: 'flex',
-            justifyContent: 'space-between',
-            alignItems: 'center',
-            gap: '1rem',
-            marginBottom: '1rem',
-            flexWrap: 'wrap',
-          }}
-        >
+        <div className="flex justify-between items-center gap-4 mb-4 flex-wrap">
           <div>
-            <h1 className={styles.pageTitle}>
+            <h1 className="text-xl sm:text-2xl font-semibold text-eco-text mb-1">
               Списъци за пътуване {tripName || '...'}
             </h1>
-            <p className={styles.pageSubtitle}>
+            <p className="text-sm text-eco-text-muted max-w-xl">
               Организирай задачите и багажа за това пътуване с един или повече
               списъци. Отметнатите задачи се преместват най-отдолу.
             </p>
@@ -227,39 +217,47 @@ const TripListsPage: React.FC = () => {
             type="button"
             variant="secondary"
             onClick={() => router.push(`/trips/${tripIdStr}`)}
+            className="whitespace-nowrap"
           >
             ← Към детайли
           </Button>
         </div>
 
-        <div className={styles.actionsRow}>
+        {/* Ред с бутон / форма за нов списък */}
+        <div className="mt-2">
           {!creatingList ? (
-            <button
+            <Button
               type="button"
-              className={styles.primaryButton}
               onClick={handleStartCreateList}
+              className="px-3 py-2 text-sm"
             >
               + Нов списък
-            </button>
+            </Button>
           ) : (
-            <form className={styles.newListForm} onSubmit={handleCreateList}>
+            <form
+              onSubmit={handleCreateList}
+              className="flex flex-col md:flex-row gap-3 items-stretch md:items-center"
+            >
               <input
-                className={styles.textInput}
+                className="flex-1 rounded-lg border border-eco-border/70 bg-eco-surface-soft px-3 py-2 text-sm text-eco-text placeholder:text-eco-text-muted focus:outline-none focus:ring-2 focus:ring-emerald-500"
                 type="text"
                 placeholder="Име на списъка (напр. Багаж, За пътя, Пазаруване...)"
                 value={newListName}
                 onChange={(e) => setNewListName(e.target.value)}
                 autoFocus
               />
-              <div className={styles.newListButtons}>
+              <div className="flex gap-2 justify-end">
                 <button
                   type="button"
-                  className={styles.secondaryButton}
                   onClick={handleCancelCreateList}
+                  className="px-3 py-2 rounded-lg border border-eco-border/60 bg-transparent text-sm text-eco-text-muted hover:bg-eco-surface-soft transition"
                 >
                   Отказ
                 </button>
-                <button type="submit" className={styles.primaryButtonSmall}>
+                <button
+                  type="submit"
+                  className="px-3 py-2 rounded-lg bg-emerald-500 text-sm font-medium text-white hover:bg-emerald-600 transition"
+                >
                   Запази
                 </button>
               </div>
@@ -268,18 +266,19 @@ const TripListsPage: React.FC = () => {
         </div>
       </Card>
 
-      <div className={styles.listsWrapper}>
+      {/* Списъци */}
+      <div className="mt-6">
         {loading ? (
-          <p className={styles.statusText}>Зареждане на списъците...</p>
+          <p className="text-sm text-eco-text-muted">Зареждане на списъците...</p>
         ) : error ? (
-          <p className={styles.errorText}>{error}</p>
+          <p className="text-sm text-red-400">{error}</p>
         ) : lists.length === 0 ? (
-          <p className={styles.emptyText}>
+          <p className="text-sm text-eco-text-muted">
             Все още нямаш списъци за това пътуване. Започни с „Нов списък“ –
             например „Багаж“, „За пътя“ или „Пазаруване“.
           </p>
         ) : (
-          <div className={styles.listsGrid}>
+          <div className="grid gap-4 md:grid-cols-2">
             {lists.map((list) => (
               <ListCard
                 key={list.id}
@@ -331,56 +330,73 @@ const ListCard: React.FC<ListCardProps> = ({
 
   return (
     <Card>
-      <div className={styles.listHeader}>
-        <h2 className={styles.listTitle}>{list.name}</h2>
+      {/* Заглавие на списъка + бутон Изтриване */}
+      <div className="flex items-center justify-between gap-2 mb-3">
+        <h2 className="text-base font-semibold text-eco-text truncate">
+          {list.name}
+        </h2>
         <button
           type="button"
-          className={styles.deleteListButton}
           onClick={() => onDeleteList(list.id)}
+          className="text-xs font-medium text-red-300 hover:text-red-400 hover:underline transition"
         >
           Изтрий списъка
         </button>
       </div>
 
-      <form className={styles.addItemForm} onSubmit={handleSubmit}>
+      {/* Форма за нов елемент */}
+      <form
+        onSubmit={handleSubmit}
+        className="flex items-center gap-2 mb-3"
+      >
         <input
-          className={styles.textInput}
+          className="flex-1 rounded-lg border border-eco-border/70 bg-eco-surface-soft px-3 py-2 text-sm text-eco-text placeholder:text-eco-text-muted focus:outline-none focus:ring-2 focus:ring-emerald-500"
           type="text"
           placeholder="Нова задача или предмет..."
           value={newItemText}
           onChange={(e) => setNewItemText(e.target.value)}
         />
-        <button type="submit" className={styles.primaryButtonSmall}>
+        <button
+          type="submit"
+          className="px-3 py-2 rounded-lg bg-emerald-500 text-xs sm:text-sm font-medium text-white hover:bg-emerald-600 transition whitespace-nowrap"
+        >
           Добави
         </button>
       </form>
 
+      {/* Елементи в списъка */}
       {!hasItems ? (
-        <p className={styles.emptyListText}>
+        <p className="text-sm text-eco-text-muted">
           Все още няма елементи в този списък. Добави първата задача или предмет.
         </p>
       ) : (
-        <ul className={styles.itemsList}>
+        <ul className="space-y-2">
           {list.items.map((item) => (
-            <li key={item.id} className={styles.itemRow}>
-              <label className={styles.itemLabel}>
+            <li
+              key={item.id}
+              className="flex items-start justify-between gap-3 rounded-lg bg-eco-surface-soft px-3 py-2"
+            >
+              <label className="flex items-start gap-2 cursor-pointer">
                 <input
                   type="checkbox"
                   checked={item.done}
                   onChange={() => onToggleItem(list.id, item.id)}
+                  className="mt-1 h-4 w-4 rounded border-eco-border bg-eco-bg text-emerald-500 focus:ring-emerald-500"
                 />
                 <span
-                  className={
-                    item.done ? styles.itemTextDone : styles.itemText
-                  }
+                  className={`text-sm ${
+                    item.done
+                      ? 'text-eco-text-muted line-through'
+                      : 'text-eco-text'
+                  }`}
                 >
                   {item.text}
                 </span>
               </label>
               <button
                 type="button"
-                className={styles.deleteItemButton}
                 onClick={() => onDeleteItem(list.id, item.id)}
+                className="text-sm text-eco-text-muted hover:text-red-400 transition"
               >
                 ✕
               </button>

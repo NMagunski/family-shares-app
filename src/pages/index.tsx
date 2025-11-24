@@ -17,7 +17,6 @@ import {
 import DeleteModal from '@/components/trips/DeleteModal';
 import ArchiveModal from '@/components/trips/ArchiveModal';
 import Button from '@/components/ui/Button';
-import styles from './HomePage.module.css';
 
 const HomePage: React.FC = () => {
   const { user, loading: authLoading } = useAuth();
@@ -110,13 +109,11 @@ const HomePage: React.FC = () => {
     }
   }
 
-  // 👉 Отваряме модала за архивиране
   function handleAskArchiveTrip(trip: Trip) {
     setTripToArchive(trip);
     setArchiveModalOpen(true);
   }
 
-  // 👉 Потвърждение за архивиране / връщане от архив
   async function handleConfirmArchiveTrip() {
     if (!tripToArchive) return;
 
@@ -151,13 +148,11 @@ const HomePage: React.FC = () => {
     }
   }
 
-  // 👉 Отваряме модала за изтриване
   function handleAskDeleteTrip(trip: Trip) {
     setTripToDelete(trip);
     setDeleteModalOpen(true);
   }
 
-  // 👉 Потвърждение за изтриване
   async function handleConfirmDeleteTrip() {
     if (!tripToDelete) return;
 
@@ -182,136 +177,220 @@ const HomePage: React.FC = () => {
   if (authLoading) {
     return (
       <Layout>
-        <p className={styles.statusText}>Зареждане...</p>
+        <p className="text-sm text-eco-text-muted">Зареждане...</p>
       </Layout>
     );
   }
 
-  // 👉 2) Ако потребителят НЕ е логнат → показваме landing с CTA за вход/регистрация
+  // 👉 2) Ако потребителят НЕ е логнат → подобрен landing с hero
   if (!user) {
     return (
       <Layout>
-        <Card>
-          <h1 className={styles.mainTitle}>Добре дошъл в TripSplitly</h1>
-          <p className={styles.mainSubtitle}>
-            Влез или се регистрирай, за да планираш пътувания, да разделяш разходи
-            и да управляваш семейните приключения на едно място.
-          </p>
+        <div
+          className="
+            min-h-[80vh]
+            flex items-center justify-center
+            px-4
+            bg-[radial-gradient(circle_at_top,_rgba(16,185,129,0.16),_transparent_60%),radial-gradient(circle_at_bottom,_rgba(16,185,129,0.12),_transparent_55%)]
+          "
+        >
+          <Card className="w-full max-w-4xl mx-auto bg-eco-surface-soft/80 backdrop-blur-md border border-eco-border shadow-eco-soft">
+            <div className="grid gap-8 md:grid-cols-[minmax(0,3fr)_minmax(0,2fr)] items-center">
+              {/* Лява колона – текст + CTA */}
+              <div>
+                <div className="inline-flex items-center rounded-full border border-emerald-500/40 bg-emerald-500/10 px-3 py-1 text-xs font-medium text-emerald-200">
+                  Разделяй разходите честно · без калкулатор
+                </div>
 
-          <div
-            style={{
-              marginTop: '1.5rem',
-              display: 'flex',
-              gap: '1rem',
-              flexWrap: 'wrap',
-            }}
-          >
-            <Button
-              type="button"
-              onClick={() => router.push('/login')}
-              className={styles.primaryButton}
-            >
-              Вход
-            </Button>
+                <h1 className="mt-3 text-3xl font-semibold text-eco-text">
+                  Добре дошъл в TripSplitly
+                </h1>
 
-            <Button
-              type="button"
-              onClick={() => router.push('/register')}
-              className={styles.secondaryButton}
-            >
-              Създай акаунт
-            </Button>
-          </div>
+                <p className="mt-3 text-sm text-eco-text-muted leading-relaxed">
+                  TripSplitly ти помага да планираш пътуванията си, да разделяш разходите
+                  справедливо между семействата и да знаеш по всяко време
+                  <span className="font-semibold text-eco-text">
+                    {' '}
+                    кой на кого колко дължи.
+                  </span>
+                </p>
 
-          <p className={styles.statusText} style={{ marginTop: '1rem' }}>
-            Нямаш регистрация? Създай акаунт за по-малко от минута.
-          </p>
-        </Card>
+                <ul className="mt-4 space-y-2 text-sm text-eco-text-muted">
+                  <li>✅ Добавяш семейства и участници за секунди.</li>
+                  <li>✅ Отбелязваш всички разходи – храна, гориво, нощувки.</li>
+                  <li>✅ Накрая виждаш ясен баланс без спорове и листчета.</li>
+                </ul>
+
+                <div className="mt-6 flex flex-wrap gap-3">
+                  <Button
+                    type="button"
+                    onClick={() => router.push('/login')}
+                  >
+                    Вход
+                  </Button>
+
+                  <Button
+                    type="button"
+                    variant="secondary"
+                    onClick={() => router.push('/register')}
+                  >
+                    Създай акаунт
+                  </Button>
+                </div>
+
+                <p className="mt-3 text-xs text-eco-text-muted">
+                  Нямаш регистрация? Създай акаунт за по-малко от минута и започни
+                  да организираш следващото си пътуване.
+                </p>
+              </div>
+
+              {/* Дясна колона – минималистична „илюстрация“ */}
+{/* Дясна колона – минималистична „илюстрация“ */}
+<div className="relative hidden md:block">
+  <div className="pointer-events-none absolute -inset-6 rounded-3xl bg-[radial-gradient(circle_at_top,_rgba(16,185,129,0.3),_transparent_55%),radial-gradient(circle_at_bottom,_rgba(16,185,129,0.18),_transparent_55%)] opacity-80" />
+  <div className="relative flex h-full items-center justify-center">
+    <div className="flex h-32 w-32 items-center justify-center rounded-full bg-eco-surface border border-eco-border shadow-eco-soft">
+      <svg
+        className="h-16 w-16 text-emerald-300"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="1.6"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      >
+        {/* Основна „зиг-заг“ карта */}
+        <path d="M9 3l6 2.4 5-2.4v15l-5 2.4-6-2.4-5 2.4v-15z" />
+        {/* Вертикални сгъвки */}
+        <path d="M9 3v15" />
+        <path d="M15 5.4v15" />
+      </svg>
+    </div>
+  </div>
+</div>
+
+            </div>
+          </Card>
+        </div>
       </Layout>
     );
   }
 
-  // 👉 3) Логнат потребител → показваме hero + списъци с пътувания
+  // 👉 3) Логнат потребител → hero + списъци с пътувания
   return (
     <Layout>
-      <Card>
-        <h1 className={styles.mainTitle}>Вид пътуване</h1>
-        <p className={styles.mainSubtitle}>
-          Избери тип пътуване, за да създадеш ново, или отвори вече съществуващо.
-        </p>
-        <TripTypeSelector onSelect={handleSelect} />
-      </Card>
+      <div className="space-y-6">
+        {/* HERO: избор на тип пътуване */}
+        <Card>
+          <h1 className="text-2xl font-semibold text-eco-text">
+            Вид пътуване
+          </h1>
+          <p className="mt-2 text-sm text-eco-text-muted max-w-2xl">
+            Избери тип пътуване, за да създадеш ново, или отвори вече съществуващо.
+          </p>
+          <div className="mt-4">
+            <TripTypeSelector onSelect={handleSelect} />
+          </div>
+        </Card>
 
-      <div className={styles.sectionsWrapper}>
-        {tripsLoading ? (
-          <p className={styles.statusText}>Зареждане...</p>
-        ) : error ? (
-          <p className={styles.errorText}>{error}</p>
-        ) : (
-          <>
-            {/* МОИ АКТИВНИ ПЪТУВАНИЯ */}
-            <div className={styles.section}>
-              <h2 className={styles.sectionTitle}>Създадени от мен</h2>
-              {ownedTrips.length === 0 ? (
-                <p className={styles.sectionEmptyText}>
-                  Все още нямаш активни пътувания.
-                </p>
-              ) : (
-                <div className={styles.tripsList}>
-                  {ownedTrips.map((trip) => (
-                    <TripCard
-                      key={trip.id}
-                      trip={trip}
-                      showManageActions
-                      onArchiveToggle={handleAskArchiveTrip}
-                      onDelete={handleAskDeleteTrip}
-                    />
-                  ))}
-                </div>
-              )}
+        {/* Секции с пътувания */}
+        <div className="grid gap-6 xl:grid-cols-3">
+          {/* Създадени от мен */}
+          <section className="rounded-2xl border border-eco-border bg-eco-surface-soft/80 p-4 shadow-eco-soft xl:col-span-1">
+            <div className="mb-2 flex items-center justify-between gap-2">
+              <h2 className="text-base font-semibold text-eco-text">
+                Създадени от мен
+              </h2>
+              <span className="h-2.5 w-2.5 rounded-full bg-emerald-400" />
             </div>
 
-            {/* АРХИВИРАНИ ПЪТУВАНИЯ */}
-            <div className={styles.section}>
-              <h2 className={styles.sectionTitle}>Архивирани пътувания</h2>
-              {archivedTrips.length === 0 ? (
-                <p className={styles.sectionEmptyText}>
-                  Нямаш архивирани пътувания.
-                </p>
-              ) : (
-                <div className={styles.tripsList}>
-                  {archivedTrips.map((trip) => (
-                    <TripCard
-                      key={trip.id}
-                      trip={trip}
-                      showManageActions
-                      onArchiveToggle={handleAskArchiveTrip}
-                      onDelete={handleAskDeleteTrip}
-                    />
-                  ))}
-                </div>
-              )}
+            {tripsLoading ? (
+              <p className="mt-2 text-sm text-eco-text-muted">
+                Зареждане...
+              </p>
+            ) : error ? (
+              <p className="mt-2 text-sm text-red-400">
+                {error}
+              </p>
+            ) : ownedTrips.length === 0 ? (
+              <p className="mt-2 text-sm text-eco-text-muted">
+                Все още нямаш активни пътувания.
+              </p>
+            ) : (
+              <div className="mt-3 space-y-3">
+                {ownedTrips.map((trip) => (
+                  <TripCard
+                    key={trip.id}
+                    trip={trip}
+                    showManageActions
+                    onArchiveToggle={handleAskArchiveTrip}
+                    onDelete={handleAskDeleteTrip}
+                  />
+                ))}
+              </div>
+            )}
+          </section>
+
+          {/* Архивирани */}
+          <section className="rounded-2xl border border-eco-border bg-eco-surface-soft/80 p-4 shadow-eco-soft xl:col-span-1">
+            <div className="mb-2 flex items-center justify-between gap-2">
+              <h2 className="text-base font-semibold text-eco-text">
+                Архивирани пътувания
+              </h2>
+              <span className="h-2.5 w-2.5 rounded-full bg-yellow-400" />
             </div>
 
-            {/* ПЪТУВАНИЯ, В КОИТО УЧАСТВАМ */}
-            <div className={styles.section}>
-              <h2 className={styles.sectionTitle}>Пътувания, в които участвам</h2>
-              {sharedTrips.length === 0 ? (
-                <p className={styles.sectionEmptyText}>
-                  В момента не участваш в други пътувания. Сподели линк към
-                  някое твое пътуване или използвай линк, който получиш от
-                  приятел.
-                </p>
-              ) : (
-                <div className={styles.tripsList}>
-                  {sharedTrips.map((trip) => (
-                    <TripCard key={trip.id} trip={trip} />
-                  ))}
-                </div>
-              )}
+            {tripsLoading ? (
+              <p className="mt-2 text-sm text-eco-text-muted">
+                Зареждане...
+              </p>
+            ) : archivedTrips.length === 0 ? (
+              <p className="mt-2 text-sm text-eco-text-muted">
+                Нямаш архивирани пътувания.
+              </p>
+            ) : (
+              <div className="mt-3 space-y-3">
+                {archivedTrips.map((trip) => (
+                  <TripCard
+                    key={trip.id}
+                    trip={trip}
+                    showManageActions
+                    onArchiveToggle={handleAskArchiveTrip}
+                    onDelete={handleAskDeleteTrip}
+                  />
+                ))}
+              </div>
+            )}
+          </section>
+
+          {/* Пътувания, в които участвам */}
+          <section className="rounded-2xl border border-eco-border bg-eco-surface-soft/80 p-4 shadow-eco-soft xl:col-span-1">
+            <div className="mb-2 flex items-center justify-between gap-2">
+              <h2 className="text-base font-semibold text-eco-text">
+                Пътувания, в които участвам
+              </h2>
+            <span className="h-2.5 w-2.5 rounded-full bg-emerald-400" />
             </div>
-          </>
-        )}
+
+            {tripsLoading ? (
+              <p className="mt-2 text-sm text-eco-text-muted">
+                Зареждане...
+              </p>
+            ) : sharedTrips.length === 0 ? (
+              <p className="mt-2 text-sm text-eco-text-muted">
+                В момента не участваш в други пътувания. Сподели линк към
+                някое твое пътуване или използвай линк, който получиш от
+                приятел.
+              </p>
+            ) : (
+              <div className="mt-3 space-y-3">
+                {sharedTrips.map((trip) => (
+                  <TripCard key={trip.id} trip={trip} />
+                ))}
+              </div>
+            )}
+          </section>
+        </div>
       </div>
 
       {selectedType && (

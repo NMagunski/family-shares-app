@@ -12,7 +12,7 @@ const LoginPage: React.FC = () => {
   const router = useRouter();
   const { redirect } = router.query;
 
-  // 👉 безопасна цел за redirect – само вътрешни пътища, започващи с "/"
+  // безопасен redirect (само вътрешни URL-и)
   const redirectTarget =
     typeof redirect === 'string' && redirect.startsWith('/')
       ? redirect
@@ -30,8 +30,6 @@ const LoginPage: React.FC = () => {
 
     try {
       await signInWithEmailAndPassword(auth, email, password);
-
-      // 👉 връщаме към първоначално поисканата страница (trip, lists, itinerary и т.н.)
       await router.replace(redirectTarget);
     } catch (err: any) {
       console.error(err);
@@ -56,18 +54,11 @@ const LoginPage: React.FC = () => {
 
   return (
     <Layout>
-      <div
-        style={{
-          maxWidth: 480,
-          margin: '40px auto',
-        }}
-      >
-        <Card>
-          <h1 style={{ marginBottom: 16 }}>Вход</h1>
-          <form
-            onSubmit={handleSubmit}
-            style={{ display: 'flex', flexDirection: 'column', gap: 12 }}
-          >
+      <div className="max-w-md mx-auto mt-12 px-4">
+        <Card className="p-6">
+          <h1 className="text-xl font-semibold text-eco-text mb-4">Вход</h1>
+
+          <form onSubmit={handleSubmit} className="flex flex-col gap-4">
             <Input
               label="Email"
               type="email"
@@ -85,9 +76,7 @@ const LoginPage: React.FC = () => {
             />
 
             {error && (
-              <p style={{ color: 'red', fontSize: '0.9rem' }}>
-                {error}
-              </p>
+              <p className="text-red-400 text-sm">{error}</p>
             )}
 
             <Button type="submit" disabled={loading}>
@@ -95,9 +84,9 @@ const LoginPage: React.FC = () => {
             </Button>
           </form>
 
-          <p style={{ marginTop: 12, fontSize: '0.9rem' }}>
+          <p className="mt-4 text-sm text-eco-text-muted">
             Нямаш акаунт?{' '}
-            <Link href={registerHref} style={{ color: '#2563eb' }}>
+            <Link href={registerHref} className="text-eco-accent hover:underline">
               Регистрирай се
             </Link>
           </p>

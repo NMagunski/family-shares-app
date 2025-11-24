@@ -1,20 +1,14 @@
 import React from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
-import styles from './Navbar.module.css';
 import { useAuth } from '@/context/AuthContext';
 
 const Navbar: React.FC = () => {
   const { user, loading, logout } = useAuth();
   const [isMobileOpen, setIsMobileOpen] = React.useState(false);
 
-  const handleToggleMobile = () => {
-    setIsMobileOpen((prev) => !prev);
-  };
-
-  const handleCloseMobile = () => {
-    setIsMobileOpen(false);
-  };
+  const handleToggleMobile = () => setIsMobileOpen((prev) => !prev);
+  const handleCloseMobile = () => setIsMobileOpen(false);
 
   const handleLogout = async () => {
     try {
@@ -24,92 +18,150 @@ const Navbar: React.FC = () => {
     }
   };
 
-  const authContent = loading
-    ? null
-    : user
-    ? (
-        <>
-          <span className={styles.userEmail}>{user.email}</span>
+  const baseLink = 'text-sm font-medium transition-colors';
+  const primaryButton =
+    'inline-flex items-center justify-center rounded-full px-4 py-1.5 text-sm font-semibold ' +
+    'bg-eco-accent-strong text-eco-bg hover:bg-eco-accent focus:outline-none focus:ring-2 ' +
+    'focus:ring-eco-accent/70 focus:ring-offset-2 focus:ring-offset-eco-surface';
+  const ghostButton =
+    'inline-flex items-center justify-center rounded-full px-3 py-1.5 text-sm font-medium ' +
+    'border border-eco-border text-eco-text hover:bg-eco-surface-soft focus:outline-none ' +
+    'focus:ring-2 focus:ring-eco-accent/70 focus:ring-offset-2 focus:ring-offset-eco-surface';
+
+  const renderAuthContent = (variant: 'desktop' | 'mobile') => {
+    if (loading) return null;
+
+    if (user) {
+      return (
+        <div
+          className={
+            variant === 'desktop'
+              ? 'hidden md:flex items-center gap-3'
+              : 'flex flex-col items-start gap-2 mt-3'
+          }
+        >
+          <span className="text-xs md:text-sm text-eco-text-muted truncate max-w-[200px]">
+            {user.email}
+          </span>
           <button
             type="button"
-            className={styles.logoutButton}
+            className={ghostButton}
             onClick={handleLogout}
           >
             Изход
           </button>
-        </>
-      )
-    : (
-        <>
-          <Link href="/login" className={styles.authLink} onClick={handleCloseMobile}>
-            Вход
-          </Link>
-          <Link
-            href="/register"
-            className={styles.authPrimaryLink}
-            onClick={handleCloseMobile}
-          >
-            Регистрация
-          </Link>
-        </>
+        </div>
       );
+    }
 
-  return (
-    <header className={styles.navbar}>
-      <div className={styles.inner}>
-        {/* ЛОГО / БРАНД */}
-        <Link href="/" className={styles.brand} onClick={handleCloseMobile}>
-          <Image
-            src="/tripsplitly-logo.png"   // сложи файла в /public с това име
-            alt="TripSplitly logo"
-            width={32}
-            height={32}
-            className={styles.logoIcon}
-          />
-          <span className={styles.logoText}>TripSplitly</span>
+    // not logged in
+    return (
+      <div
+        className={
+          variant === 'desktop'
+            ? 'hidden md:flex items-center gap-3'
+            : 'flex flex-col items-start gap-2 mt-3'
+        }
+      >
+        <Link
+          href="/login"
+          className={`${baseLink} text-eco-text-muted hover:text-eco-accent`}
+          onClick={handleCloseMobile}
+        >
+          Вход
         </Link>
 
-        {/* ГЛАВНИ ЛИНКОВЕ – десктоп */}
-        <nav className={styles.navLinks}>
-          <Link href="/" className={styles.navLink}>
-            Пътувания
-          </Link>
-        </nav>
+        <Link
+          href="/register"
+          className={primaryButton}
+          onClick={handleCloseMobile}
+        >
+          Регистрация
+        </Link>
+      </div>
+    );
+  };
 
-        {/* АВТЕНТИКАЦИЯ – десктоп */}
-        <div className={styles.authArea}>{authContent}</div>
+  return (
+    <header
+      className="
+        sticky top-0 z-40
+        border-b border-eco-border/60
+        bg-eco-surface/70
+        backdrop-blur-xl
+        shadow-[0_20px_40px_rgb(0_0_0/0.45)]
+        relative overflow-hidden
+      "
+    >
+      {/* Футуристичен градиент фон */}
+      <div
+        className="
+          pointer-events-none
+          absolute inset-0
+          opacity-80
+          bg-[radial-gradient(circle_at_0%_0%,rgba(16,185,129,0.45),transparent_55%),radial-gradient(circle_at_100%_0%,rgba(16,185,129,0.3),transparent_55%)]
+        "
+        aria-hidden="true"
+      />
 
-        {/* БУРГЕР БУТОН – мобилен */}
+      {/* Основно съдържание */}
+      <div className="relative max-w-5xl mx-auto px-4 py-3 flex items-center justify-between gap-4">
+        {/* Лого */}
+        <Link
+          href="/"
+          className="flex items-center gap-2 text-eco-text hover:text-eco-accent transition-colors"
+          onClick={handleCloseMobile}
+        >
+          <div className="flex items-center justify-center rounded-xl bg-eco-surface-soft/90 border border-eco-border/70 p-1.5 shadow-eco-soft">
+            <Image
+              src="/tripsplitly-logo.png"
+              alt="TripSplitly logo"
+              width={28}
+              height={28}
+            />
+          </div>
+
+          <span className="text-lg font-semibold tracking-tight">
+            TripSplitly
+          </span>
+        </Link>
+
+        {/* Auth desktop */}
+        {renderAuthContent('desktop')}
+
+        {/* Mobile toggler */}
         <button
           type="button"
-          className={styles.mobileToggle}
+          className="
+            md:hidden inline-flex flex-col items-center justify-center gap-1.5
+            p-2 rounded-lg border border-eco-border/70
+            bg-eco-surface-soft/60
+            hover:bg-eco-surface-soft
+            focus:outline-none focus:ring-2 focus:ring-eco-accent/70
+            focus:ring-offset-2 focus:ring-offset-eco-surface
+          "
           onClick={handleToggleMobile}
           aria-label="Навигационно меню"
           aria-expanded={isMobileOpen}
         >
-          <span className={styles.mobileToggleBar} />
-          <span className={styles.mobileToggleBar} />
-          <span className={styles.mobileToggleBar} />
+          <span className="w-5 h-0.5 rounded-full bg-eco-text" />
+          <span className="w-5 h-0.5 rounded-full bg-eco-text" />
+          <span className="w-5 h-0.5 rounded-full bg-eco-text" />
         </button>
       </div>
 
-      {/* МОБИЛНО МЕНЮ */}
+      {/* Mobile menu */}
       <div
-        className={`${styles.mobileMenu} ${
-          isMobileOpen ? styles.mobileMenuOpen : ''
-        }`}
+        className={`
+          md:hidden border-t border-eco-border/60
+          bg-eco-surface/80 backdrop-blur-xl
+          transition-[max-height,opacity] duration-200 overflow-hidden
+          ${isMobileOpen ? 'max-h-64 opacity-100' : 'max-h-0 opacity-0'}
+        `}
       >
-        <nav className={styles.mobileNavSection}>
-          <Link
-            href="/"
-            className={styles.mobileNavLink}
-            onClick={handleCloseMobile}
-          >
-            Пътувания
-          </Link>
-        </nav>
-
-        <div className={styles.mobileAuthSection}>{authContent}</div>
+        <div className="max-w-5xl mx-auto px-4 pb-4 pt-2">
+          {renderAuthContent('mobile')}
+        </div>
       </div>
     </header>
   );

@@ -24,59 +24,49 @@ const EditFamilyModal: React.FC<EditFamilyModalProps> = ({
 
   if (!isOpen) return null;
 
+  function handleSubmit() {
+    const trimmed = name.trim();
+    if (!trimmed) return;
+    onSave(trimmed);
+  }
+
   return (
     <div
-      style={{
-        position: 'fixed',
-        inset: 0,
-        background: 'rgba(0,0,0,0.35)',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        zIndex: 50,
-        padding: 16,
-      }}
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4"
       onClick={onClose}
     >
       <div
-        style={{ maxWidth: 420, width: '100%' }}
+        className="w-full max-w-md"
         onClick={(e) => e.stopPropagation()}
       >
-        <Card>
-          <h2 style={{ marginBottom: 12 }}>Редакция на семейство</h2>
-          <p style={{ fontSize: '0.9rem', marginBottom: 12 }}>
+        <Card className="p-6 bg-eco-surface rounded-2xl border border-eco-border shadow-eco-soft">
+          <h2 className="text-lg font-semibold text-eco-text mb-3">
+            Редакция на семейство
+          </h2>
+
+          <p className="text-sm text-eco-text-muted mb-4">
             Промени името на това семейство.
           </p>
-          <div style={{ marginBottom: 12 }}>
-            <Input
-              label="Име на семейство"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              required
-            />
-          </div>
 
-          <div
-            style={{
-              display: 'flex',
-              justifyContent: 'flex-end',
-              gap: 8,
-              marginTop: 8,
-            }}
-          >
+          <Input
+            label="Име на семейство"
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            required
+          />
+
+          <div className="flex justify-end gap-3 mt-6">
             <Button
               type="button"
+              variant="secondary"
               onClick={onClose}
-              style={{ backgroundColor: '#e5e7eb', color: '#111827' }}
             >
               Отказ
             </Button>
+
             <Button
               type="button"
-              onClick={() => {
-                if (!name.trim()) return;
-                onSave(name.trim());
-              }}
+              onClick={handleSubmit}
             >
               Запази
             </Button>

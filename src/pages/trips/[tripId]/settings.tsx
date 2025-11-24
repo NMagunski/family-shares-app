@@ -3,10 +3,14 @@ import { useRouter } from 'next/router';
 import Layout from '@/components/layout/Layout';
 import Card from '@/components/ui/Card';
 import ConfirmModal from '@/components/ui/ConfirmModal';
-import styles from './TripSettingsPage.module.css';
+import Button from '@/components/ui/Button';
 
 import type { Trip } from '@/types/trip';
-import { fetchTripById, setTripArchived, deleteTripCompletely } from '@/lib/trips';
+import {
+  fetchTripById,
+  setTripArchived,
+  deleteTripCompletely,
+} from '@/lib/trips';
 import { db } from '@/lib/firebase';
 import { doc, updateDoc } from 'firebase/firestore';
 import { useAuth } from '@/context/AuthContext';
@@ -148,55 +152,71 @@ const TripSettingsPage: React.FC = () => {
   if (authLoading || !user) {
     return (
       <Layout>
-        <p className={styles.statusText}>Зареждане...</p>
+        <p className="text-sm text-eco-text-muted">Зареждане...</p>
       </Layout>
     );
   }
 
   return (
     <Layout>
-      <Card>
-        <button
-          type="button"
-          className={styles.backLink}
-          onClick={() => router.push(`/trips/${tripIdStr}`)}
-        >
-          ← Назад към пътуването
-        </button>
+      <Card className="max-w-3xl mx-auto">
+        {/* Back button – консистентен с детайлите */}
+        <div className="mb-4">
+          <Button
+            type="button"
+            variant="secondary"
+            onClick={() => router.push(`/trips/${tripIdStr}`)}
+          >
+            ← Към детайли
+          </Button>
+        </div>
 
-        <h1 className={styles.pageTitle}>
+        <h1 className="text-2xl font-semibold text-eco-text mb-2">
           Настройки на пътуване {tripName ? `„${tripName}“` : ''}
         </h1>
 
         {loading ? (
-          <p className={styles.statusText}>Зареждане...</p>
+          <p className="text-sm text-eco-text-muted mt-4">Зареждане...</p>
         ) : error ? (
-          <p className={styles.errorText}>{error}</p>
+          <p className="text-sm text-red-400 mt-4">{error}</p>
         ) : !trip ? (
-          <p className={styles.errorText}>Пътуването не беше намерено.</p>
+          <p className="text-sm text-red-400 mt-4">
+            Пътуването не беше намерено.
+          </p>
         ) : (
           <>
-            <form className={styles.form} onSubmit={handleSave}>
-              <div className={styles.fieldGroup}>
-                <label className={styles.label} htmlFor="tripName">
+            {/* Форма – основни настройки */}
+            <form
+              onSubmit={handleSave}
+              className="mt-6 space-y-6 border-b border-eco-border/60 pb-6"
+            >
+              <div className="space-y-2">
+                <label
+                  htmlFor="tripName"
+                  className="block text-sm font-medium text-eco-text-muted"
+                >
                   Име на пътуването
                 </label>
                 <input
                   id="tripName"
                   type="text"
-                  className={styles.textInput}
+                  className="w-full rounded-xl border border-eco-border bg-eco-surface-soft px-3 py-2 text-sm text-eco-text placeholder:text-eco-text-muted focus:outline-none focus:ring-2 focus:ring-emerald-500/70 focus:border-emerald-400"
                   value={name}
                   onChange={(e) => setName(e.target.value)}
+                  placeholder="Напр. Море 2025, Почивка в планината..."
                 />
               </div>
 
-              <div className={styles.fieldGroup}>
-                <label className={styles.label} htmlFor="tripType">
+              <div className="space-y-2">
+                <label
+                  htmlFor="tripType"
+                  className="block text-sm font-medium text-eco-text-muted"
+                >
                   Тип пътуване
                 </label>
                 <select
                   id="tripType"
-                  className={styles.select}
+                  className="w-full rounded-xl border border-eco-border bg-eco-surface-soft px-3 py-2 text-sm text-eco-text focus:outline-none focus:ring-2 focus:ring-emerald-500/70 focus:border-emerald-400"
                   value={type}
                   onChange={(e) =>
                     setType(e.target.value as Trip['type'])
@@ -208,35 +228,39 @@ const TripSettingsPage: React.FC = () => {
                 </select>
               </div>
 
-              <div className={styles.actionsRow}>
+              <div className="flex flex-wrap items-center gap-3">
                 <button
                   type="submit"
-                  className={styles.primaryButton}
+                  className="inline-flex items-center justify-center rounded-xl bg-emerald-500 px-4 py-2 text-sm font-medium text-eco-bg shadow-eco-soft hover:bg-emerald-400 disabled:opacity-60 disabled:cursor-not-allowed transition-colors"
                   disabled={!isDirty || saving}
                 >
                   {saving ? 'Запазване...' : 'Запази промените'}
                 </button>
                 {!isDirty && (
-                  <span className={styles.helperText}>
+                  <span className="text-xs text-eco-text-muted">
                     Няма незапазени промени.
                   </span>
                 )}
               </div>
             </form>
 
-            <div className={styles.section}>
-              <h2 className={styles.sectionTitle}>Статус на пътуването</h2>
-              <p className={styles.sectionText}>
+            {/* Статус на пътуването */}
+            <div className="mt-6 border-b border-eco-border/60 pb-6">
+              <h2 className="text-lg font-semibold text-eco-text mb-2">
+                Статус на пътуването
+              </h2>
+              <p className="text-sm text-eco-text-muted mb-3">
                 В момента пътуването е{' '}
-                <strong>
+                <span className="font-semibold text-eco-text">
                   {trip.archived ? 'архивирано' : 'активно'}
-                </strong>.
+                </span>
+                .
               </p>
               <button
                 type="button"
-                className={styles.secondaryButton}
                 onClick={handleToggleArchive}
                 disabled={archiveLoading}
+                className="inline-flex items-center justify-center rounded-xl border border-emerald-500/60 bg-transparent px-4 py-2 text-sm font-medium text-emerald-300 hover:bg-emerald-500/10 disabled:opacity-60 disabled:cursor-not-allowed transition-colors"
               >
                 {archiveLoading
                   ? 'Обновяване...'
@@ -246,16 +270,19 @@ const TripSettingsPage: React.FC = () => {
               </button>
             </div>
 
-            <div className={styles.dangerSection}>
-              <h2 className={styles.sectionTitle}>Опасна зона</h2>
-              <p className={styles.sectionText}>
+            {/* Опасна зона */}
+            <div className="mt-6">
+              <h2 className="text-lg font-semibold text-red-300 mb-2">
+                Опасна зона
+              </h2>
+              <p className="text-sm text-eco-text-muted mb-3">
                 Изтриването на пътуването е необратимо. Всички участници,
                 разходи и списъци ще бъдат изтрити.
               </p>
               <button
                 type="button"
-                className={styles.dangerButton}
                 onClick={handleAskDelete}
+                className="inline-flex items-center justify-center rounded-xl bg-red-500 px-4 py-2 text-sm font-medium text-eco-bg shadow-eco-soft hover:bg-red-400 transition-colors"
               >
                 Изтрий пътуването
               </button>
@@ -264,6 +291,7 @@ const TripSettingsPage: React.FC = () => {
         )}
       </Card>
 
+      {/* Модал за изтриване */}
       <ConfirmModal
         isOpen={deleteModalOpen}
         title="Изтриване на пътуване"

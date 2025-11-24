@@ -1,5 +1,4 @@
 import React from 'react';
-import styles from './FamiliesSection.module.css';
 import type { TripFamily } from '@/types/trip';
 import { useAuth } from '@/context/AuthContext';
 
@@ -9,34 +8,53 @@ type Props = {
   onDeleteFamily?: (family: TripFamily) => void;
 };
 
-const FamiliesSection: React.FC<Props> = ({ families, onEditFamily, onDeleteFamily }) => {
+const FamiliesSection: React.FC<Props> = ({
+  families,
+  onEditFamily,
+  onDeleteFamily,
+}) => {
   const { user } = useAuth();
 
   return (
-    <div className={styles.list}>
+    <div className="space-y-3">
       {families.map((f) => {
         const isMe = f.userId === user?.uid;
 
         return (
-          <div key={f.id} className={styles.item}>
-            <div className={styles.left}>
-              <span className={styles.familyIcon}>🧑‍🤝‍🧑</span>
-              <span className={styles.name}>{f.name}</span>
-              {isMe && <span className={styles.meBadge}>Вие</span>}
+          <div
+            key={f.id}
+            className="flex items-center justify-between p-4 rounded-xl 
+                       bg-eco-surface-soft border border-eco-border 
+                       shadow-eco-soft"
+          >
+            {/* LEFT SIDE */}
+            <div className="flex items-center gap-3">
+              <span className="text-xl">🧑‍🤝‍🧑</span>
+
+              <span className="text-eco-text font-medium">{f.name}</span>
+
+              {isMe && (
+                <span className="px-2 py-0.5 text-xs rounded-md 
+                                 bg-eco-accent/20 text-eco-accent font-semibold">
+                  Вие
+                </span>
+              )}
             </div>
 
-            <div className={styles.actions}>
+            {/* ACTION BUTTONS */}
+            <div className="flex items-center gap-3">
               <button
-                className={styles.actionBtn}
-                onClick={() => onEditFamily?.(f)}
                 title="Редактирай"
+                onClick={() => onEditFamily?.(f)}
+                className="text-eco-text-muted hover:text-eco-accent transition"
               >
                 ✏️
               </button>
+
               <button
-                className={styles.actionBtn}
-                onClick={() => onDeleteFamily?.(f)}
                 title="Изтрий"
+                onClick={() => onDeleteFamily?.(f)}
+                className="text-eco-text-muted hover:text-red-400 transition"
               >
                 🗑️
               </button>

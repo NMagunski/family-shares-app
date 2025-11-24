@@ -36,43 +36,47 @@ const ShareTripModal: React.FC<ShareTripModalProps> = ({
 
   return (
     <div
-      style={{
-        position: 'fixed',
-        inset: 0,
-        background: 'rgba(0,0,0,0.45)',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        zIndex: 50,
-      }}
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 px-4"
       onClick={onClose}
     >
-      <div onClick={(e) => e.stopPropagation()} style={{ width: '100%', maxWidth: 420 }}>
-        <Card>
-          <h2 style={{ marginBottom: 8 }}>Сподели пътуването</h2>
-          <p style={{ fontSize: '0.9rem', color: '#4b5563', marginBottom: 12 }}>
-            Изпрати този линк на другите семейства. Когато го отворят, ще могат да се
-            присъединят към пътуването.
+      <div
+        className="w-full max-w-md"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <Card className="bg-eco-surface border border-eco-border rounded-2xl shadow-eco-soft p-6">
+          <h2 className="mb-2 text-lg font-semibold text-eco-text">
+            Сподели пътуването
+          </h2>
+          <p className="mb-4 text-sm leading-relaxed text-eco-text-muted">
+            Изпрати този линк на другите семейства. Когато го отворят, ще могат
+            да се присъединят към пътуването.
           </p>
 
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+          <div className="flex flex-col gap-3">
             <Input
               value={shareUrl}
               readOnly
               onFocus={(e) => e.target.select()}
             />
 
-            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8 }}>
-              <Button type="button" variant="secondary" onClick={onClose}>
+            <div className="flex justify-end gap-2">
+              <Button
+                type="button"
+                variant="secondary"
+                onClick={onClose}
+              >
                 Затвори
               </Button>
-              <Button type="button" onClick={handleCopy}>
+              <Button
+                type="button"
+                onClick={handleCopy}
+              >
                 Копирай линка
               </Button>
             </div>
 
             {copied && (
-              <span style={{ fontSize: '0.85rem', color: '#16a34a' }}>
+              <span className="text-xs text-eco-accent mt-1">
                 ✅ Линкът е копиран в клипборда.
               </span>
             )}

@@ -1,12 +1,11 @@
 import React from 'react';
-import styles from './TripHeader.module.css';
 import Button from '@/components/ui/Button';
 
 type Props = {
   tripName: string;
   onAddFamily: () => void;
   onOpenLists: () => void;
-  onOpenItinerary: () => void; 
+  onOpenItinerary: () => void;
   onShare: () => void;
   onOpenSettings: () => void;
 };
@@ -20,25 +19,59 @@ const TripHeader: React.FC<Props> = ({
   onOpenSettings,
 }) => {
   return (
-    <div className={styles.header}>
-      <h1 className={styles.title}>{tripName}</h1>
+    <div
+      className="
+        mb-8 
+        flex flex-col 
+        items-center
+        gap-4
+        text-center
+      "
+    >
+      {/* Заглавие */}
+      <h1 className="text-2xl md:text-3xl font-semibold text-eco-text">
+        {tripName}
+      </h1>
 
-      <div className={styles.actions}>
-        <Button variant="primary" onClick={onAddFamily}>
+      {/* Бутони */}
+      <div className="flex flex-wrap justify-center gap-3">
+        <Button
+          variant="primary"
+          onClick={onAddFamily}
+          className="whitespace-nowrap"
+        >
           + Добави семейство
         </Button>
 
-        <Button variant="secondary" onClick={onOpenLists}>
+        <Button
+          variant="secondary"
+          onClick={onOpenLists}
+          className="whitespace-nowrap"
+        >
           📝 Списъци
         </Button>
-        <Button variant="secondary" onClick={onOpenItinerary}>
+
+        <Button
+          variant="secondary"
+          onClick={onOpenItinerary}
+          className="whitespace-nowrap"
+        >
           🗓️ Програма
         </Button>
-        <Button variant="secondary" onClick={onShare}>
+
+        <Button
+          variant="secondary"
+          onClick={onShare}
+          className="whitespace-nowrap"
+        >
           🔗 Сподели
         </Button>
 
-        <Button variant="secondary" onClick={onOpenSettings}>
+        <Button
+          variant="secondary"
+          onClick={onOpenSettings}
+          className="whitespace-nowrap"
+        >
           ⚙️ Настройки
         </Button>
       </div>

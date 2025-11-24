@@ -16,26 +16,39 @@ const DebtsSummary: React.FC<DebtsSummaryProps> = ({ families, expenses }) => {
   const balances = calculateFamilyBalances(families, expenses);
   const debts = calculateDebts(families, balances);
 
-  if (debts.length === 0) {
-    return (
-      <Card>
-        <p>Всички семейства са изчистили сметките си. 🎉</p>
-      </Card>
-    );
-  }
-
   function getFamilyName(id: string): string {
     return families.find((f) => f.id === id)?.name ?? id;
   }
 
+  if (debts.length === 0) {
+    return (
+      <Card className="bg-eco-surface px-4 py-3 shadow-eco-soft">
+        <p className="text-eco-text">Всички семейства са изчистили сметките си. 🎉</p>
+      </Card>
+    );
+  }
+
   return (
-    <Card>
-      <h2 style={{ marginBottom: 8 }}>Кой на кого колко дължи</h2>
-      <ul style={{ paddingLeft: 16 }}>
+    <Card className="bg-eco-surface px-4 py-4 shadow-eco-soft">
+      <h2 className="mb-3 text-lg font-semibold text-eco-text">
+        Кой на кого колко дължи
+      </h2>
+
+      <ul className="list-disc pl-5 space-y-1 text-eco-text-muted">
         {debts.map((d, idx) => (
           <li key={idx}>
-            {getFamilyName(d.fromFamilyId)} дължат {d.amount.toFixed(2)} лв на{' '}
-            {getFamilyName(d.toFamilyId)}.
+            <span className="text-eco-text font-medium">
+              {getFamilyName(d.fromFamilyId)}
+            </span>{' '}
+            дължат{' '}
+            <span className="text-eco-accent font-semibold">
+              {d.amount.toFixed(2)} лв
+            </span>{' '}
+            на{' '}
+            <span className="text-eco-text font-medium">
+              {getFamilyName(d.toFamilyId)}
+            </span>
+            .
           </li>
         ))}
       </ul>

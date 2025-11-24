@@ -20,7 +20,6 @@ import {
 import { fetchExpenses, createExpense } from '@/lib/expensesStore';
 import { fetchTripById } from '@/lib/trips';
 import { useAuth } from '@/context/AuthContext';
-import styles from '@/components/trips/TripDetails.module.css';
 
 const TripPage: React.FC = () => {
   const router = useRouter();
@@ -29,14 +28,13 @@ const TripPage: React.FC = () => {
 
   const tripIdStr = typeof tripId === 'string' ? tripId : '';
 
-  // 👉 Guard: ако не сме логнати, пращаме към /login
-React.useEffect(() => {
-  if (!authLoading && !user) {
-    // запомняме кой точно URL е искал потребителят
-    const target = router.asPath || `/trips/${tripIdStr}`;
-    router.replace(`/login?redirect=${encodeURIComponent(target)}`);
-  }
-}, [authLoading, user, router, tripIdStr]);
+  // 👉 Guard: ако не сме логнати, пращаме към /login с redirect
+  React.useEffect(() => {
+    if (!authLoading && !user) {
+      const target = router.asPath || `/trips/${tripIdStr}`;
+      router.replace(`/login?redirect=${encodeURIComponent(target)}`);
+    }
+  }, [authLoading, user, router, tripIdStr]);
 
   // URL за споделяне
   const [origin, setOrigin] = React.useState('');
@@ -63,15 +61,11 @@ React.useEffect(() => {
   const [showShareModal, setShowShareModal] = React.useState(false);
 
   // Edit family modal
-  const [editingFamily, setEditingFamily] = React.useState<TripFamily | null>(
-    null
-  );
+  const [editingFamily, setEditingFamily] = React.useState<TripFamily | null>(null);
   const [isEditModalOpen, setIsEditModalOpen] = React.useState(false);
 
   // Delete family modal
-  const [deletingFamily, setDeletingFamily] = React.useState<TripFamily | null>(
-    null
-  );
+  const [deletingFamily, setDeletingFamily] = React.useState<TripFamily | null>(null);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = React.useState(false);
   const [deleteLoading, setDeleteLoading] = React.useState(false);
 
@@ -174,9 +168,7 @@ React.useEffect(() => {
     try {
       await updateFamilyName(editingFamily.id, newName);
       setFamilies((prev) =>
-        prev.map((f) =>
-          f.id === editingFamily.id ? { ...f, name: newName } : f
-        )
+        prev.map((f) => (f.id === editingFamily.id ? { ...f, name: newName } : f))
       );
       setIsEditModalOpen(false);
       setEditingFamily(null);
@@ -231,14 +223,16 @@ React.useEffect(() => {
   if (authLoading || !user) {
     return (
       <Layout>
-        <p className={styles.mutedText}>Зареждане...</p>
+        <div className="flex min-h-[40vh] items-center justify-center">
+          <p className="text-sm text-eco-text-muted">Зареждане...</p>
+        </div>
       </Layout>
     );
   }
 
   return (
     <Layout>
-      <div className={styles.pageWrapper}>
+      <div className="mx-auto flex max-w-6xl flex-col gap-6 px-4 py-6 md:py-8">
         {/* HEADER НА ПЪТУВАНЕТО */}
         <TripHeader
           tripName={tripName}
@@ -250,12 +244,14 @@ React.useEffect(() => {
         />
 
         {/* GRID LAYOUT */}
-        <div className={styles.sectionsGrid}>
+        <div className="grid gap-6 lg:grid-cols-3 lg:items-start">
           {/* ЛЯВА КОЛОНА – основни секции */}
-          <div className={styles.mainColumn}>
+          <div className="space-y-6 lg:col-span-2">
             <SectionCard title="Участници" icon="🧑‍🤝‍🧑">
               {familiesLoading ? (
-                <p className={styles.mutedText}>Зареждане на семейства...</p>
+                <p className="text-sm text-eco-text-muted">
+                  Зареждане на семейства...
+                </p>
               ) : (
                 <FamiliesSection
                   families={families}
@@ -267,7 +263,9 @@ React.useEffect(() => {
 
             <SectionCard title="Разходи" icon="💰">
               {expensesLoading ? (
-                <p className={styles.mutedText}>Зареждане на разходи...</p>
+                <p className="text-sm text-eco-text-muted">
+                  Зареждане на разходи...
+                </p>
               ) : (
                 <ExpensesTable
                   families={families}
@@ -283,32 +281,39 @@ React.useEffect(() => {
           </div>
 
           {/* ДЯСНА КОЛОНА – резюме и инфо */}
-          <div className={styles.sideColumn}>
+          <div className="space-y-6 lg:col-span-1">
             <SectionCard title="Резюме на пътуването" icon="📌">
-              <div className={styles.summaryGrid}>
-                <div className={styles.summaryItem}>
-                  <span className={styles.summaryLabel}>Статус</span>
-                  <span className={styles.summaryValue}>{tripStatus}</span>
+              <div className="grid gap-3 text-sm">
+                <div className="flex items-center justify-between rounded-xl border border-eco-border bg-eco-surface-soft px-3 py-2">
+                  <span className="text-eco-text-muted">Статус</span>
+                  <span className="font-medium text-eco-text">{tripStatus}</span>
                 </div>
-                <div className={styles.summaryItem}>
-                  <span className={styles.summaryLabel}>Брой семейства</span>
-                  <span className={styles.summaryValue}>{familiesCount}</span>
+
+                <div className="flex items-center justify-between rounded-xl border border-eco-border bg-eco-surface-soft px-3 py-2">
+                  <span className="text-eco-text-muted">Брой семейства</span>
+                  <span className="font-medium text-eco-text">{familiesCount}</span>
                 </div>
-                <div className={styles.summaryItem}>
-                  <span className={styles.summaryLabel}>Брой разходи</span>
-                  <span className={styles.summaryValue}>{expensesCount}</span>
+
+                <div className="flex items-center justify-between rounded-xl border border-eco-border bg-eco-surface-soft px-3 py-2">
+                  <span className="text-eco-text-muted">Брой разходи</span>
+                  <span className="font-medium text-eco-text">{expensesCount}</span>
                 </div>
+
                 {shareUrl && (
-                  <div className={styles.summaryItemFull}>
-                    <span className={styles.summaryLabel}>Линк за споделяне</span>
-                    <span className={styles.summaryValueSmall}>{shareUrl}</span>
+                  <div className="space-y-1 rounded-xl border border-eco-border bg-eco-surface-soft px-3 py-2">
+                    <span className="text-xs font-medium text-eco-text-muted">
+                      Линк за споделяне
+                    </span>
+                    <span className="break-all text-xs text-eco-text">
+                      {shareUrl}
+                    </span>
                   </div>
                 )}
               </div>
             </SectionCard>
 
             <SectionCard title="Съвет" icon="💡">
-              <p className={styles.mutedText}>
+              <p className="text-sm leading-relaxed text-eco-text-muted">
                 Добави всички участващи семейства и отбелязвай кой какво плаща.
                 Накрая автоматично ще видиш кой на кого колко дължи.
               </p>

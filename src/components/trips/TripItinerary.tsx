@@ -50,94 +50,68 @@ const TripItinerary: React.FC<TripItineraryProps> = ({ items, onChange }) => {
   }
 
   return (
-    <div>
-      <p style={{ marginBottom: 16, color: '#4b5563', fontSize: '0.9rem' }}>
+    <div className="text-eco-text">
+      <p className="mb-4 text-sm text-eco-text-muted">
         Добави по дни каква е програмата – активности, часове и бележки.
-        Подходящо за самостоятелно организирани пътувания.
       </p>
 
       {localItems.length === 0 && (
-        <p style={{ marginBottom: 16, fontSize: '0.9rem', color: '#6b7280' }}>
+        <p className="mb-4 text-sm text-eco-text-muted/70">
           Все още няма добавени дни. Започни с бутона „Добави ден“.
         </p>
       )}
 
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+      <div className="flex flex-col gap-4">
         {localItems
           .slice()
           .sort((a, b) => a.day - b.day)
           .map((item) => (
             <div
               key={item.id}
-              style={{
-                padding: 12,
-                border: '1px solid #e5e7eb',
-                boxShadow: 'none',
-              }}
+              className="p-4 rounded-xl border border-eco-border bg-eco-surface-soft shadow-eco-soft"
             >
-              <div
-                style={{
-                  display: 'grid',
-                  gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))',
-                  gap: 12,
-                  alignItems: 'flex-start',
-                }}
-              >
-                <div>
-                  <Input
-                    label="Ден"
-                    type="number"
-                    value={item.day}
-                    min={1}
-                    onChange={(e) =>
-                      handleUpdate(item.id, { day: Number(e.target.value) || 1 })
-                    }
-                  />
-                </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
 
-                <div>
-                  <Input
-                    label="Дата"
-                    type="date"
-                    value={item.date || ''}
-                    onChange={(e) =>
-                      handleUpdate(item.id, { date: e.target.value })
-                    }
-                  />
-                </div>
+                <Input
+                  label="Ден"
+                  type="number"
+                  value={item.day}
+                  min={1}
+                  onChange={(e) =>
+                    handleUpdate(item.id, { day: Number(e.target.value) || 1 })
+                  }
+                />
 
-                <div>
-                  <Input
-                    label="Час / интервал"
-                    placeholder="напр. 10:00–13:00"
-                    value={item.time || ''}
-                    onChange={(e) =>
-                      handleUpdate(item.id, { time: e.target.value })
-                    }
-                  />
-                </div>
+                <Input
+                  label="Дата"
+                  type="date"
+                  value={item.date || ''}
+                  onChange={(e) =>
+                    handleUpdate(item.id, { date: e.target.value })
+                  }
+                />
 
-                <div>
-                  <Input
-                    label="Активност"
-                    placeholder="Разходка в стария град"
-                    value={item.title}
-                    onChange={(e) =>
-                      handleUpdate(item.id, { title: e.target.value })
-                    }
-                    required
-                  />
-                </div>
+                <Input
+                  label="Час / интервал"
+                  placeholder="например 10:00–13:00"
+                  value={item.time || ''}
+                  onChange={(e) =>
+                    handleUpdate(item.id, { time: e.target.value })
+                  }
+                />
 
-                <div style={{ gridColumn: '1 / -1' }}>
-                  <label
-                    style={{
-                      display: 'block',
-                      fontSize: '0.8rem',
-                      marginBottom: 4,
-                      color: '#4b5563',
-                    }}
-                  >
+                <Input
+                  label="Активност"
+                  placeholder="Разходка в стария град"
+                  value={item.title}
+                  onChange={(e) =>
+                    handleUpdate(item.id, { title: e.target.value })
+                  }
+                  required
+                />
+
+                <div className="col-span-full">
+                  <label className="block text-xs mb-1 text-eco-text-muted">
                     Бележки
                   </label>
                   <textarea
@@ -146,20 +120,17 @@ const TripItinerary: React.FC<TripItineraryProps> = ({ items, onChange }) => {
                       handleUpdate(item.id, { notes: e.target.value })
                     }
                     rows={2}
-                    style={{
-                      width: '100%',
-                      borderRadius: 6,
-                      border: '1px solid #d1d5db',
-                      padding: 8,
-                      fontFamily: 'inherit',
-                      fontSize: '0.9rem',
-                      resize: 'vertical',
-                    }}
-                    placeholder="Подробности, адрес, билети, резервирани места..."
+                    placeholder="Подробности, адрес, билети…"
+                    className="
+                      w-full resize-y rounded-lg 
+                      bg-eco-surface border border-eco-border 
+                      p-2 text-eco-text text-sm
+                      focus:outline-none focus:ring-2 focus:ring-eco-accent
+                    "
                   />
                 </div>
 
-                <div style={{ gridColumn: '1 / -1', textAlign: 'right' }}>
+                <div className="col-span-full flex justify-end">
                   <Button
                     type="button"
                     variant="secondary"
@@ -173,7 +144,7 @@ const TripItinerary: React.FC<TripItineraryProps> = ({ items, onChange }) => {
           ))}
       </div>
 
-      <div style={{ marginTop: 16 }}>
+      <div className="mt-4">
         <Button type="button" onClick={handleAdd}>
           Добави ден
         </Button>

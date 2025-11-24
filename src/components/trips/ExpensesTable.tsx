@@ -28,10 +28,7 @@ const ExpensesTable: React.FC<ExpensesTableProps> = ({
   }
 
   return (
-    <Card>
-
-      {/* ❗ Премахнахме <h2>Разходи</h2> за да не се дублира */}
-
+    <Card className="bg-eco-surface">
       {/* Форма за добавяне на разход */}
       <AddExpenseForm
         families={families.map((f) => ({ id: f.id, name: f.name }))}
@@ -40,66 +37,48 @@ const ExpensesTable: React.FC<ExpensesTableProps> = ({
 
       {/* Списък с разходи */}
       {expenses.length === 0 ? (
-        <p style={{ marginTop: 12 }}>Все още няма разходи.</p>
+        <p className="mt-3 text-sm text-eco-text-muted">
+          Все още няма разходи.
+        </p>
       ) : (
-        <table
-          style={{
-            width: '100%',
-            fontSize: '0.9rem',
-            borderCollapse: 'collapse',
-            marginTop: 12,
-          }}
-        >
-          <thead>
-            <tr>
-              <th
-                style={{
-                  textAlign: 'left',
-                  padding: '6px 0',
-                  borderBottom: '1px solid #e5e7eb',
-                }}
-              >
-                Платено от
-              </th>
-              <th
-                style={{
-                  textAlign: 'left',
-                  padding: '6px 0',
-                  borderBottom: '1px solid #e5e7eb',
-                }}
-              >
-                Сума
-              </th>
-              <th
-                style={{
-                  textAlign: 'left',
-                  padding: '6px 0',
-                  borderBottom: '1px solid #e5e7eb',
-                }}
-              >
-                Коментар
-              </th>
-            </tr>
-          </thead>
-          <tbody>
-            {expenses.map((exp) => {
-              const family = families.find((f) => f.id === exp.paidByFamilyId);
-              return (
-                <tr key={exp.id}>
-                  <td style={{ padding: '6px 0', borderBottom: '1px solid #f3f4f6' }}>
-                    {family?.name ?? '—'}
-                  </td>
-                  <td style={{ padding: '6px 0', borderBottom: '1px solid #f3f4f6' }}>
-                    {exp.amount.toFixed(2)} {exp.currency}
-                  </td>
-                  <td style={{ padding: '6px 0', borderBottom: '1px solid #f3f4f6' }}>
-                    {exp.comment}
-                  </td>
-                </tr>
-              );
-            })}
-          </tbody>
-        </table>
+        <div className="mt-4 overflow-x-auto">
+          <table className="w-full border-collapse text-sm">
+            <thead>
+              <tr className="border-b border-eco-border/60">
+                <th className="py-2 pr-4 text-left text-eco-text-muted font-medium">
+                  Платено от
+                </th>
+                <th className="py-2 pr-4 text-left text-eco-text-muted font-medium">
+                  Сума
+                </th>
+                <th className="py-2 pr-4 text-left text-eco-text-muted font-medium">
+                  Коментар
+                </th>
+              </tr>
+            </thead>
+            <tbody>
+              {expenses.map((exp) => {
+                const family = families.find((f) => f.id === exp.paidByFamilyId);
+                return (
+                  <tr
+                    key={exp.id}
+                    className="border-b border-eco-border/40 last:border-b-0"
+                  >
+                    <td className="py-2 pr-4 text-eco-text">
+                      {family?.name ?? '—'}
+                    </td>
+                    <td className="py-2 pr-4 text-eco-text">
+                      {exp.amount.toFixed(2)} {exp.currency}
+                    </td>
+                    <td className="py-2 pr-4 text-eco-text-muted">
+                      {exp.comment || '—'}
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
       )}
     </Card>
   );

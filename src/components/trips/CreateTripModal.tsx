@@ -1,7 +1,7 @@
 import React from 'react';
-import styles from './CreateTripModal.module.css';
 import Input from '@/components/ui/Input';
 import Button from '@/components/ui/Button';
+import Card from '@/components/ui/Card';
 import type { TripType } from '@/types/trip';
 
 type CreateTripModalProps = {
@@ -41,27 +41,48 @@ const CreateTripModal: React.FC<CreateTripModalProps> = ({
   }
 
   return (
-    <div className={styles.backdrop} onClick={onClose}>
-      <div className={styles.modal} onClick={(e) => e.stopPropagation()}>
-        <h2 className={styles.header}>Ново пътуване</h2>
-        <p className={styles.sub}>Тип: {typeLabel[type]}</p>
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 px-4"
+      onClick={onClose}
+    >
+      <div
+        className="w-full max-w-md"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <Card className="bg-eco-surface shadow-eco-soft">
+          <h2 className="mb-2 text-lg font-semibold text-eco-text">
+            Ново пътуване
+          </h2>
+          <p className="mb-4 text-sm text-eco-text-muted">
+            Тип: <span className="font-medium text-eco-text">{typeLabel[type]}</span>
+          </p>
 
-        <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-          <Input
-            label="Име на пътуването"
-            placeholder="напр. Море 2025 - Гърция"
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-            required
-          />
+          <form
+            onSubmit={handleSubmit}
+            className="flex flex-col gap-4"
+          >
+            <Input
+              label="Име на пътуването"
+              placeholder="напр. Море 2025 - Гърция"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              required
+            />
 
-          <div className={styles.footer}>
-            <Button type="button" variant="secondary" onClick={onClose}>
-              Отказ
-            </Button>
-            <Button type="submit">Създай</Button>
-          </div>
-        </form>
+            <div className="mt-2 flex justify-end gap-2">
+              <Button
+                type="button"
+                variant="secondary"
+                onClick={onClose}
+              >
+                Отказ
+              </Button>
+              <Button type="submit">
+                Създай
+              </Button>
+            </div>
+          </form>
+        </Card>
       </div>
     </div>
   );

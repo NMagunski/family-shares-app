@@ -1,7 +1,6 @@
 import React from 'react';
 import { useRouter } from 'next/router';
 import type { Trip } from '@/types/trip';
-import styles from './TripCard.module.css';
 
 type Props = {
   trip: Trip;
@@ -51,65 +50,103 @@ const TripCard: React.FC<Props> = ({
   const isArchived = !!trip.archived;
 
   return (
-    <div className={styles.card} onClick={handleOpen}>
-      <div className={styles.iconWrapper}>
-        <span className={styles.icon}>{getTypeIcon(trip.type)}</span>
+    <div
+      onClick={handleOpen}
+      className="
+        cursor-pointer 
+        bg-eco-surface 
+        border border-eco-border
+        shadow-eco-soft
+        rounded-xl 
+        p-4 
+        flex 
+        gap-4
+        hover:bg-eco-surface-soft 
+        transition
+      "
+    >
+      {/* Икона */}
+      <div
+        className="
+          flex items-center justify-center
+          h-14 w-14
+          rounded-xl 
+          bg-eco-surface-soft 
+          border border-eco-border
+          text-3xl
+        "
+      >
+        {getTypeIcon(trip.type)}
       </div>
 
-      <div className={styles.content}>
-        <div className={styles.headerRow}>
-          <div className={styles.titleBlock}>
-            <h3 className={styles.title}>{trip.name}</h3>
+      {/* Съдържание */}
+      <div className="flex flex-col flex-1">
+        <div className="flex items-start justify-between gap-3">
+          <div className="min-w-0">
+            <h3 className="text-lg font-semibold text-eco-text mb-1 truncate">
+              {trip.name}
+            </h3>
 
-            <div className={styles.subtitleRow}>
-              <span className={styles.typeBadge}>{getTypeLabel(trip.type)}</span>
+            <div className="flex items-center gap-3 text-sm text-eco-text-muted">
+              {/* Badge за типа */}
+              <span className="px-2 py-0.5 rounded-full bg-eco-surface-soft border border-eco-border">
+                {getTypeLabel(trip.type)}
+              </span>
 
               {createdDate && (
-                <span className={styles.metaText}>
+                <span className="text-xs text-eco-text-muted">
                   Създадено: {createdDate}
                 </span>
               )}
             </div>
           </div>
-
-          {isArchived && (
-            <span className={styles.archivedBadge}>
-              Архивирано
-            </span>
-          )}
         </div>
 
-        <div className={styles.footerRow}>
-          {showManageActions && (
-            <div className={styles.manageRow}>
-              {onArchiveToggle && (
-                <button
-                  type="button"
-                  className={styles.secondaryBtn}
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    onArchiveToggle(trip);
-                  }}
-                >
-                  {isArchived ? 'Върни от архив' : 'Архивирай'}
-                </button>
-              )}
+        {/* Управление */}
+        {showManageActions && (
+          <div className="flex gap-3 mt-4">
+            {onArchiveToggle && (
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onArchiveToggle(trip);
+                }}
+                className="
+                  text-sm px-3 py-1.5
+                  rounded-lg
+                  bg-eco-surface-soft
+                  border border-eco-border
+                  text-eco-text
+                  hover:bg-eco-surface 
+                  transition
+                "
+              >
+                {isArchived ? 'Активирай' : 'Архивирай'}
+              </button>
+            )}
 
-              {onDelete && (
-                <button
-                  type="button"
-                  className={styles.dangerBtn}
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    onDelete(trip);
-                  }}
-                >
-                  Изтрий
-                </button>
-              )}
-            </div>
-          )}
-        </div>
+            {onDelete && (
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onDelete(trip);
+                }}
+                className="
+                  text-sm px-3 py-1.5
+                  rounded-lg
+                  bg-red-600 
+                  text-white 
+                  hover:bg-red-700 
+                  transition
+                "
+              >
+                Изтрий
+              </button>
+            )}
+          </div>
+        )}
       </div>
     </div>
   );

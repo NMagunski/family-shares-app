@@ -5,7 +5,6 @@ import SectionCard from '@/components/ui/SectionCard';
 import TripItinerary from '@/components/trips/TripItinerary';
 import type { Trip, TripItineraryItem } from '@/types/trip';
 import { fetchTripById, updateTripItinerary } from '@/lib/trips';
-import styles from '@/components/trips/TripDetails.module.css';
 import Button from '@/components/ui/Button';
 import { useAuth } from '@/context/AuthContext';
 
@@ -54,28 +53,25 @@ const TripItineraryPage: React.FC = () => {
   if (authLoading || !user) {
     return (
       <Layout>
-        <p className={styles.mutedText}>Зареждане...</p>
+        <div className="max-w-5xl mx-auto px-4 py-6">
+          <p className="text-sm text-eco-text-muted">Зареждане...</p>
+        </div>
       </Layout>
     );
   }
 
   return (
     <Layout>
-      <div className={styles.pageWrapper}>
-        {/* прост header за страницата с програма */}
-        <div
-          style={{
-            display: 'flex',
-            justifyContent: 'space-between',
-            alignItems: 'center',
-            marginBottom: '1.5rem',
-            gap: '1rem',
-            flexWrap: 'wrap',
-          }}
-        >
+      <div className="max-w-5xl mx-auto px-4 py-6 space-y-6 lg:space-y-8">
+        {/* HEADER */}
+        <div className="flex items-center justify-between gap-4 flex-wrap">
           <div>
-            <h1 className={styles.pageTitle}>{tripName}</h1>
-            <p className={styles.mutedText}>Програма на пътуването</p>
+            <h1 className="text-xl sm:text-2xl font-semibold text-eco-text">
+              {tripName}
+            </h1>
+            <p className="text-sm text-eco-text-muted">
+              Програма на пътуването
+            </p>
           </div>
 
           <Button
@@ -87,11 +83,13 @@ const TripItineraryPage: React.FC = () => {
           </Button>
         </div>
 
-        <div className={styles.sectionsGrid}>
-          <div className={styles.mainColumn}>
+        {/* GRID: main + side */}
+        <div className="grid gap-6 lg:grid-cols-[minmax(0,2fr)_minmax(0,1fr)]">
+          {/* ЛЯВА КОЛОНА */}
+          <div className="space-y-6">
             <SectionCard title="Програма по дни" icon="🗓">
               {loading ? (
-                <p className={styles.mutedText}>Зареждане...</p>
+                <p className="text-sm text-eco-text-muted">Зареждане...</p>
               ) : (
                 <TripItinerary
                   items={itinerary}
@@ -111,12 +109,12 @@ const TripItineraryPage: React.FC = () => {
             </SectionCard>
           </div>
 
-          {/* дясна колона – инфо/съвет */}
-          <div className={styles.sideColumn}>
+          {/* ДЯСНА КОЛОНА – инфо/съвет */}
+          <div className="space-y-6">
             <SectionCard title="Съвет" icon="💡">
-              <p className={styles.mutedText}>
-                Използвай програмата, за да разпишеш ден по ден какво ще правите –
-                така всички в групата ще знаят плана предварително.
+              <p className="text-sm text-eco-text-muted">
+                Използвай програмата, за да разпишеш ден по ден какво ще
+                правите – така всички в групата ще знаят плана предварително.
               </p>
             </SectionCard>
           </div>

@@ -1,16 +1,21 @@
+/* @import "tailwindcss/base";
+@import "tailwindcss/components";
+@import "tailwindcss/utilities"; */
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
 /* Global reset */
 body {
   margin: 0;
   padding: 0;
 
-  /* Чист бял фон за модерен look */
-  background-color: #ffffff;
+  /* Eco Green Dark theme */
+  background-color: #0f1812;
+  color: #e5f2e9;
 
   font-family: -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Oxygen,
     Ubuntu, Cantarell, Fira Sans, Droid Sans, Helvetica Neue, sans-serif;
-
-  /* Тъмно зелено – основен текстов цвят */
-  color: #143F2C;
 }
 
 a {

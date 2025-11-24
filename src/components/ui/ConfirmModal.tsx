@@ -25,44 +25,46 @@ const ConfirmModal: React.FC<ConfirmModalProps> = ({
 
   return (
     <div
-      style={{
-        position: 'fixed',
-        inset: 0,
-        background: 'rgba(0,0,0,0.35)',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        zIndex: 60,
-        padding: 16,
-      }}
+      className="
+        fixed inset-0 z-60 bg-black/40 
+        flex items-center justify-center p-4
+      "
       onClick={onClose}
     >
       <div
-        style={{ maxWidth: 420, width: '100%' }}
+        className="w-full max-w-md"
         onClick={(e) => e.stopPropagation()}
       >
-        <Card>
-          <h2 style={{ marginBottom: 8 }}>{title}</h2>
+        <Card className="bg-eco-surface text-eco-text shadow-eco-soft p-6 rounded-2xl">
+          {/* Заглавие */}
+          <h2 className="text-xl font-semibold mb-2">{title}</h2>
+
+          {/* Описание */}
           {description && (
-            <p style={{ fontSize: '0.9rem', marginBottom: 16 }}>{description}</p>
+            <p className="text-eco-text-muted text-sm mb-4 leading-relaxed">
+              {description}
+            </p>
           )}
 
-          <div
-            style={{
-              display: 'flex',
-              justifyContent: 'flex-end',
-              gap: 8,
-              marginTop: 8,
-            }}
-          >
+          {/* Бутоните */}
+          <div className="flex justify-end gap-3 pt-2">
             <Button
               type="button"
+              variant="secondary"
               onClick={onClose}
-              style={{ backgroundColor: '#e5e7eb', color: '#111827' }}
+              className="
+                bg-eco-surface-soft text-eco-text-muted
+                hover:bg-eco-border
+              "
             >
               {cancelLabel}
             </Button>
-            <Button type="button" onClick={onConfirm}>
+
+            <Button
+              type="button"
+              variant="primary"
+              onClick={onConfirm}
+            >
               {confirmLabel}
             </Button>
           </div>

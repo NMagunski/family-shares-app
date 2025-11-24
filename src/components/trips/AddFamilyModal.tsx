@@ -31,46 +31,49 @@ const AddFamilyModal: React.FC<AddFamilyModalProps> = ({
     onCreate(trimmed);
   }
 
- return (
-  <div
-    style={{
-      position: 'fixed',
-      inset: 0,
-      background: 'rgba(0,0,0,0.45)',
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'center',
-      zIndex: 50,
-    }}
-    onClick={onClose}
-  >
-    <div onClick={(e) => e.stopPropagation()} style={{ width: '100%', maxWidth: 400 }}>
-      <Card className="modal">
-        <h2 style={{ marginBottom: 8 }}>Добави семейство</h2>
+  return (
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 px-4"
+      onClick={onClose}
+    >
+      <div
+        className="w-full max-w-md"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <Card className="bg-eco-surface shadow-eco-soft">
+          <h2 className="mb-3 text-lg font-semibold text-eco-text">
+            Добави семейство
+          </h2>
 
-        <form
-          onSubmit={handleSubmit}
-          style={{ display: 'flex', flexDirection: 'column', gap: 12 }}
-        >
-          <Input
-            label="Име на семейството"
-            placeholder="напр. Семейство Иванови"
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-            required
-          />
+          <form
+            onSubmit={handleSubmit}
+            className="flex flex-col gap-4"
+          >
+            <Input
+              label="Име на семейството"
+              placeholder="напр. Семейство Иванови"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              required
+            />
 
-          <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8 }}>
-            <Button type="button" variant="secondary" onClick={onClose}>
-              Отказ
-            </Button>
-            <Button type="submit">Добави</Button>
-          </div>
-        </form>
-      </Card>
+            <div className="mt-2 flex justify-end gap-2">
+              <Button
+                type="button"
+                variant="secondary"
+                onClick={onClose}
+              >
+                Отказ
+              </Button>
+              <Button type="submit">
+                Добави
+              </Button>
+            </div>
+          </form>
+        </Card>
+      </div>
     </div>
-  </div>
-);
+  );
 };
 
 export default AddFamilyModal;
