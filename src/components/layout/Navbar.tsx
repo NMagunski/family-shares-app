@@ -114,7 +114,7 @@ const Navbar: React.FC = () => {
         >
           <div className="flex items-center justify-center rounded-xl bg-eco-surface-soft/90 border border-eco-border/70 p-1.5 shadow-eco-soft">
             <Image
-              src="/tripsplitly-logo.png"
+              src="/icons/tripsplitly-192.png"
               alt="TripSplitly logo"
               width={28}
               height={28}
