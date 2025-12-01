@@ -78,6 +78,15 @@ const LoginPage: React.FC = () => {
             {error && (
               <p className="text-red-400 text-sm">{error}</p>
             )}
+            <p className="text-right -mt-2 mb-2">
+  <Link
+    href="/reset-password"
+    className="text-xs text-eco-accent hover:underline"
+  >
+    Забравена парола?
+  </Link>
+</p>
+
 
             <Button type="submit" disabled={loading}>
               {loading ? 'Влизане...' : 'Влез'}
