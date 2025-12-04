@@ -5,6 +5,8 @@ import {
   getDocs,
   query,
   where,
+  updateDoc,
+  doc,
 } from 'firebase/firestore';
 import type { TripExpense } from '@/types/trip';
 
@@ -18,22 +20,33 @@ export async function fetchExpenses(tripId: string): Promise<TripExpense[]> {
 
   const snapshot = await getDocs(q);
 
-  const expenses: TripExpense[] = snapshot.docs.map((doc) => {
-    const data = doc.data() as any;
+  const expenses: TripExpense[] = snapshot.docs.map((docSnap) => {
+    const data = docSnap.data() as any;
+
+    const createdAt =
+      typeof data.createdAt === 'string' ? data.createdAt : undefined;
+
     return {
-      id: doc.id,
+      id: docSnap.id,
       tripId: data.tripId,
       paidByFamilyId: data.paidByFamilyId,
       involvedFamilyIds: data.involvedFamilyIds ?? [],
       amount: data.amount,
       currency: data.currency ?? 'BGN',
       comment: data.comment,
-      createdAt: data.createdAt ?? '',
+      createdAt,
     };
   });
 
-  // по-новите най-отгоре
-  expenses.sort((a, b) => (a.createdAt < b.createdAt ? 1 : -1));
+  // по-новите най-отгоре, без да чупим записи без createdAt
+  expenses.sort((a, b) => {
+    if (a.createdAt && b.createdAt) {
+      return a.createdAt < b.createdAt ? 1 : -1;
+    }
+    if (a.createdAt && !b.createdAt) return -1;
+    if (!a.createdAt && b.createdAt) return 1;
+    return 0;
+  });
 
   return expenses;
 }
@@ -48,10 +61,12 @@ export async function createExpense(
     comment?: string;
   }
 ): Promise<TripExpense> {
+  const createdAt = new Date().toISOString();
+
   const payload = {
     tripId,
     ...input,
-    createdAt: new Date().toISOString(),
+    createdAt,
   };
 
   const docRef = await addDoc(collection(db, EXPENSES_COLLECTION), payload);
@@ -60,4 +75,27 @@ export async function createExpense(
     id: docRef.id,
     ...payload,
   };
+}
+
+// 🆕 Редакция на вече съществуващ разход
+export async function updateExpense(
+  expenseId: string,
+  updates: {
+    paidByFamilyId: string;
+    involvedFamilyIds: string[];
+    amount: number;
+    currency: 'BGN' | 'EUR';
+    comment?: string;
+  }
+): Promise<void> {
+  const ref = doc(db, EXPENSES_COLLECTION, expenseId);
+
+  // Не пипаме tripId и createdAt – само съдържанието на разхода
+  await updateDoc(ref, {
+    paidByFamilyId: updates.paidByFamilyId,
+    involvedFamilyIds: updates.involvedFamilyIds,
+    amount: updates.amount,
+    currency: updates.currency,
+    comment: updates.comment ?? '',
+  });
 }

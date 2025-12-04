@@ -13,13 +13,18 @@ type NewExpenseInput = {
 type ExpensesTableProps = {
   families: TripFamily[];
   expenses: TripExpense[];
-  onAddExpense?: (expense: NewExpenseInput) => void;
+  onAddExpense?: (expense: NewExpenseInput) => void | Promise<void>;
+  onUpdateExpense?: (
+    expenseId: string,
+    expense: NewExpenseInput
+  ) => void | Promise<void>;
 };
 
 const ExpensesTable: React.FC<ExpensesTableProps> = ({
   families,
   expenses,
   onAddExpense,
+  // оставяме onUpdateExpense за бъдеща редакция на разходи
 }) => {
   function handleAdd(expense: NewExpenseInput) {
     if (!onAddExpense) return;

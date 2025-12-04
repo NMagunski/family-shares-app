@@ -17,7 +17,11 @@ import {
   updateFamilyName,
   deleteFamilyAndExpenses,
 } from '@/lib/families';
-import { fetchExpenses, createExpense } from '@/lib/expensesStore';
+import {
+  fetchExpenses,
+  createExpense,
+  updateExpense,            // 🆕 добавен импорт
+} from '@/lib/expensesStore';
 import { fetchTripById } from '@/lib/trips';
 import { useAuth } from '@/context/AuthContext';
 
@@ -142,6 +146,40 @@ const TripPage: React.FC = () => {
     }
   }
 
+  // 🆕 Редакция на разход
+  async function handleUpdateExpense(
+    expenseId: string,
+    exp: {
+      paidByFamilyId: string;
+      involvedFamilyIds: string[];
+      amount: number;
+      currency: 'BGN' | 'EUR';
+      comment?: string;
+    }
+  ) {
+    try {
+      await updateExpense(expenseId, exp);
+
+      setExpenses((prev) =>
+        prev.map((e) =>
+          e.id === expenseId
+            ? {
+                ...e,
+                paidByFamilyId: exp.paidByFamilyId,
+                involvedFamilyIds: exp.involvedFamilyIds,
+                amount: exp.amount,
+                currency: exp.currency,
+                comment: exp.comment,
+              }
+            : e
+        )
+      );
+    } catch (err) {
+      console.error(err);
+      alert('Грешка при редакция на разход.');
+    }
+  }
+
   // Добавяне на семейство
   async function handleCreateFamily(name: string) {
     if (!tripIdStr || !user) return;
@@ -261,19 +299,21 @@ const TripPage: React.FC = () => {
               )}
             </SectionCard>
 
-            <SectionCard title="Разходи" icon="💰">
-              {expensesLoading ? (
-                <p className="text-sm text-eco-text-muted">
-                  Зареждане на разходи...
-                </p>
-              ) : (
-                <ExpensesTable
-                  families={families}
-                  expenses={expenses}
-                  onAddExpense={handleAddExpense}
-                />
-              )}
-            </SectionCard>
+<SectionCard title="Разходи" icon="ö">
+  {expensesLoading ? (
+    <p className="text-sm text-eco-text-muted">
+      Зареждане на разходи...
+    </p>
+  ) : (
+    <ExpensesTable
+      families={families}
+      expenses={expenses}
+      onAddExpense={handleAddExpense}
+      onUpdateExpense={handleUpdateExpense}
+    />
+  )}
+</SectionCard>
+
 
             <SectionCard title="Кой на кого колко дължи" icon="📊">
               <DebtsSummary families={families} expenses={expenses} />

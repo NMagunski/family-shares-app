@@ -39,7 +39,9 @@ export type TripExpense = {
   amount: number;
   currency: 'BGN' | 'EUR';
   comment?: string;
-  createdAt: string;
+
+  // 🆕 дата/час на добавяне – може да я няма при по-стари разходи
+  createdAt?: string;          // ISO string
 };
 
 export type TripList = {
