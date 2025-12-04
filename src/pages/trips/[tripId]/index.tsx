@@ -20,7 +20,8 @@ import {
 import {
   fetchExpenses,
   createExpense,
-  updateExpense,            // 🆕 добавен импорт
+  updateExpense,
+  deleteExpense, // 🆕 изтриване на разход
 } from '@/lib/expensesStore';
 import { fetchTripById } from '@/lib/trips';
 import { useAuth } from '@/context/AuthContext';
@@ -146,7 +147,7 @@ const TripPage: React.FC = () => {
     }
   }
 
-  // 🆕 Редакция на разход
+  // Редакция на разход
   async function handleUpdateExpense(
     expenseId: string,
     exp: {
@@ -177,6 +178,17 @@ const TripPage: React.FC = () => {
     } catch (err) {
       console.error(err);
       alert('Грешка при редакция на разход.');
+    }
+  }
+
+  // 🆕 Изтриване на разход
+  async function handleDeleteExpense(expenseId: string) {
+    try {
+      await deleteExpense(expenseId);
+      setExpenses((prev) => prev.filter((e) => e.id !== expenseId));
+    } catch (err) {
+      console.error(err);
+      alert('Грешка при изтриване на разход.');
     }
   }
 
@@ -299,21 +311,21 @@ const TripPage: React.FC = () => {
               )}
             </SectionCard>
 
-<SectionCard title="Разходи" icon="ö">
-  {expensesLoading ? (
-    <p className="text-sm text-eco-text-muted">
-      Зареждане на разходи...
-    </p>
-  ) : (
-    <ExpensesTable
-      families={families}
-      expenses={expenses}
-      onAddExpense={handleAddExpense}
-      onUpdateExpense={handleUpdateExpense}
-    />
-  )}
-</SectionCard>
-
+            <SectionCard title="Разходи" icon="🧾">
+              {expensesLoading ? (
+                <p className="text-sm text-eco-text-muted">
+                  Зареждане на разходи...
+                </p>
+              ) : (
+                <ExpensesTable
+                  families={families}
+                  expenses={expenses}
+                  onAddExpense={handleAddExpense}
+                  onUpdateExpense={handleUpdateExpense}
+                  onDeleteExpense={handleDeleteExpense} // 🆕 подаваме handler-а
+                />
+              )}
+            </SectionCard>
 
             <SectionCard title="Кой на кого колко дължи" icon="📊">
               <DebtsSummary families={families} expenses={expenses} />

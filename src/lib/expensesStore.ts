@@ -7,6 +7,7 @@ import {
   where,
   updateDoc,
   doc,
+  deleteDoc, // 🆕 за изтриване
 } from 'firebase/firestore';
 import type { TripExpense } from '@/types/trip';
 
@@ -77,7 +78,7 @@ export async function createExpense(
   };
 }
 
-// 🆕 Редакция на вече съществуващ разход
+// Редакция на вече съществуващ разход
 export async function updateExpense(
   expenseId: string,
   updates: {
@@ -98,4 +99,10 @@ export async function updateExpense(
     currency: updates.currency,
     comment: updates.comment ?? '',
   });
+}
+
+// 🆕 Изтриване на разход
+export async function deleteExpense(expenseId: string): Promise<void> {
+  const ref = doc(db, EXPENSES_COLLECTION, expenseId);
+  await deleteDoc(ref);
 }
