@@ -21,7 +21,7 @@ import {
   fetchExpenses,
   createExpense,
   updateExpense,
-  deleteExpense, // 🆕 изтриване на разход
+  deleteExpense,
 } from '@/lib/expensesStore';
 import { fetchTripById } from '@/lib/trips';
 import { useAuth } from '@/context/AuthContext';
@@ -181,7 +181,7 @@ const TripPage: React.FC = () => {
     }
   }
 
-  // 🆕 Изтриване на разход
+  // Изтриване на разход
   async function handleDeleteExpense(expenseId: string) {
     try {
       await deleteExpense(expenseId);
@@ -311,6 +311,11 @@ const TripPage: React.FC = () => {
               )}
             </SectionCard>
 
+            {/* Преместено НАГОРЕ – Кой на кого колко дължи */}
+            <SectionCard title="Кой на кого колко дължи" icon="📊">
+              <DebtsSummary families={families} expenses={expenses} />
+            </SectionCard>
+
             <SectionCard title="Разходи" icon="🧾">
               {expensesLoading ? (
                 <p className="text-sm text-eco-text-muted">
@@ -322,13 +327,9 @@ const TripPage: React.FC = () => {
                   expenses={expenses}
                   onAddExpense={handleAddExpense}
                   onUpdateExpense={handleUpdateExpense}
-                  onDeleteExpense={handleDeleteExpense} // 🆕 подаваме handler-а
+                  onDeleteExpense={handleDeleteExpense}
                 />
               )}
-            </SectionCard>
-
-            <SectionCard title="Кой на кого колко дължи" icon="📊">
-              <DebtsSummary families={families} expenses={expenses} />
             </SectionCard>
           </div>
 

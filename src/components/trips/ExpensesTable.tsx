@@ -115,6 +115,20 @@ const ExpensesTable: React.FC<ExpensesTableProps> = ({
     });
   }
 
+  function formatInvolvedFamilies(exp: TripExpense): string | null {
+    if (!exp.involvedFamilyIds || exp.involvedFamilyIds.length === 0) {
+      return null;
+    }
+
+    const names = exp.involvedFamilyIds
+      .map((id) => families.find((f) => f.id === id)?.name)
+      .filter(Boolean) as string[];
+
+    if (names.length === 0) return null;
+
+    return names.join(', ');
+  }
+
   const showPagination = expenses.length > PAGE_SIZE;
   const from = expenses.length === 0 ? 0 : startIndex + 1;
   const to = Math.min(endIndex, expenses.length);
@@ -159,6 +173,7 @@ const ExpensesTable: React.FC<ExpensesTableProps> = ({
                   const family = families.find((f) => f.id === exp.paidByFamilyId);
                   const isEditing = editingId === exp.id;
                   const isInfoOpen = openInfoId === exp.id;
+                  const involvedNames = formatInvolvedFamilies(exp);
 
                   return (
                     <tr
@@ -167,12 +182,12 @@ const ExpensesTable: React.FC<ExpensesTableProps> = ({
                     >
                       {/* Info икона */}
                       <td className="py-2 pr-2">
-                        {exp.createdAt && (
+                        {(exp.createdAt || involvedNames) && (
                           <button
                             type="button"
                             className="flex h-6 w-6 items-center justify-center rounded-full border border-eco-border text-[10px] font-semibold text-eco-text-muted hover:bg-eco-surface-soft transition"
                             onClick={() => toggleInfo(exp.id)}
-                            aria-label="Дата на разхода"
+                            aria-label="Информация за разхода"
                           >
                             i
                           </button>
@@ -198,9 +213,18 @@ const ExpensesTable: React.FC<ExpensesTableProps> = ({
                           <>
                             {exp.comment || '—'}
                             {isInfoOpen && (
-                              <div className="mt-1 text-xs text-eco-text-muted">
-                                Добавен: {formatDate(exp.createdAt)}
-                              </div>
+                              <>
+                                {exp.createdAt && (
+                                  <div className="mt-1 text-xs text-eco-text-muted">
+                                    Добавен: {formatDate(exp.createdAt)}
+                                  </div>
+                                )}
+                                {involvedNames && (
+                                  <div className="mt-0.5 text-xs text-eco-text-muted">
+                                    Разпределено между: {involvedNames}
+                                  </div>
+                                )}
+                              </>
                             )}
                           </>
                         )}
@@ -254,8 +278,8 @@ const ExpensesTable: React.FC<ExpensesTableProps> = ({
             {pageExpenses.map((exp) => {
               const family = families.find((f) => f.id === exp.paidByFamilyId);
               const isEditing = editingId === exp.id;
-              const isInfoOpen = openInfoId === exp.id;
               const isExpanded = expandedId === exp.id;
+              const involvedNames = formatInvolvedFamilies(exp);
 
               return (
                 <div
@@ -308,9 +332,15 @@ const ExpensesTable: React.FC<ExpensesTableProps> = ({
                         )}
                       </div>
 
-                      {(exp.createdAt || isInfoOpen) && (
+                      {exp.createdAt && (
                         <div className="mt-1 text-xs text-eco-text-muted">
                           Добавен: {formatDate(exp.createdAt)}
+                        </div>
+                      )}
+
+                      {involvedNames && (
+                        <div className="mt-1 text-xs text-eco-text-muted">
+                          Разпределено между: {involvedNames}
                         </div>
                       )}
 

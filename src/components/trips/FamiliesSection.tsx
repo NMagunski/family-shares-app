@@ -16,7 +16,7 @@ const FamiliesSection: React.FC<Props> = ({
   const { user } = useAuth();
 
   return (
-    <div className="space-y-3">
+    <div className="space-y-2.5">
       {families.map((f) => {
         const isMe = f.userId === user?.uid;
 
@@ -24,11 +24,9 @@ const FamiliesSection: React.FC<Props> = ({
           <div
             key={f.id}
             className="
-              flex flex-col sm:flex-row
-              items-start sm:items-center
-              justify-between
-              gap-2 sm:gap-3
-              p-3 sm:p-4
+              flex items-center justify-between
+              gap-3
+              px-3 py-2.5
               rounded-xl 
               bg-eco-surface-soft 
               border border-eco-border 
@@ -36,10 +34,10 @@ const FamiliesSection: React.FC<Props> = ({
             "
           >
             {/* LEFT SIDE */}
-            <div className="flex items-center gap-3">
-              <span className="text-lg sm:text-xl">🧑‍🤝‍🧑</span>
+            <div className="flex items-center gap-2.5 min-w-0">
+              <span className="text-lg">🧑‍🤝‍🧑</span>
 
-              <span className="text-eco-text font-medium break-words">
+              <span className="text-eco-text font-medium truncate">
                 {f.name}
               </span>
 
@@ -47,11 +45,12 @@ const FamiliesSection: React.FC<Props> = ({
                 <span
                   className="
                     px-2 py-0.5 
-                    text-[11px] sm:text-xs 
+                    text-[11px]
                     rounded-md 
-                    bg-eco-accent/20 
+                    bg-eco-accent/18 
                     text-eco-accent 
                     font-semibold
+                    whitespace-nowrap
                   "
                 >
                   Вие
@@ -60,19 +59,13 @@ const FamiliesSection: React.FC<Props> = ({
             </div>
 
             {/* ACTION BUTTONS */}
-            <div
-              className="
-                flex items-center gap-3
-                self-stretch sm:self-auto
-                justify-end
-              "
-            >
+            <div className="flex items-center gap-2 shrink-0">
               <button
                 type="button"
                 title="Редактирай"
                 onClick={() => onEditFamily?.(f)}
                 className="
-                  text-base sm:text-lg
+                  text-base
                   text-eco-text-muted 
                   hover:text-eco-accent 
                   transition
@@ -86,7 +79,7 @@ const FamiliesSection: React.FC<Props> = ({
                 title="Изтрий"
                 onClick={() => onDeleteFamily?.(f)}
                 className="
-                  text-base sm:text-lg
+                  text-base
                   text-eco-text-muted 
                   hover:text-red-400 
                   transition
