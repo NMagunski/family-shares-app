@@ -29,16 +29,21 @@ const LoginPage: React.FC = () => {
     setLoading(true);
 
     try {
-      await signInWithEmailAndPassword(auth, email, password);
+      const trimmedEmail = email.trim();
+      await signInWithEmailAndPassword(auth, trimmedEmail, password);
       await router.replace(redirectTarget);
     } catch (err: any) {
       console.error(err);
       const code = err?.code as string | undefined;
 
       if (code === 'auth/user-not-found') {
-        setError('Няма регистриран потребител с този email. Моля регистрирай се.');
+        setError('Няма регистриран потребител с този email. Моля, регистрирай се.');
       } else if (code === 'auth/invalid-credential' || code === 'auth/wrong-password') {
         setError('Грешен email или парола. Провери данните и опитай отново.');
+      } else if (code === 'auth/too-many-requests') {
+        setError(
+          'Твърде много неуспешни опити за вход. Опитай отново по-късно или смени паролата си.'
+        );
       } else {
         setError('Възникна грешка при вход. Опитай отново след малко.');
       }
@@ -76,17 +81,19 @@ const LoginPage: React.FC = () => {
             />
 
             {error && (
-              <p className="text-red-400 text-sm">{error}</p>
+              <p className="text-sm text-red-500 bg-red-500/5 border border-red-500/40 rounded-lg px-3 py-2">
+                {error}
+              </p>
             )}
-            <p className="text-right -mt-2 mb-2">
-  <Link
-    href="/reset-password"
-    className="text-xs text-eco-accent hover:underline"
-  >
-    Забравена парола?
-  </Link>
-</p>
 
+            <p className="text-right -mt-2 mb-2">
+              <Link
+                href="/forgot-password"
+                className="text-xs text-eco-accent hover:underline"
+              >
+                Забравена парола?
+              </Link>
+            </p>
 
             <Button type="submit" disabled={loading}>
               {loading ? 'Влизане...' : 'Влез'}

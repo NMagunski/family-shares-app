@@ -11,13 +11,15 @@ const firebaseConfig = {
   appId: "1:990609608338:web:7f7dcb220c55c55953204b"
 };
 
-function createFirebaseApp() {
+// Създаване/вземане на Firebase app
+function getFirebaseApp() {
   if (!getApps().length) {
     return initializeApp(firebaseConfig);
   }
   return getApp();
 }
 
-const app = createFirebaseApp();
+const app = getFirebaseApp();
+
 export const auth = getAuth(app);
 export const db = getFirestore(app);
