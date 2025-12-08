@@ -8,7 +8,6 @@ export type DebtLine = {
   amount: number;
 };
 
-// смята баланса за всяко семейство на база разходите
 export function calculateFamilyBalances(
   families: TripFamily[],
   expenses: TripExpense[]
@@ -21,6 +20,33 @@ export function calculateFamilyBalances(
   }
 
   for (const exp of expenses) {
+    // 🆕 1) "Пито платено" – погасяване на дълг
+    if (exp.type === 'settlement') {
+      // от това семейство ИДВАТ парите (длъжник)
+      const fromId = exp.settlementFromFamilyId ?? exp.paidByFamilyId;
+      // към това семейство ОТИВАТ парите (кредитор)
+      const toId =
+        exp.settlementToFamilyId ??
+        (exp.involvedFamilyIds && exp.involvedFamilyIds[0]);
+
+      if (!fromId || !toId || fromId === toId) {
+        continue;
+      }
+      if (exp.amount <= 0) continue;
+
+      if (balance[fromId] === undefined) balance[fromId] = 0;
+      if (balance[toId] === undefined) balance[toId] = 0;
+
+      // ❗ правилен знак:
+      // длъжникът увеличава баланса си (става по-малко "на минус")
+      balance[fromId] += exp.amount;
+      // кредиторът намалява това, което има да получава
+      balance[toId] -= exp.amount;
+
+      continue; // не минаваме през нормалната логика
+    }
+
+    // 🧾 2) Нормален разход – както си беше
     const involved =
       exp.involvedFamilyIds && exp.involvedFamilyIds.length > 0
         ? exp.involvedFamilyIds
@@ -32,10 +58,8 @@ export function calculateFamilyBalances(
 
     for (const famId of involved) {
       if (famId === exp.paidByFamilyId) {
-        // платецът е дал цялата сума, но неговият дял е само fairShare
         balance[famId] += exp.amount - fairShare;
       } else {
-        // тези, които участват, но не са платили – дължат fairShare
         balance[famId] -= fairShare;
       }
     }
@@ -44,7 +68,6 @@ export function calculateFamilyBalances(
   return balance;
 }
 
-// преобразува балансите в конкретни "дълг от → към"
 export function calculateDebts(
   families: TripFamily[],
   balances: FamilyBalance

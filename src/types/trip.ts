@@ -31,17 +31,35 @@ export type TripFamily = {
   createdAt?: string;
 };
 
+// 🆕 тип на разхода – нормален или "Пито платено"
+export type TripExpenseType = 'expense' | 'settlement';
+
 export type TripExpense = {
   id: string;
   tripId: string;
-  paidByFamilyId: string;      // кой е платил
-  involvedFamilyIds: string[]; // между кои семейства се дели
+
+  // кой е платил разхода / погасяването
+  paidByFamilyId: string;
+
+  // между кои семейства се дели (за нормалните разходи)
+  involvedFamilyIds: string[];
+
   amount: number;
   currency: 'BGN' | 'EUR';
   comment?: string;
 
   // 🆕 дата/час на добавяне – може да я няма при по-стари разходи
-  createdAt?: string;          // ISO string
+  createdAt?: string; // ISO string
+
+  // 🆕 тип на записа:
+  // undefined или 'expense' → нормален разход (backwards compatible)
+  // 'settlement' → "Пито платено" / погасяване на дълг
+  type?: TripExpenseType;
+
+  // 🆕 за "Пито платено" – от кое семейство към кое семейство е погасяването
+  // (използва се, когато type === 'settlement')
+  settlementFromFamilyId?: string;
+  settlementToFamilyId?: string;
 };
 
 export type TripList = {

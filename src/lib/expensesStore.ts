@@ -7,9 +7,9 @@ import {
   where,
   updateDoc,
   doc,
-  deleteDoc, // 🆕 за изтриване
+  deleteDoc,
 } from 'firebase/firestore';
-import type { TripExpense } from '@/types/trip';
+import type { TripExpense, TripExpenseType } from '@/types/trip';
 
 const EXPENSES_COLLECTION = 'expenses';
 
@@ -27,6 +27,16 @@ export async function fetchExpenses(tripId: string): Promise<TripExpense[]> {
     const createdAt =
       typeof data.createdAt === 'string' ? data.createdAt : undefined;
 
+    const type = (data.type as TripExpenseType | undefined) ?? undefined;
+    const settlementFromFamilyId =
+      typeof data.settlementFromFamilyId === 'string'
+        ? data.settlementFromFamilyId
+        : undefined;
+    const settlementToFamilyId =
+      typeof data.settlementToFamilyId === 'string'
+        ? data.settlementToFamilyId
+        : undefined;
+
     return {
       id: docSnap.id,
       tripId: data.tripId,
@@ -36,6 +46,9 @@ export async function fetchExpenses(tripId: string): Promise<TripExpense[]> {
       currency: data.currency ?? 'BGN',
       comment: data.comment,
       createdAt,
+      type,
+      settlementFromFamilyId,
+      settlementToFamilyId,
     };
   });
 
@@ -52,23 +65,43 @@ export async function fetchExpenses(tripId: string): Promise<TripExpense[]> {
   return expenses;
 }
 
+type ExpenseInput = {
+  paidByFamilyId: string;
+  involvedFamilyIds: string[];
+  amount: number;
+  currency: 'BGN' | 'EUR';
+  comment?: string;
+  type?: TripExpenseType; // 'expense' | 'settlement'
+  settlementFromFamilyId?: string;
+  settlementToFamilyId?: string;
+};
+
 export async function createExpense(
   tripId: string,
-  input: {
-    paidByFamilyId: string;
-    involvedFamilyIds: string[];
-    amount: number;
-    currency: 'BGN' | 'EUR';
-    comment?: string;
-  }
+  input: ExpenseInput
 ): Promise<TripExpense> {
   const createdAt = new Date().toISOString();
 
-  const payload = {
+  const payload: any = {
     tripId,
-    ...input,
+    paidByFamilyId: input.paidByFamilyId,
+    involvedFamilyIds: input.involvedFamilyIds,
+    amount: input.amount,
+    currency: input.currency,
+    comment: input.comment ?? '',
     createdAt,
   };
+
+  // добавяме само ако имат стойност
+  if (input.type) {
+    payload.type = input.type;
+  }
+  if (input.settlementFromFamilyId) {
+    payload.settlementFromFamilyId = input.settlementFromFamilyId;
+  }
+  if (input.settlementToFamilyId) {
+    payload.settlementToFamilyId = input.settlementToFamilyId;
+  }
 
   const docRef = await addDoc(collection(db, EXPENSES_COLLECTION), payload);
 
@@ -81,27 +114,32 @@ export async function createExpense(
 // Редакция на вече съществуващ разход
 export async function updateExpense(
   expenseId: string,
-  updates: {
-    paidByFamilyId: string;
-    involvedFamilyIds: string[];
-    amount: number;
-    currency: 'BGN' | 'EUR';
-    comment?: string;
-  }
+  updates: ExpenseInput
 ): Promise<void> {
   const ref = doc(db, EXPENSES_COLLECTION, expenseId);
 
-  // Не пипаме tripId и createdAt – само съдържанието на разхода
-  await updateDoc(ref, {
+  const updatePayload: any = {
     paidByFamilyId: updates.paidByFamilyId,
     involvedFamilyIds: updates.involvedFamilyIds,
     amount: updates.amount,
     currency: updates.currency,
     comment: updates.comment ?? '',
-  });
+  };
+
+  if (typeof updates.type !== 'undefined') {
+    updatePayload.type = updates.type;
+  }
+  if (typeof updates.settlementFromFamilyId !== 'undefined') {
+    updatePayload.settlementFromFamilyId = updates.settlementFromFamilyId;
+  }
+  if (typeof updates.settlementToFamilyId !== 'undefined') {
+    updatePayload.settlementToFamilyId = updates.settlementToFamilyId;
+  }
+
+  await updateDoc(ref, updatePayload);
 }
 
-// 🆕 Изтриване на разход
+// Изтриване на разход
 export async function deleteExpense(expenseId: string): Promise<void> {
   const ref = doc(db, EXPENSES_COLLECTION, expenseId);
   await deleteDoc(ref);
