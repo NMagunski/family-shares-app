@@ -26,6 +26,15 @@ import {
 import { fetchTripById } from '@/lib/trips';
 import { useAuth } from '@/context/AuthContext';
 
+// 🆕 Lucide икони
+import {
+  Users,
+  Scale,
+  Receipt,
+  Info,
+  Lightbulb,
+} from 'lucide-react';
+
 const TripPage: React.FC = () => {
   const router = useRouter();
   const { tripId } = router.query;
@@ -297,7 +306,7 @@ const TripPage: React.FC = () => {
         <div className="grid gap-6 lg:grid-cols-3 lg:items-start">
           {/* ЛЯВА КОЛОНА – основни секции */}
           <div className="space-y-6 lg:col-span-2">
-            <SectionCard title="Участници" icon="🧑‍🤝‍🧑">
+            <SectionCard title="Участници" icon={Users}>
               {familiesLoading ? (
                 <p className="text-sm text-eco-text-muted">
                   Зареждане на семейства...
@@ -312,11 +321,11 @@ const TripPage: React.FC = () => {
             </SectionCard>
 
             {/* Преместено НАГОРЕ – Кой на кого колко дължи */}
-            <SectionCard title="Кой на кого колко дължи" icon="📊">
+            <SectionCard title="Кой на кого колко дължи" icon={Scale}>
               <DebtsSummary families={families} expenses={expenses} />
             </SectionCard>
 
-            <SectionCard title="Разходи" icon="🧾">
+            <SectionCard title="Разходи" icon={Receipt}>
               {expensesLoading ? (
                 <p className="text-sm text-eco-text-muted">
                   Зареждане на разходи...
@@ -335,7 +344,7 @@ const TripPage: React.FC = () => {
 
           {/* ДЯСНА КОЛОНА – резюме и инфо */}
           <div className="space-y-6 lg:col-span-1">
-            <SectionCard title="Резюме на пътуването" icon="📌">
+            <SectionCard title="Резюме на пътуването" icon={Info}>
               <div className="grid gap-3 text-sm">
                 <div className="flex items-center justify-between rounded-xl border border-eco-border bg-eco-surface-soft px-3 py-2">
                   <span className="text-eco-text-muted">Статус</span>
@@ -365,7 +374,7 @@ const TripPage: React.FC = () => {
               </div>
             </SectionCard>
 
-            <SectionCard title="Съвет" icon="💡">
+            <SectionCard title="Съвет" icon={Lightbulb}>
               <p className="text-sm leading-relaxed text-eco-text-muted">
                 Добави всички участващи семейства и отбелязвай кой какво плаща.
                 Накрая автоматично ще видиш кой на кого колко дължи.

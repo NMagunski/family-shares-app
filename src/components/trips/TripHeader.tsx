@@ -1,5 +1,12 @@
 import React from 'react';
 import Button from '@/components/ui/Button';
+import {
+  UserPlus,
+  ListTodo,
+  CalendarDays,
+  Share2,
+  Settings,
+} from 'lucide-react';
 
 type Props = {
   tripName: string;
@@ -38,41 +45,46 @@ const TripHeader: React.FC<Props> = ({
         <Button
           variant="primary"
           onClick={onAddFamily}
-          className="w-full sm:w-auto whitespace-nowrap text-sm py-2"
+          className="w-full sm:w-auto whitespace-nowrap text-sm py-2 flex items-center gap-1.5"
         >
-          + Добави семейство
+          <UserPlus className="w-4 h-4" />
+          Добави семейство
         </Button>
 
         <Button
           variant="secondary"
           onClick={onOpenLists}
-          className="w-full sm:w-auto whitespace-nowrap text-sm py-2"
+          className="w-full sm:w-auto whitespace-nowrap text-sm py-2 flex items-center gap-1.5"
         >
-          📝 Списъци
+          <ListTodo className="w-4 h-4" />
+          Списъци
         </Button>
 
         <Button
           variant="secondary"
           onClick={onOpenItinerary}
-          className="w-full sm:w-auto whitespace-nowrap text-sm py-2"
+          className="w-full sm:w-auto whitespace-nowrap text-sm py-2 flex items-center gap-1.5"
         >
-          🗓️ Програма
+          <CalendarDays className="w-4 h-4" />
+          Програма
         </Button>
 
         <Button
           variant="secondary"
           onClick={onShare}
-          className="w-full sm:w-auto whitespace-nowrap text-sm py-2"
+          className="w-full sm:w-auto whitespace-nowrap text-sm py-2 flex items-center gap-1.5"
         >
-          🔗 Сподели
+          <Share2 className="w-4 h-4" />
+          Сподели
         </Button>
 
         <Button
           variant="secondary"
           onClick={onOpenSettings}
-          className="w-full sm:w-auto whitespace-nowrap text-sm py-2"
+          className="w-full sm:w-auto whitespace-nowrap text-sm py-2 flex items-center gap-1.5"
         >
-          ⚙️ Настройки
+          <Settings className="w-4 h-4" />
+          Настройки
         </Button>
       </div>
     </div>

@@ -2,6 +2,7 @@ import React from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { useAuth } from '@/context/AuthContext';
+import { Menu, X, LogOut } from 'lucide-react';
 
 const Navbar: React.FC = () => {
   const { user, loading, logout } = useAuth();
@@ -48,6 +49,7 @@ const Navbar: React.FC = () => {
             className={ghostButton}
             onClick={handleLogout}
           >
+            <LogOut className="mr-1.5 h-4 w-4" />
             Изход
           </button>
         </div>
@@ -133,7 +135,7 @@ const Navbar: React.FC = () => {
         <button
           type="button"
           className="
-            md:hidden inline-flex flex-col items-center justify-center gap-1.5
+            md:hidden inline-flex items-center justify-center
             p-2 rounded-lg border border-eco-border/70
             bg-eco-surface-soft/60
             hover:bg-eco-surface-soft
@@ -144,9 +146,11 @@ const Navbar: React.FC = () => {
           aria-label="Навигационно меню"
           aria-expanded={isMobileOpen}
         >
-          <span className="w-5 h-0.5 rounded-full bg-eco-text" />
-          <span className="w-5 h-0.5 rounded-full bg-eco-text" />
-          <span className="w-5 h-0.5 rounded-full bg-eco-text" />
+          {isMobileOpen ? (
+            <X className="h-5 w-5 text-eco-text" />
+          ) : (
+            <Menu className="h-5 w-5 text-eco-text" />
+          )}
         </button>
       </div>
 
@@ -156,7 +160,7 @@ const Navbar: React.FC = () => {
           md:hidden border-t border-eco-border/60
           bg-eco-surface/80 backdrop-blur-xl
           transition-[max-height,opacity] duration-200 overflow-hidden
-          ${isMobileOpen ? 'max-h-64 opacity-100' : 'max-h-0 opacity-0'}
+          ${isMobileOpen ? 'max-height-64 opacity-100' : 'max-h-0 opacity-0'}
         `}
       >
         <div className="max-w-5xl mx-auto px-4 pb-4 pt-2">

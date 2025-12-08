@@ -1,6 +1,7 @@
 import React from 'react';
 import type { TripItineraryItem } from '@/types/trip';
 import Button from '@/components/ui/Button';
+import { Trash2, Plus } from 'lucide-react';
 
 type TripItineraryProps = {
   items: TripItineraryItem[];
@@ -190,8 +191,10 @@ const TripItinerary: React.FC<TripItineraryProps> = ({ items, onChange }) => {
                     type="button"
                     variant="secondary"
                     onClick={() => handleDelete(item.id)}
+                    className="inline-flex items-center gap-1.5 text-xs"
                   >
-                    Изтрий ден
+                    <Trash2 className="h-4 w-4" />
+                    <span>Изтрий ден</span>
                   </Button>
                 </div>
               </div>
@@ -200,8 +203,13 @@ const TripItinerary: React.FC<TripItineraryProps> = ({ items, onChange }) => {
       </div>
 
       <div className="mt-4">
-        <Button type="button" onClick={handleAdd}>
-          Добави ден
+        <Button
+          type="button"
+          onClick={handleAdd}
+          className="inline-flex items-center gap-1.5 text-sm"
+        >
+          <Plus className="h-4 w-4" />
+          <span>Добави ден</span>
         </Button>
       </div>
     </div>

@@ -1,13 +1,14 @@
 import React from 'react';
 import Card from '@/components/ui/Card';
+import type { LucideIcon } from 'lucide-react';
 
 type SectionCardProps = {
   title: string;
-  icon?: string;
+  icon?: LucideIcon; // 👉 приемаме компонент, не текст
   children: React.ReactNode;
 };
 
-const SectionCard: React.FC<SectionCardProps> = ({ title, icon, children }) => {
+const SectionCard: React.FC<SectionCardProps> = ({ title, icon: Icon, children }) => {
   return (
     <Card
       className="
@@ -21,7 +22,7 @@ const SectionCard: React.FC<SectionCardProps> = ({ title, icon, children }) => {
     >
       {/* HEADER */}
       <div className="flex items-center gap-3 mb-3 md:mb-4">
-        {icon && (
+        {Icon && (
           <div
             className="
               flex items-center justify-center
@@ -29,10 +30,9 @@ const SectionCard: React.FC<SectionCardProps> = ({ title, icon, children }) => {
               rounded-xl
               bg-eco-surface
               border border-eco-border
-              text-xl
             "
           >
-            {icon}
+            <Icon className="w-5 h-5 md:w-6 md:h-6 text-eco-text" />
           </div>
         )}
 

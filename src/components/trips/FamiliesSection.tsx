@@ -1,6 +1,7 @@
-import React from 'react';
-import type { TripFamily } from '@/types/trip';
-import { useAuth } from '@/context/AuthContext';
+import React from "react";
+import type { TripFamily } from "@/types/trip";
+import { useAuth } from "@/context/AuthContext";
+import { Users, Pencil, Trash2 } from "lucide-react";
 
 type Props = {
   families: TripFamily[];
@@ -35,7 +36,7 @@ const FamiliesSection: React.FC<Props> = ({
           >
             {/* LEFT SIDE */}
             <div className="flex items-center gap-2.5 min-w-0">
-              <span className="text-lg">🧑‍🤝‍🧑</span>
+              <Users className="h-5 w-5 text-eco-text-muted" />
 
               <span className="text-eco-text font-medium truncate">
                 {f.name}
@@ -65,13 +66,12 @@ const FamiliesSection: React.FC<Props> = ({
                 title="Редактирай"
                 onClick={() => onEditFamily?.(f)}
                 className="
-                  text-base
-                  text-eco-text-muted 
-                  hover:text-eco-accent 
+                  p-1 rounded-md
+                  text-eco-text-muted hover:text-eco-accent
                   transition
                 "
               >
-                ✏️
+                <Pencil className="h-4 w-4" />
               </button>
 
               <button
@@ -79,13 +79,12 @@ const FamiliesSection: React.FC<Props> = ({
                 title="Изтрий"
                 onClick={() => onDeleteFamily?.(f)}
                 className="
-                  text-base
-                  text-eco-text-muted 
-                  hover:text-red-400 
+                  p-1 rounded-md
+                  text-eco-text-muted hover:text-red-400
                   transition
                 "
               >
-                🗑️
+                <Trash2 className="h-4 w-4" />
               </button>
             </div>
           </div>

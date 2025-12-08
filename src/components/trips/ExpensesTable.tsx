@@ -1,6 +1,7 @@
 import React from 'react';
 import type { TripFamily, TripExpense } from '@/types/trip';
 import AddExpenseForm from './AddExpenseForm';
+import { Info } from 'lucide-react';
 
 type NewExpenseInput = {
   paidByFamilyId: string;
@@ -189,7 +190,7 @@ const ExpensesTable: React.FC<ExpensesTableProps> = ({
                             onClick={() => toggleInfo(exp.id)}
                             aria-label="Информация за разхода"
                           >
-                            i
+                            <Info className="h-3 w-3" />
                           </button>
                         )}
                       </td>

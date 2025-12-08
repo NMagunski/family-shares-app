@@ -1,5 +1,6 @@
 import React from "react";
 import type { TripType } from "@/types/trip";
+import { Palmtree, Plane, Luggage } from "lucide-react";
 
 type Props = {
   onSelect: (type: TripType) => void;
@@ -7,57 +8,65 @@ type Props = {
 
 const TripTypeSelector: React.FC<Props> = ({ onSelect }) => {
   return (
-    <div className="flex flex-wrap gap-4">
+    <div className="flex flex-col gap-3 max-w-md">
       {/* МОРЕ */}
       <button
         type="button"
         onClick={() => onSelect("beach")}
         className="
-          flex flex-col items-center justify-center
-          gap-2
-          px-6 py-4
-          rounded-2xl
-          bg-eco-surface-soft
-          border border-eco-border
-          shadow-eco-soft
-          text-eco-text
-          hover:bg-eco-surface
-          hover:border-eco-accent
-          hover:shadow-lg
-          transition
-          min-w-[120px]
+          flex w-full items-center gap-3
+          rounded-xl border border-eco-border bg-eco-surface-soft
+          px-3 py-3
+          text-left transition
+          hover:border-eco-accent hover:bg-eco-surface
+          focus:outline-none focus:ring-2 focus:ring-eco-accent
         "
       >
-        <span className="text-3xl" aria-hidden="true">
-          🏖️
-        </span>
-        <span className="text-sm font-medium tracking-wide">Море</span>
+        <div
+          className="
+            flex h-10 w-10 flex-shrink-0 items-center justify-center
+            rounded-lg bg-eco-surface border border-eco-border
+          "
+        >
+          <Palmtree className="h-5 w-5 text-eco-text" />
+        </div>
+
+        <div className="flex flex-col">
+          <span className="text-sm font-semibold text-eco-text">Море</span>
+          <span className="text-xs text-eco-text-muted">
+            Идеално за морски почивки, къмпинги и плажни уикенди.
+          </span>
+        </div>
       </button>
 
-      {/* ЕКСКУРЗИЯ / ПОЛЕТ */}
+      {/* ЕКСКУРЗИЯ */}
       <button
         type="button"
         onClick={() => onSelect("flight")}
         className="
-          flex flex-col items-center justify-center
-          gap-2
-          px-6 py-4
-          rounded-2xl
-          bg-eco-surface-soft
-          border border-eco-border
-          shadow-eco-soft
-          text-eco-text
-          hover:bg-eco-surface
-          hover:border-eco-accent
-          hover:shadow-lg
-          transition
-          min-w-[120px]
+          flex w-full items-center gap-3
+          rounded-xl border border-eco-border bg-eco-surface-soft
+          px-3 py-3
+          text-left transition
+          hover:border-eco-accent hover:bg-eco-surface
+          focus:outline-none focus:ring-2 focus:ring-eco-accent
         "
       >
-        <span className="text-3xl" aria-hidden="true">
-          ✈️
-        </span>
-        <span className="text-sm font-medium tracking-wide">Екскурзия</span>
+        <div
+          className="
+            flex h-10 w-10 flex-shrink-0 items-center justify-center
+            rounded-lg bg-eco-surface border border-eco-border
+          "
+        >
+          <Plane className="h-5 w-5 text-eco-text" />
+        </div>
+
+        <div className="flex flex-col">
+          <span className="text-sm font-semibold text-eco-text">Екскурзия</span>
+          <span className="text-xs text-eco-text-muted">
+            Пътувания в чужбина, city break-и и полети.
+          </span>
+        </div>
       </button>
 
       {/* ДРУГО */}
@@ -65,25 +74,29 @@ const TripTypeSelector: React.FC<Props> = ({ onSelect }) => {
         type="button"
         onClick={() => onSelect("other")}
         className="
-          flex flex-col items-center justify-center
-          gap-2
-          px-6 py-4
-          rounded-2xl
-          bg-eco-surface-soft
-          border border-eco-border
-          shadow-eco-soft
-          text-eco-text
-          hover:bg-eco-surface
-          hover:border-eco-accent
-          hover:shadow-lg
-          transition
-          min-w-[120px]
+          flex w-full items-center gap-3
+          rounded-xl border border-eco-border bg-eco-surface-soft
+          px-3 py-3
+          text-left transition
+          hover:border-eco-accent hover:bg-eco-surface
+          focus:outline-none focus:ring-2 focus:ring-eco-accent
         "
       >
-        <span className="text-3xl" aria-hidden="true">
-          🧳
-        </span>
-        <span className="text-sm font-medium tracking-wide">Друго</span>
+        <div
+          className="
+            flex h-10 w-10 flex-shrink-0 items-center justify-center
+            rounded-lg bg-eco-surface border border-eco-border
+          "
+        >
+          <Luggage className="h-5 w-5 text-eco-text" />
+        </div>
+
+        <div className="flex flex-col">
+          <span className="text-sm font-semibold text-eco-text">Друго</span>
+          <span className="text-xs text-eco-text-muted">
+            Разходи за вили, приятелски срещи, общи пътувания и др.
+          </span>
+        </div>
       </button>
     </div>
   );

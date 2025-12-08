@@ -7,6 +7,7 @@ import type { Trip, TripItineraryItem } from '@/types/trip';
 import { fetchTripById, updateTripItinerary } from '@/lib/trips';
 import Button from '@/components/ui/Button';
 import { useAuth } from '@/context/AuthContext';
+import { CalendarRange, Lightbulb, MapPinned } from 'lucide-react';
 
 const TripItineraryPage: React.FC = () => {
   const router = useRouter();
@@ -19,7 +20,6 @@ const TripItineraryPage: React.FC = () => {
   const [itinerary, setItinerary] = React.useState<TripItineraryItem[]>([]);
   const [loading, setLoading] = React.useState(false);
 
-  // 👉 Guard за неавторизирани потребители
   React.useEffect(() => {
     if (!authLoading && !user) {
       const target = router.asPath || `/trips/${tripIdStr}/itinerary`;
@@ -27,7 +27,6 @@ const TripItineraryPage: React.FC = () => {
     }
   }, [authLoading, user, router, tripIdStr]);
 
-  // Зареждаме пътуването и програмата САМО ако има user
   React.useEffect(() => {
     if (!tripIdStr || !user) return;
 
@@ -49,7 +48,6 @@ const TripItineraryPage: React.FC = () => {
 
   const tripName = trip?.name ?? 'Пътуване';
 
-  // Докато auth се зарежда или правим redirect → не показваме съдържанието
   if (authLoading || !user) {
     return (
       <Layout>
@@ -69,8 +67,9 @@ const TripItineraryPage: React.FC = () => {
             <h1 className="text-xl sm:text-2xl font-semibold text-eco-text">
               {tripName}
             </h1>
-            <p className="text-sm text-eco-text-muted">
-              Програма на пътуването
+            <p className="mt-1 text-sm text-eco-text-muted flex items-center gap-1.5">
+              <MapPinned className="h-4 w-4" />
+              <span>Програма на пътуването</span>
             </p>
           </div>
 
@@ -87,7 +86,10 @@ const TripItineraryPage: React.FC = () => {
         <div className="grid gap-6 lg:grid-cols-[minmax(0,2fr)_minmax(0,1fr)]">
           {/* ЛЯВА КОЛОНА */}
           <div className="space-y-6">
-            <SectionCard title="Програма по дни" icon="🗓">
+            <SectionCard
+              title="Програма по дни"
+              icon={CalendarRange}   // 👈 подаваме компонент, не <CalendarRange />
+            >
               {loading ? (
                 <p className="text-sm text-eco-text-muted">Зареждане...</p>
               ) : (
@@ -111,7 +113,10 @@ const TripItineraryPage: React.FC = () => {
 
           {/* ДЯСНА КОЛОНА – инфо/съвет */}
           <div className="space-y-6">
-            <SectionCard title="Съвет" icon="💡">
+            <SectionCard
+              title="Съвет"
+              icon={Lightbulb}       // 👈 също тук
+            >
               <p className="text-sm text-eco-text-muted">
                 Използвай програмата, за да разпишеш ден по ден какво ще
                 правите – така всички в групата ще знаят плана предварително.

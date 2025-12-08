@@ -41,49 +41,45 @@ const HomePage: React.FC = () => {
   const [archiveModalOpen, setArchiveModalOpen] = React.useState(false);
   const [archiveLoading, setArchiveLoading] = React.useState(false);
 
-  React.useEffect(() => {
-    if (!user) {
-      setOwnedTrips([]);
-      setArchivedTrips([]);
-      setSharedTrips([]);
-      return;
+React.useEffect(() => {
+  // ако няма логнат → чистим стейта и излизаме
+  if (!user) {
+    setOwnedTrips([]);
+    setArchivedTrips([]);
+    setSharedTrips([]);
+    return;
+  }
+
+  const userId = user.uid;
+
+  async function loadTrips(forUserId: string) {
+    try {
+      setTripsLoading(true);
+      setError(null);
+
+      const [owned, sharedRaw] = await Promise.all([
+        fetchTripsForUser(forUserId),
+        fetchSharedTripsForUser(forUserId),
+      ]);
+
+      const activeOwned = owned.filter((t) => !t.archived);
+      const archived = owned.filter((t) => t.archived);
+      const shared = sharedRaw.filter((t) => t.ownerId !== forUserId);
+
+      setOwnedTrips(activeOwned);
+      setArchivedTrips(archived);
+      setSharedTrips(shared);
+    } catch (err) {
+      console.error(err);
+      setError('Проблем при зареждане на пътуванията.');
+    } finally {
+      setTripsLoading(false);
     }
+  }
 
-    async function loadTrips() {
-      try {
-        setTripsLoading(true);
-        setError(null);
+  loadTrips(userId);
+}, [user]);
 
-        if (!user) {
-          setError('Не си влязъл в профила си.');
-          setTripsLoading(false);
-          return;
-        }
-
-        const userId = user.uid;
-
-        const [owned, sharedRaw] = await Promise.all([
-          fetchTripsForUser(userId),
-          fetchSharedTripsForUser(userId),
-        ]);
-
-        const activeOwned = owned.filter((t) => !t.archived);
-        const archived = owned.filter((t) => t.archived);
-        const shared = sharedRaw.filter((t) => t.ownerId !== userId);
-
-        setOwnedTrips(activeOwned);
-        setArchivedTrips(archived);
-        setSharedTrips(shared);
-      } catch (err) {
-        console.error(err);
-        setError('Проблем при зареждане на пътуванията.');
-      } finally {
-        setTripsLoading(false);
-      }
-    }
-
-    loadTrips();
-  }, [user]);
 
   function handleSelect(type: TripType) {
     if (!user) return;
@@ -173,6 +169,19 @@ const HomePage: React.FC = () => {
     }
   }
 
+  // Обединени активни пътувания (моите + тези, в които участвам)
+  const activeTrips = React.useMemo(() => {
+    const merged = [...ownedTrips, ...sharedTrips];
+    // по-новите най-отгоре, ако имаме createdAt
+    merged.sort((a, b) => {
+      if (a.createdAt && b.createdAt) {
+        return a.createdAt < b.createdAt ? 1 : -1;
+      }
+      return 0;
+    });
+    return merged;
+  }, [ownedTrips, sharedTrips]);
+
   // 👉 1) Докато auth се зарежда
   if (authLoading) {
     return (
@@ -182,7 +191,7 @@ const HomePage: React.FC = () => {
     );
   }
 
-  // 👉 2) Ако потребителят НЕ е логнат → подобрен landing с hero
+  // 👉 2) Ако потребителят НЕ е логнат → landing
   if (!user) {
     return (
       <Layout>
@@ -245,30 +254,26 @@ const HomePage: React.FC = () => {
               </div>
 
               {/* Дясна колона – минималистична „илюстрация“ */}
-{/* Дясна колона – минималистична „илюстрация“ */}
-<div className="relative hidden md:block">
-  <div className="pointer-events-none absolute -inset-6 rounded-3xl bg-[radial-gradient(circle_at_top,_rgba(16,185,129,0.3),_transparent_55%),radial-gradient(circle_at_bottom,_rgba(16,185,129,0.18),_transparent_55%)] opacity-80" />
-  <div className="relative flex h-full items-center justify-center">
-    <div className="flex h-32 w-32 items-center justify-center rounded-full bg-eco-surface border border-eco-border shadow-eco-soft">
-      <svg
-        className="h-16 w-16 text-emerald-300"
-        viewBox="0 0 24 24"
-        fill="none"
-        stroke="currentColor"
-        strokeWidth="1.6"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      >
-        {/* Основна „зиг-заг“ карта */}
-        <path d="M9 3l6 2.4 5-2.4v15l-5 2.4-6-2.4-5 2.4v-15z" />
-        {/* Вертикални сгъвки */}
-        <path d="M9 3v15" />
-        <path d="M15 5.4v15" />
-      </svg>
-    </div>
-  </div>
-</div>
-
+              <div className="relative hidden md:block">
+                <div className="pointer-events-none absolute -inset-6 rounded-3xl bg-[radial-gradient(circle_at_top,_rgba(16,185,129,0.3),_transparent_55%),radial-gradient(circle_at_bottom,_rgba(16,185,129,0.18),_transparent_55%)] opacity-80" />
+                <div className="relative flex h-full items-center justify-center">
+                  <div className="flex h-32 w-32 items-center justify-center rounded-full bg-eco-surface border border-eco-border shadow-eco-soft">
+                    <svg
+                      className="h-16 w-16 text-emerald-300"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="1.6"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    >
+                      <path d="M9 3l6 2.4 5-2.4v15l-5 2.4-6-2.4-5 2.4v-15z" />
+                      <path d="M9 3v15" />
+                      <path d="M15 5.4v15" />
+                    </svg>
+                  </div>
+                </div>
+              </div>
             </div>
           </Card>
         </div>
@@ -276,7 +281,9 @@ const HomePage: React.FC = () => {
     );
   }
 
-  // 👉 3) Логнат потребител → hero + списъци с пътувания
+  // 👉 3) Логнат потребител → hero + активни / архивирани пътувания
+  const userId = user.uid;
+
   return (
     <Layout>
       <div className="space-y-6">
@@ -293,46 +300,48 @@ const HomePage: React.FC = () => {
           </div>
         </Card>
 
-        {/* Секции с пътувания */}
-        <div className="grid gap-6 xl:grid-cols-3">
-          {/* Създадени от мен */}
-          <section className="rounded-2xl border border-eco-border bg-eco-surface-soft/80 p-4 shadow-eco-soft xl:col-span-1">
+        {/* Секции с пътувания – по-сбит layout за мобилно */}
+        <div className="grid gap-6 lg:grid-cols-2">
+          {/* Активни пътувания (моите + тези, в които участвам) */}
+          <section className="rounded-2xl border border-eco-border bg-eco-surface-soft/80 p-4 shadow-eco-soft">
             <div className="mb-2 flex items-center justify-between gap-2">
               <h2 className="text-base font-semibold text-eco-text">
-                Създадени от мен
+                Активни пътувания
               </h2>
               <span className="h-2.5 w-2.5 rounded-full bg-emerald-400" />
             </div>
 
             {tripsLoading ? (
-              <p className="mt-2 text-sm text-eco-text-muted">
-                Зареждане...
-              </p>
+              <p className="mt-2 text-sm text-eco-text-muted">Зареждане...</p>
             ) : error ? (
-              <p className="mt-2 text-sm text-red-400">
-                {error}
-              </p>
-            ) : ownedTrips.length === 0 ? (
+              <p className="mt-2 text-sm text-red-400">{error}</p>
+            ) : activeTrips.length === 0 ? (
               <p className="mt-2 text-sm text-eco-text-muted">
-                Все още нямаш активни пътувания.
+                Все още нямаш активни пътувания. Създай ново или влез с линк,
+                който ти е изпратен от приятел.
               </p>
             ) : (
               <div className="mt-3 space-y-3">
-                {ownedTrips.map((trip) => (
-                  <TripCard
-                    key={trip.id}
-                    trip={trip}
-                    showManageActions
-                    onArchiveToggle={handleAskArchiveTrip}
-                    onDelete={handleAskDeleteTrip}
-                  />
-                ))}
+                {activeTrips.map((trip) => {
+                  const isOwner = trip.ownerId === userId;
+                  return (
+                    <TripCard
+                      key={trip.id}
+                      trip={trip}
+                      showManageActions={isOwner}
+                      onArchiveToggle={isOwner ? handleAskArchiveTrip : undefined}
+                      onDelete={isOwner ? handleAskDeleteTrip : undefined}
+                      // 🧩 нов проп, който ще използваме в TripCard за бейдж
+                      role={isOwner ? 'owner' : 'participant'}
+                    />
+                  );
+                })}
               </div>
             )}
           </section>
 
-          {/* Архивирани */}
-          <section className="rounded-2xl border border-eco-border bg-eco-surface-soft/80 p-4 shadow-eco-soft xl:col-span-1">
+          {/* Архивирани пътувания (само създадени от мен) */}
+          <section className="rounded-2xl border border-eco-border bg-eco-surface-soft/80 p-4 shadow-eco-soft">
             <div className="mb-2 flex items-center justify-between gap-2">
               <h2 className="text-base font-semibold text-eco-text">
                 Архивирани пътувания
@@ -341,9 +350,7 @@ const HomePage: React.FC = () => {
             </div>
 
             {tripsLoading ? (
-              <p className="mt-2 text-sm text-eco-text-muted">
-                Зареждане...
-              </p>
+              <p className="mt-2 text-sm text-eco-text-muted">Зареждане...</p>
             ) : archivedTrips.length === 0 ? (
               <p className="mt-2 text-sm text-eco-text-muted">
                 Нямаш архивирани пътувания.
@@ -357,35 +364,8 @@ const HomePage: React.FC = () => {
                     showManageActions
                     onArchiveToggle={handleAskArchiveTrip}
                     onDelete={handleAskDeleteTrip}
+                    role="owner"
                   />
-                ))}
-              </div>
-            )}
-          </section>
-
-          {/* Пътувания, в които участвам */}
-          <section className="rounded-2xl border border-eco-border bg-eco-surface-soft/80 p-4 shadow-eco-soft xl:col-span-1">
-            <div className="mb-2 flex items-center justify-between gap-2">
-              <h2 className="text-base font-semibold text-eco-text">
-                Пътувания, в които участвам
-              </h2>
-            <span className="h-2.5 w-2.5 rounded-full bg-emerald-400" />
-            </div>
-
-            {tripsLoading ? (
-              <p className="mt-2 text-sm text-eco-text-muted">
-                Зареждане...
-              </p>
-            ) : sharedTrips.length === 0 ? (
-              <p className="mt-2 text-sm text-eco-text-muted">
-                В момента не участваш в други пътувания. Сподели линк към
-                някое твое пътуване или използвай линк, който получиш от
-                приятел.
-              </p>
-            ) : (
-              <div className="mt-3 space-y-3">
-                {sharedTrips.map((trip) => (
-                  <TripCard key={trip.id} trip={trip} />
                 ))}
               </div>
             )}
