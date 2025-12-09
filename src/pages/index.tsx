@@ -7,6 +7,9 @@ import TripCard from '@/components/trips/TripCard';
 import CreateTripModal from '@/components/trips/CreateTripModal';
 import { useAuth } from '@/context/AuthContext';
 import type { Trip, TripType } from '@/types/trip';
+/* --- промени най-горе в импорти --- */
+import NewTripWizard from '@/components/trips/NewTripWizard';
+
 import {
   createTripForUser,
   fetchTripsForUser,
@@ -287,18 +290,17 @@ React.useEffect(() => {
   return (
     <Layout>
       <div className="space-y-6">
-        {/* HERO: избор на тип пътуване */}
-        <Card>
-          <h1 className="text-2xl font-semibold text-eco-text">
-            Вид пътуване
-          </h1>
-          <p className="mt-2 text-sm text-eco-text-muted max-w-2xl">
-            Избери тип пътуване, за да създадеш ново, или отвори вече съществуващо.
-          </p>
-          <div className="mt-4">
-            <TripTypeSelector onSelect={handleSelect} />
-          </div>
-        </Card>
+{/* HERO: бутон за ново пътуване */}
+<div className="flex justify-center">
+  <Button
+    type="button"
+    onClick={() => setIsModalOpen(true)}
+    className="px-6 py-3 text-base font-medium"
+  >
+    + Ново пътуване
+  </Button>
+</div>
+
 
         {/* Секции с пътувания – по-сбит layout за мобилно */}
         <div className="grid gap-6 lg:grid-cols-2">
@@ -372,15 +374,21 @@ React.useEffect(() => {
           </section>
         </div>
       </div>
-
-      {selectedType && (
-        <CreateTripModal
-          isOpen={isModalOpen}
-          type={selectedType}
-          onClose={handleCloseModal}
-          onCreate={handleCreateTrip}
-        />
-      )}
+<NewTripWizard
+  isOpen={isModalOpen}
+  onClose={() => setIsModalOpen(false)}
+  onCreateTrip={async (type, name) => {
+    if (!user) return;
+    try {
+      const newTrip = await createTripForUser(user.uid, type, name);
+      setOwnedTrips(prev => [newTrip, ...prev]);
+      setIsModalOpen(false);
+    } catch (err) {
+      console.error(err);
+      alert('Грешка при създаване на пътуване.');
+    }
+  }}
+/>
 
       {/* Модал за ИЗТРИВАНЕ */}
       {tripToDelete && (
