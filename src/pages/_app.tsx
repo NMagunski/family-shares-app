@@ -1,10 +1,10 @@
 import type { AppProps } from 'next/app';
 import { useEffect } from 'react';
 import { AuthProvider } from '@/context/AuthContext';
+import { ToastProvider } from '@/context/ToastContext';
 import '@/styles/globals.css';
 
 export default function MyApp({ Component, pageProps }: AppProps) {
-  
   // 👉 Регистрация на Service Worker (PWA)
   useEffect(() => {
     if ('serviceWorker' in navigator) {
@@ -23,7 +23,9 @@ export default function MyApp({ Component, pageProps }: AppProps) {
 
   return (
     <AuthProvider>
-      <Component {...pageProps} />
+      <ToastProvider>
+        <Component {...pageProps} />
+      </ToastProvider>
     </AuthProvider>
   );
 }

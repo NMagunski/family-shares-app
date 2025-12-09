@@ -10,6 +10,8 @@ import ShareTripModal from '@/components/trips/ShareTripModal';
 import SectionCard from '@/components/ui/SectionCard';
 import EditFamilyModal from '@/components/trips/EditFamilyModal';
 import ConfirmModal from '@/components/ui/ConfirmModal';
+import Button from '@/components/ui/Button'; // 🆕 добавен импорт
+import { useToast } from '@/context/ToastContext';
 import type { Trip, TripFamily, TripExpense } from '@/types/trip';
 import {
   fetchFamilies,
@@ -37,6 +39,8 @@ import {
 
 const TripPage: React.FC = () => {
   const router = useRouter();
+  const { showToast } = useToast();
+
   const { tripId } = router.query;
   const { user, loading: authLoading } = useAuth();
 
@@ -294,14 +298,16 @@ const TripPage: React.FC = () => {
       <div className="flex flex-col gap-6">
         {/* HEADER НА ПЪТУВАНЕТО */}
         <TripHeader
-          tripName={tripName}
-          onAddFamily={() => setShowFamilyModal(true)}
-          onOpenLists={() => router.push(`/trips/${tripIdStr}/lists`)}
-          onOpenItinerary={() => router.push(`/trips/${tripIdStr}/itinerary`)}
-          onShare={() => setShowShareModal(true)}
-          onOpenSettings={() => router.push(`/trips/${tripIdStr}/settings`)}
-        />
-
+  tripName={tripName}
+  onAddFamily={() => setShowFamilyModal(true)}
+  onOpenLists={() => router.push(`/trips/${tripIdStr}/lists`)}
+  onOpenItinerary={() => router.push(`/trips/${tripIdStr}/itinerary`)}
+  onOpenPersonalExpenses={() =>
+    router.push(`/trips/${tripIdStr}/personal`)
+  }
+  onShare={() => setShowShareModal(true)}
+  onOpenSettings={() => router.push(`/trips/${tripIdStr}/settings`)}
+/>
         {/* GRID LAYOUT */}
         <div className="grid gap-6 lg:grid-cols-3 lg:items-start">
           {/* ЛЯВА КОЛОНА – основни секции */}
@@ -344,35 +350,48 @@ const TripPage: React.FC = () => {
 
           {/* ДЯСНА КОЛОНА – резюме и инфо */}
           <div className="space-y-6 lg:col-span-1">
-            <SectionCard title="Резюме на пътуването" icon={Info}>
-              <div className="grid gap-3 text-sm">
-                <div className="flex items-center justify-between rounded-xl border border-eco-border bg-eco-surface-soft px-3 py-2">
-                  <span className="text-eco-text-muted">Статус</span>
-                  <span className="font-medium text-eco-text">{tripStatus}</span>
-                </div>
+           <SectionCard title="Резюме на пътуването" icon={Info}>
+  <div className="grid gap-3 text-sm">
+    <div className="flex items-center justify-between rounded-xl border border-eco-border bg-eco-surface-soft px-3 py-2">
+      <span className="text-eco-text-muted">Статус</span>
+      <span className="font-medium text-eco-text">{tripStatus}</span>
+    </div>
 
-                <div className="flex items-center justify-between rounded-xl border border-eco-border bg-eco-surface-soft px-3 py-2">
-                  <span className="text-eco-text-muted">Брой семейства</span>
-                  <span className="font-medium text-eco-text">{familiesCount}</span>
-                </div>
+    <div className="flex items-center justify-between rounded-xl border border-eco-border bg-eco-surface-soft px-3 py-2">
+      <span className="text-eco-text-muted">Брой семейства</span>
+      <span className="font-medium text-eco-text">{familiesCount}</span>
+    </div>
 
-                <div className="flex items-center justify-between rounded-xl border border-eco-border bg-eco-surface-soft px-3 py-2">
-                  <span className="text-eco-text-muted">Брой разходи</span>
-                  <span className="font-medium text-eco-text">{expensesCount}</span>
-                </div>
+    <div className="flex items-center justify-between rounded-xl border border-eco-border bg-eco-surface-soft px-3 py-2">
+      <span className="text-eco-text-muted">Брой разходи</span>
+      <span className="font-medium text-eco-text">{expensesCount}</span>
+    </div>
 
-                {shareUrl && (
-                  <div className="space-y-1 rounded-xl border border-eco-border bg-eco-surface-soft px-3 py-2">
-                    <span className="text-xs font-medium text-eco-text-muted">
-                      Линк за споделяне
-                    </span>
-                    <span className="break-all text-xs text-eco-text">
-                      {shareUrl}
-                    </span>
-                  </div>
-                )}
-              </div>
-            </SectionCard>
+<button
+  type="button"
+  onClick={() => {
+    navigator.clipboard
+      .writeText(shareUrl)
+      .then(() => showToast('Линкът за споделяне е копиран!'))
+      .catch(() =>
+        showToast('Възникна проблем при копиране на линка.')
+      );
+  }}
+  className="
+    text-xs font-semibold 
+    text-emerald-400 
+    hover:text-emerald-300 
+    underline 
+    underline-offset-2
+    transition
+  "
+>
+  Копирай линка
+</button>
+
+
+  </div>
+</SectionCard>
 
             <SectionCard title="Съвет" icon={Lightbulb}>
               <p className="text-sm leading-relaxed text-eco-text-muted">

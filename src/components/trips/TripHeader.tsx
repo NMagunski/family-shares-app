@@ -6,24 +6,28 @@ import {
   CalendarDays,
   Share2,
   Settings,
+  Wallet, // 🆕 за Лични разходи
 } from 'lucide-react';
 
-type Props = {
+type TripHeaderProps = {
   tripName: string;
   onAddFamily: () => void;
   onOpenLists: () => void;
   onOpenItinerary: () => void;
   onShare: () => void;
   onOpenSettings: () => void;
+  // 🆕 нов проп – по избор
+  onOpenPersonalExpenses?: () => void;
 };
 
-const TripHeader: React.FC<Props> = ({
+const TripHeader: React.FC<TripHeaderProps> = ({
   tripName,
   onAddFamily,
   onOpenLists,
   onOpenItinerary,
   onShare,
   onOpenSettings,
+  onOpenPersonalExpenses,
 }) => {
   return (
     <div
@@ -68,6 +72,18 @@ const TripHeader: React.FC<Props> = ({
           <CalendarDays className="w-4 h-4" />
           Програма
         </Button>
+
+        {/* 🆕 Лични разходи – показва се само ако имаме проп */}
+        {onOpenPersonalExpenses && (
+          <Button
+            variant="secondary"
+            onClick={onOpenPersonalExpenses}
+            className="w-full sm:w-auto whitespace-nowrap text-sm py-2 flex items-center gap-1.5"
+          >
+            <Wallet className="w-4 h-4" />
+            Лични разходи
+          </Button>
+        )}
 
         <Button
           variant="secondary"
