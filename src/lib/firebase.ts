@@ -3,15 +3,14 @@ import { getAuth } from 'firebase/auth';
 import { getFirestore } from 'firebase/firestore';
 
 const firebaseConfig = {
-  apiKey: "AIzaSyAOXmFgxUzKZP6x_NXVwgkG-3tx0BhGVms",
-  authDomain: "family-shares-app.firebaseapp.com",
-  projectId: "family-shares-app",
-  storageBucket: "family-shares-app.firebasestorage.app",
-  messagingSenderId: "990609608338",
-  appId: "1:990609608338:web:7f7dcb220c55c55953204b"
+  apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY!,
+  authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN!,
+  projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID!,
+  storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET!,
+  messagingSenderId: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID!,
+  appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID!,
 };
 
-// Създаване/вземане на Firebase app
 function getFirebaseApp() {
   if (!getApps().length) {
     return initializeApp(firebaseConfig);
@@ -22,4 +21,5 @@ function getFirebaseApp() {
 const app = getFirebaseApp();
 
 export const auth = getAuth(app);
-export const db = getFirestore(app);
+export const firestore = getFirestore(app);
+export const db = firestore; // alias ако ти е нужно

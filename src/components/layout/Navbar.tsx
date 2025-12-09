@@ -19,6 +19,8 @@ const Navbar: React.FC = () => {
     }
   };
 
+  const isAdmin = (user as any)?.isAdmin === true;
+
   const baseLink = 'text-sm font-medium transition-colors';
   const primaryButton =
     'inline-flex items-center justify-center rounded-full px-4 py-1.5 text-sm font-semibold ' +
@@ -33,20 +35,39 @@ const Navbar: React.FC = () => {
     if (loading) return null;
 
     if (user) {
+      const containerClass =
+        variant === 'desktop'
+          ? 'hidden md:flex items-center gap-3'
+          : 'flex flex-col items-start gap-2 mt-3';
+
       return (
-        <div
-          className={
-            variant === 'desktop'
-              ? 'hidden md:flex items-center gap-3'
-              : 'flex flex-col items-start gap-2 mt-3'
-          }
-        >
+        <div className={containerClass}>
           <span className="text-xs md:text-sm text-eco-text-muted truncate max-w-[200px]">
             {user.email}
           </span>
+
+          {/* 🔥 Admin бутон – вижда се само ако user е admin */}
+          {isAdmin && (
+            <Link
+              href="/admin"
+              className={
+                variant === 'desktop'
+                  ? ghostButton
+                  : `${ghostButton} w-full justify-start`
+              }
+              onClick={handleCloseMobile}
+            >
+              Admin
+            </Link>
+          )}
+
           <button
             type="button"
-            className={ghostButton}
+            className={
+              variant === 'desktop'
+                ? ghostButton
+                : `${ghostButton} w-full justify-start`
+            }
             onClick={handleLogout}
           >
             <LogOut className="mr-1.5 h-4 w-4" />
@@ -128,7 +149,7 @@ const Navbar: React.FC = () => {
           </span>
         </Link>
 
-        {/* Auth desktop */}
+        {/* Auth desktop (вкл. Admin бутон) */}
         {renderAuthContent('desktop')}
 
         {/* Mobile toggler */}
@@ -160,7 +181,7 @@ const Navbar: React.FC = () => {
           md:hidden border-t border-eco-border/60
           bg-eco-surface/80 backdrop-blur-xl
           transition-[max-height,opacity] duration-200 overflow-hidden
-          ${isMobileOpen ? 'max-height-64 opacity-100' : 'max-h-0 opacity-0'}
+          ${isMobileOpen ? 'max-h-64 opacity-100' : 'max-h-0 opacity-0'}
         `}
       >
         <div className="max-w-5xl mx-auto px-4 pb-4 pt-2">
