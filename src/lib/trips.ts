@@ -11,6 +11,7 @@ import {
   deleteDoc,
 } from 'firebase/firestore';
 import type { Trip, TripType, TripItineraryItem } from '@/types/trip';
+import type { CurrencyCode } from '@/lib/currencies';
 
 const TRIPS_COLLECTION = 'trips';
 const FAMILIES_COLLECTION = 'families';
@@ -18,22 +19,23 @@ const EXPENSES_COLLECTION = 'expenses';
 const LISTS_COLLECTION = 'lists';
 
 /**
- * Създаване на ново пътуване за даден потребител
- * country & currency са по избор – ако ги няма, взимаме BG / BGN.
+ * Създаване на ново пътуване за даден потребител.
+ * ВАЛИДНИ стойности за country / currency се подават от UI-то (NewTripWizard),
+ * тук не слагаме допълнителни default-и освен при четене от базата.
  */
 export async function createTripForUser(
   ownerId: string,
   type: TripType,
   name: string,
-  country: string = 'BG',
-  currency: 'BGN' | 'EUR' = 'BGN'
+  country: string,
+  currency: CurrencyCode
 ): Promise<Trip> {
   const payload = {
     ownerId,
     type,
-    name,
+    name: name.trim(),
     country,
-    currency,
+    currency, // идва директно от UI – не го променяме
     createdAt: new Date().toISOString(),
     archived: false,
     // itinerary не е задължително поле – може да го пропуснем
@@ -70,7 +72,8 @@ export async function fetchTripsForUser(ownerId: string): Promise<Trip[]> {
       createdAt: data.createdAt ?? '',
       archived: data.archived ?? false,
       country: data.country ?? 'BG',
-      currency: (data.currency as 'BGN' | 'EUR' | undefined) ?? 'BGN',
+      // пълен тип CurrencyCode, fallback към BGN ако липсва
+      currency: (data.currency as CurrencyCode | undefined) ?? 'BGN',
       // itinerary не ни трябва в списъка – оставяме го undefined
     };
   });
@@ -116,7 +119,7 @@ export async function fetchSharedTripsForUser(userId: string): Promise<Trip[]> {
       createdAt: data.createdAt ?? '',
       archived: data.archived ?? false,
       country: data.country ?? 'BG',
-      currency: (data.currency as 'BGN' | 'EUR' | undefined) ?? 'BGN',
+      currency: (data.currency as CurrencyCode | undefined) ?? 'BGN',
       // itinerary тук също не е нужен
     });
   }
@@ -147,8 +150,8 @@ export async function fetchTripById(tripId: string): Promise<Trip | null> {
     createdAt: data.createdAt ?? '',
     archived: data.archived ?? false,
     country: data.country ?? 'BG',
-    currency: (data.currency as 'BGN' | 'EUR' | undefined) ?? 'BGN',
-    // 👉 ако вече има itinerary в документа – взимаме го, иначе оставяме undefined
+    currency: (data.currency as CurrencyCode | undefined) ?? 'BGN',
+    // ако вече има itinerary в документа – взимаме го, иначе undefined
     itinerary: (data.itinerary as TripItineraryItem[] | undefined) ?? undefined,
   };
 

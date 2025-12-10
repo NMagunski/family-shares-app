@@ -2,7 +2,7 @@ import React from 'react';
 import type { CurrencyCode } from '@/lib/currencies';
 import { getCurrencySymbol } from '@/lib/currencies';
 
-// 👇 ТУК добавяме export
+// 👇 export за базовия input
 export type BaseExpenseInput = {
   paidByFamilyId: string;
   involvedFamilyIds: string[];
@@ -16,14 +16,14 @@ export type BaseExpenseInput = {
 
 type Props = {
   families: { id: string; name: string }[];
-  // валутата на пътуването – по нея се инициализира формата
-  tripCurrency?: CurrencyCode;
+  // ❗ вече задължителна – винаги трябва да знаем валутата на пътуването
+  tripCurrency: CurrencyCode;
   onAdd: (expense: BaseExpenseInput) => void;
 };
 
 const AddExpenseForm: React.FC<Props> = ({
   families,
-  tripCurrency = 'EUR',
+  tripCurrency,
   onAdd,
 }) => {
   const [paidBy, setPaidBy] = React.useState('');
@@ -35,7 +35,8 @@ const AddExpenseForm: React.FC<Props> = ({
   const [isSettlement, setIsSettlement] = React.useState(false);
   const [settlementTo, setSettlementTo] = React.useState('');
 
-  const effectiveCurrency: CurrencyCode = tripCurrency ?? 'EUR';
+  // ❗ НЯМА fallback към EUR тук – винаги ползваме валутата на пътуването
+  const effectiveCurrency: CurrencyCode = tripCurrency;
   const currencySymbol = getCurrencySymbol(effectiveCurrency);
 
   function toggleInvolved(id: string) {

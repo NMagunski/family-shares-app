@@ -14,15 +14,15 @@ type Props = {
   onCreateTrip: (
     type: TripType,
     name: string,
-    country: string,      // ще подаваме името на държавата (напр. "България")
+    country: string, // ще подаваме името на държавата (напр. "България")
     currency: CurrencyCode
   ) => Promise<void> | void;
 };
 
 // 👉 описваме как изглежда една опция „държава“ в модала
 type CountryOption = {
-  id: string;             // вътрешен идентификатор (name|code)
-  name: string;           // текст за показване – име на държава
+  id: string; // вътрешен идентификатор (name|code)
+  name: string; // текст за показване – име на държава
   currency: CurrencyCode; // валута по подразбиране за тази държава
 };
 
@@ -30,7 +30,7 @@ type CountryOption = {
 const countries: CountryOption[] = Object.entries(CURRENCIES).flatMap(
   ([code, meta]) =>
     meta.countries.map((countryName) => ({
-      id: `${countryName}|${code}`,       // уникален id
+      id: `${countryName}|${code}`, // уникален id
       name: countryName,
       currency: code as CurrencyCode,
     }))
@@ -79,6 +79,9 @@ const NewTripWizard: React.FC<Props> = ({ isOpen, onClose, onCreateTrip }) => {
   const [currency, setCurrency] = React.useState<CurrencyCode>(DEFAULT_CURRENCY);
   const [submitting, setSubmitting] = React.useState(false);
 
+  // 🆕 флаг за опит за създаване без име (за визуална грешка)
+  const [nameTouched, setNameTouched] = React.useState(false);
+
   // reset state when модалът се отваря/затваря
   React.useEffect(() => {
     if (!isOpen) {
@@ -88,6 +91,7 @@ const NewTripWizard: React.FC<Props> = ({ isOpen, onClose, onCreateTrip }) => {
       setCountryId(DEFAULT_COUNTRY_ID);
       setCurrency(DEFAULT_CURRENCY);
       setSubmitting(false);
+      setNameTouched(false);
     }
   }, [isOpen]);
 
@@ -105,7 +109,9 @@ const NewTripWizard: React.FC<Props> = ({ isOpen, onClose, onCreateTrip }) => {
 
   const selectedOption =
     tripTypeOptions.find((o) => o.type === selectedType) || null;
-  const canGoNext = step === 1 ? !!selectedType : !!name.trim();
+
+  const hasSelectedType = !!selectedType;
+  const hasValidName = !!name.trim();
 
   function handleCountryChange(value: string) {
     setCountryId(value);
@@ -122,7 +128,13 @@ const NewTripWizard: React.FC<Props> = ({ isOpen, onClose, onCreateTrip }) => {
       return;
     }
 
-    if (!selectedType || !name.trim()) return;
+    // STEP 2 → опит за създаване
+    setNameTouched(true);
+
+    if (!selectedType || !name.trim()) {
+      // ако няма име – показваме визуална грешка и спираме тук
+      return;
+    }
 
     const countryOption =
       countries.find((c) => c.id === countryId) ?? countries[0];
@@ -140,6 +152,9 @@ const NewTripWizard: React.FC<Props> = ({ isOpen, onClose, onCreateTrip }) => {
       setSubmitting(false);
     }
   }
+
+  const isActionDisabled = step === 1 ? !hasSelectedType || submitting : submitting;
+  const showNameError = step === 2 && nameTouched && !hasValidName;
 
   return (
     <div
@@ -249,16 +264,32 @@ const NewTripWizard: React.FC<Props> = ({ isOpen, onClose, onCreateTrip }) => {
               <input
                 type="text"
                 value={name}
-                onChange={(e) => setName(e.target.value)}
+                onChange={(e) => {
+                  setName(e.target.value);
+                  if (!nameTouched) {
+                    // не е задължително, но държи UX стегнат – не показваме грешка преди първи опит за създаване
+                    return;
+                  }
+                }}
                 placeholder="Напр. Море 2026, Нова година в Родопите..."
-                className="
-                  w-full rounded-xl border border-eco-border 
+                className={`
+                  w-full rounded-xl border 
                   bg-eco-surface-soft px-3 py-2 text-sm text-eco-text
                   placeholder:text-eco-text-muted
-                  focus:outline-none focus:ring-2 focus:ring-emerald-500
-                "
+                  focus:outline-none focus:ring-2
+                  ${
+                    showNameError
+                      ? 'border-red-500 focus:ring-red-500'
+                      : 'border-eco-border focus:ring-emerald-500'
+                  }
+                `}
                 autoFocus
               />
+              {showNameError && (
+                <p className="mt-1 text-xs text-red-400">
+                  Полето е задължително.
+                </p>
+              )}
 
               {/* Country */}
               <div className="space-y-2 mt-3">
@@ -323,7 +354,7 @@ const NewTripWizard: React.FC<Props> = ({ isOpen, onClose, onCreateTrip }) => {
             </button>
             <Button
               type="button"
-              disabled={!canGoNext || submitting}
+              disabled={isActionDisabled}
               onClick={handleNext}
               className="px-4 py-1.5 text-xs sm:text-sm"
             >

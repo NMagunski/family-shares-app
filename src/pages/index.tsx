@@ -1,14 +1,12 @@
 import React from 'react';
 import { useRouter } from 'next/router';
 import Layout from '@/components/layout/Layout';
-import TripTypeSelector from '@/components/trips/TripTypeSelector';
 import Card from '@/components/ui/Card';
 import TripCard from '@/components/trips/TripCard';
-import CreateTripModal from '@/components/trips/CreateTripModal';
 import { useAuth } from '@/context/AuthContext';
 import type { Trip, TripType } from '@/types/trip';
-/* --- промени най-горе в импорти --- */
 import NewTripWizard from '@/components/trips/NewTripWizard';
+import type { CurrencyCode } from '@/lib/currencies';
 
 import {
   createTripForUser,
@@ -31,7 +29,7 @@ const HomePage: React.FC = () => {
   const [tripsLoading, setTripsLoading] = React.useState(false);
   const [error, setError] = React.useState<string | null>(null);
 
-  const [selectedType, setSelectedType] = React.useState<TripType | null>(null);
+  // Контрол на wizard-а за ново пътуване
   const [isModalOpen, setIsModalOpen] = React.useState(false);
 
   // Изтриване на пътуване
@@ -44,69 +42,44 @@ const HomePage: React.FC = () => {
   const [archiveModalOpen, setArchiveModalOpen] = React.useState(false);
   const [archiveLoading, setArchiveLoading] = React.useState(false);
 
-React.useEffect(() => {
-  // ако няма логнат → чистим стейта и излизаме
-  if (!user) {
-    setOwnedTrips([]);
-    setArchivedTrips([]);
-    setSharedTrips([]);
-    return;
-  }
-
-  const userId = user.uid;
-
-  async function loadTrips(forUserId: string) {
-    try {
-      setTripsLoading(true);
-      setError(null);
-
-      const [owned, sharedRaw] = await Promise.all([
-        fetchTripsForUser(forUserId),
-        fetchSharedTripsForUser(forUserId),
-      ]);
-
-      const activeOwned = owned.filter((t) => !t.archived);
-      const archived = owned.filter((t) => t.archived);
-      const shared = sharedRaw.filter((t) => t.ownerId !== forUserId);
-
-      setOwnedTrips(activeOwned);
-      setArchivedTrips(archived);
-      setSharedTrips(shared);
-    } catch (err) {
-      console.error(err);
-      setError('Проблем при зареждане на пътуванията.');
-    } finally {
-      setTripsLoading(false);
+  React.useEffect(() => {
+    // ако няма логнат → чистим стейта и излизаме
+    if (!user) {
+      setOwnedTrips([]);
+      setArchivedTrips([]);
+      setSharedTrips([]);
+      return;
     }
-  }
 
-  loadTrips(userId);
-}, [user]);
+    const userId = user.uid;
 
+    async function loadTrips(forUserId: string) {
+      try {
+        setTripsLoading(true);
+        setError(null);
 
-  function handleSelect(type: TripType) {
-    if (!user) return;
-    setSelectedType(type);
-    setIsModalOpen(true);
-  }
+        const [owned, sharedRaw] = await Promise.all([
+          fetchTripsForUser(forUserId),
+          fetchSharedTripsForUser(forUserId),
+        ]);
 
-  function handleCloseModal() {
-    setIsModalOpen(false);
-    setSelectedType(null);
-  }
+        const activeOwned = owned.filter((t) => !t.archived);
+        const archived = owned.filter((t) => t.archived);
+        const shared = sharedRaw.filter((t) => t.ownerId !== forUserId);
 
-  async function handleCreateTrip(name: string) {
-    if (!selectedType || !user) return;
-
-    try {
-      const newTrip = await createTripForUser(user.uid, selectedType, name);
-      setOwnedTrips((prev) => [newTrip, ...prev]);
-      handleCloseModal();
-    } catch (err) {
-      console.error(err);
-      alert('Възникна грешка при създаване на пътуване.');
+        setOwnedTrips(activeOwned);
+        setArchivedTrips(archived);
+        setSharedTrips(shared);
+      } catch (err) {
+        console.error(err);
+        setError('Проблем при зареждане на пътуванията.');
+      } finally {
+        setTripsLoading(false);
+      }
     }
-  }
+
+    loadTrips(userId);
+  }, [user]);
 
   function handleAskArchiveTrip(trip: Trip) {
     setTripToArchive(trip);
@@ -288,217 +261,219 @@ React.useEffect(() => {
   const userId = user.uid;
   const hasAnyTrips = activeTrips.length > 0 || archivedTrips.length > 0;
 
-
   return (
-  <Layout>
-    <div className="space-y-6">
-      {/* Ако НЯМА никакви пътувания → показваме специален empty state */}
-      {!tripsLoading && !error && !hasAnyTrips ? (
-        <div className="flex items-center justify-center min-h-[60vh] px-4">
-          <Card className="w-full max-w-3xl bg-eco-surface-soft/80 border border-eco-border shadow-eco-soft">
-            <div className="grid gap-6 md:grid-cols-[minmax(0,3fr)_minmax(0,2fr)] items-center">
-              {/* Лява колона – текст и bullet-и */}
-              <div>
-                <h1 className="text-2xl sm:text-3xl font-semibold text-eco-text">
-                  Още нямаш пътувания.
-                </h1>
-                <p className="mt-2 text-sm text-eco-text-muted leading-relaxed">
-                  Създай първото си пътуване и раздели разходите честно между
-                  семейства и приятели – без листчета, без калкулатори и без спорове.
-                </p>
+    <Layout>
+      <div className="space-y-6">
+        {/* Ако НЯМА никакви пътувания → показваме специален empty state */}
+        {!tripsLoading && !error && !hasAnyTrips ? (
+          <div className="flex items-center justify-center min-h-[60vh] px-4">
+            <Card className="w-full max-w-3xl bg-eco-surface-soft/80 border border-eco-border shadow-eco-soft">
+              <div className="grid gap-6 md:grid-cols-[minmax(0,3fr)_minmax(0,2fr)] items-center">
+                {/* Лява колона – текст и bullet-и */}
+                <div>
+                  <h1 className="text-2xl sm:text-3xl font-semibold text-eco-text">
+                    Още нямаш пътувания.
+                  </h1>
+                  <p className="mt-2 text-sm text-eco-text-muted leading-relaxed">
+                    Създай първото си пътуване и раздели разходите честно между
+                    семейства и приятели – без листчета, без калкулатори и без спорове.
+                  </p>
 
-                <ul className="mt-4 space-y-2 text-sm text-eco-text">
-                  <li className="flex items-start gap-2">
-                    <span className="mt-[3px] h-1.5 w-1.5 rounded-full bg-emerald-400" />
-                    <span>Добави участващите семейства.</span>
-                  </li>
-                  <li className="flex items-start gap-2">
-                    <span className="mt-[3px] h-1.5 w-1.5 rounded-full bg-emerald-400" />
-                    <span>Въвеждай разходи в реално време – гориво, нощувки, храна.</span>
-                  </li>
-                  <li className="flex items-start gap-2">
-                    <span className="mt-[3px] h-1.5 w-1.5 rounded-full bg-emerald-400" />
-                    <span>Виж ясно кой на кого колко дължи накрая на пътуването.</span>
-                  </li>
-                </ul>
+                  <ul className="mt-4 space-y-2 text-sm text-eco-text">
+                    <li className="flex items-start gap-2">
+                      <span className="mt-[3px] h-1.5 w-1.5 rounded-full bg-emerald-400" />
+                      <span>Добави участващите семейства.</span>
+                    </li>
+                    <li className="flex items-start gap-2">
+                      <span className="mt-[3px] h-1.5 w-1.5 rounded-full bg-emerald-400" />
+                      <span>Въвеждай разходи в реално време – гориво, нощувки, храна.</span>
+                    </li>
+                    <li className="flex items-start gap-2">
+                      <span className="mt-[3px] h-1.5 w-1.5 rounded-full bg-emerald-400" />
+                      <span>Виж ясно кой на кого колко дължи накрая на пътуването.</span>
+                    </li>
+                  </ul>
 
-                <div className="mt-6">
-                  <Button
-                    type="button"
-                    onClick={() => setIsModalOpen(true)}
-                    className="px-6 py-3 text-base font-medium"
-                  >
-                    Създай първо пътуване
-                  </Button>
-                </div>
-              </div>
-
-              {/* Дясна колона – малка „илюстрация“ в стила на TripSplitly */}
-              <div className="hidden md:flex items-center justify-center">
-                <div className="relative">
-                  <div className="pointer-events-none absolute -inset-6 rounded-3xl bg-[radial-gradient(circle_at_top,_rgba(16,185,129,0.3),_transparent_55%),radial-gradient(circle_at_bottom,_rgba(16,185,129,0.18),_transparent_55%)] opacity-80" />
-                  <div className="relative flex h-40 w-40 items-center justify-center rounded-full bg-eco-surface border border-eco-border shadow-eco-soft">
-                    <svg
-                      className="h-20 w-20 text-emerald-300"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth="1.6"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
+                  <div className="mt-6">
+                    <Button
+                      type="button"
+                      onClick={() => setIsModalOpen(true)}
+                      className="px-6 py-3 text-base font-medium"
                     >
-                      <path d="M3 18l7-5 4 3 7-6" />
-                      <path d="M21 10v7h-7" />
-                      <path d="M3 6h18" />
-                    </svg>
+                      Създай първо пътуване
+                    </Button>
+                  </div>
+                </div>
+
+                {/* Дясна колона – малка „илюстрация“ в стила на TripSplitly */}
+                <div className="hidden md:flex items-center justify-center">
+                  <div className="relative">
+                    <div className="pointer-events-none absolute -inset-6 rounded-3xl bg-[radial-gradient(circle_at_top,_rgba(16,185,129,0.3),_transparent_55%),radial-gradient(circle_at_bottom,_rgba(16,185,129,0.18),_transparent_55%)] opacity-80" />
+                    <div className="relative flex h-40 w-40 items-center justify-center rounded-full bg-eco-surface border border-eco-border shadow-eco-soft">
+                      <svg
+                        className="h-20 w-20 text-emerald-300"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="1.6"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      >
+                        <path d="M3 18l7-5 4 3 7-6" />
+                        <path d="M21 10v7h-7" />
+                        <path d="M3 6h18" />
+                      </svg>
+                    </div>
                   </div>
                 </div>
               </div>
-            </div>
-          </Card>
-        </div>
-      ) : (
-        <>
-          {/* HERO: бутон за ново пътуване */}
-          <div className="flex justify-center">
-            <Button
-              type="button"
-              onClick={() => setIsModalOpen(true)}
-              className="px-6 py-3 text-base font-medium"
-            >
-              + Ново пътуване
-            </Button>
+            </Card>
           </div>
+        ) : (
+          <>
+            {/* HERO: бутон за ново пътуване */}
+            <div className="flex justify-center">
+              <Button
+                type="button"
+                onClick={() => setIsModalOpen(true)}
+                className="px-6 py-3 text-base font-medium"
+              >
+                + Ново пътуване
+              </Button>
+            </div>
 
-          {/* Секции с пътувания */}
-          <div className="grid gap-6 lg:grid-cols-2">
-            {/* Активни пътувания */}
-            <section className="rounded-2xl border border-eco-border bg-eco-surface-soft/80 p-4 shadow-eco-soft">
-              <div className="mb-2 flex items-center justify-between gap-2">
-                <h2 className="text-base font-semibold text-eco-text">
-                  Активни пътувания
-                </h2>
-                <span className="h-2.5 w-2.5 rounded-full bg-emerald-400" />
-              </div>
+            {/* Секции с пътувания */}
+            <div className="grid gap-6 lg:grid-cols-2">
+              {/* Активни пътувания */}
+              <section className="rounded-2xl border border-eco-border bg-eco-surface-soft/80 p-4 shadow-eco-soft">
+                <div className="mb-2 flex items-center justify-between gap-2">
+                  <h2 className="text-base font-semibold text-eco-text">
+                    Активни пътувания
+                  </h2>
+                  <span className="h-2.5 w-2.5 rounded-full bg-emerald-400" />
+                </div>
 
-              {tripsLoading ? (
-                <p className="mt-2 text-sm text-eco-text-muted">Зареждане...</p>
-              ) : error ? (
-                <p className="mt-2 text-sm text-red-400">{error}</p>
-              ) : activeTrips.length === 0 ? (
-                <p className="mt-2 text-sm text-eco-text-muted">
-                  Все още нямаш активни пътувания. Създай ново или влез с линк,
-                  който ти е изпратен от приятел.
-                </p>
-              ) : (
-                <div className="mt-3 space-y-3">
-                  {activeTrips.map((trip) => {
-                    const isOwner = trip.ownerId === userId;
-                    return (
+                {tripsLoading ? (
+                  <p className="mt-2 text-sm text-eco-text-muted">Зареждане...</p>
+                ) : error ? (
+                  <p className="mt-2 text-sm text-red-400">{error}</p>
+                ) : activeTrips.length === 0 ? (
+                  <p className="mt-2 text-sm text-eco-text-muted">
+                    Все още нямаш активни пътувания. Създай ново или влез с линк,
+                    който ти е изпратен от приятел.
+                  </p>
+                ) : (
+                  <div className="mt-3 space-y-3">
+                    {activeTrips.map((trip) => {
+                      const isOwner = trip.ownerId === userId;
+                      return (
+                        <TripCard
+                          key={trip.id}
+                          trip={trip}
+                          showManageActions={isOwner}
+                          onArchiveToggle={isOwner ? handleAskArchiveTrip : undefined}
+                          onDelete={isOwner ? handleAskDeleteTrip : undefined}
+                          role={isOwner ? 'owner' : 'participant'}
+                        />
+                      );
+                    })}
+                  </div>
+                )}
+              </section>
+
+              {/* Архивирани пътувания */}
+              <section className="rounded-2xl border border-eco-border bg-eco-surface-soft/80 p-4 shadow-eco-soft">
+                <div className="mb-2 flex items-center justify-between gap-2">
+                  <h2 className="text-base font-semibold text-eco-text">
+                    Архивирани пътувания
+                  </h2>
+                  <span className="h-2.5 w-2.5 rounded-full bg-yellow-400" />
+                </div>
+
+                {tripsLoading ? (
+                  <p className="mt-2 text-sm text-eco-text-muted">Зареждане...</p>
+                ) : archivedTrips.length === 0 ? (
+                  <p className="mt-2 text-sm text-eco-text-muted">
+                    Нямаш архивирани пътувания.
+                  </p>
+                ) : (
+                  <div className="mt-3 space-y-3">
+                    {archivedTrips.map((trip) => (
                       <TripCard
                         key={trip.id}
                         trip={trip}
-                        showManageActions={isOwner}
-                        onArchiveToggle={isOwner ? handleAskArchiveTrip : undefined}
-                        onDelete={isOwner ? handleAskDeleteTrip : undefined}
-                        role={isOwner ? 'owner' : 'participant'}
+                        showManageActions
+                        onArchiveToggle={handleAskArchiveTrip}
+                        onDelete={handleAskDeleteTrip}
+                        role="owner"
                       />
-                    );
-                  })}
-                </div>
-              )}
-            </section>
+                    ))}
+                  </div>
+                )}
+              </section>
+            </div>
+          </>
+        )}
 
-            {/* Архивирани пътувания */}
-            <section className="rounded-2xl border border-eco-border bg-eco-surface-soft/80 p-4 shadow-eco-soft">
-              <div className="mb-2 flex items-center justify-between gap-2">
-                <h2 className="text-base font-semibold text-eco-text">
-                  Архивирани пътувания
-                </h2>
-                <span className="h-2.5 w-2.5 rounded-full bg-yellow-400" />
-              </div>
+        {/* NewTripWizard – централизирана логика за ново пътуване */}
+        <NewTripWizard
+  isOpen={isModalOpen}
+  onClose={() => setIsModalOpen(false)}
+  onCreateTrip={async (
+    type,
+    name,
+    country,
+    currency: CurrencyCode
+  ) => {
+    if (!user) return;
 
-              {tripsLoading ? (
-                <p className="mt-2 text-sm text-eco-text-muted">Зареждане...</p>
-              ) : archivedTrips.length === 0 ? (
-                <p className="mt-2 text-sm text-eco-text-muted">
-                  Нямаш архивирани пътувания.
-                </p>
-              ) : (
-                <div className="mt-3 space-y-3">
-                  {archivedTrips.map((trip) => (
-                    <TripCard
-                      key={trip.id}
-                      trip={trip}
-                      showManageActions
-                      onArchiveToggle={handleAskArchiveTrip}
-                      onDelete={handleAskDeleteTrip}
-                      role="owner"
-                    />
-                  ))}
-                </div>
-              )}
-            </section>
-          </div>
-        </>
-      )}
+    try {
+      // ВАЖНО: подаваме валутата директно, без да я сменяме на BGN/EUR
+      const newTrip = await createTripForUser(
+        user.uid,
+        type,
+        name,
+        country,
+        currency
+      );
 
-      {/* NewTripWizard остава както вече го направихме */}
-      <NewTripWizard
-        isOpen={isModalOpen}
-        onClose={() => setIsModalOpen(false)}
-        onCreateTrip={async (type, name, country, currency) => {
-          if (!user) return;
-          const tripCurrency: 'BGN' | 'EUR' =
-            currency === 'BGN' || currency === 'EUR' ? currency : 'EUR';
+      setOwnedTrips((prev) => [newTrip, ...prev]);
+      setIsModalOpen(false);
+    } catch (err) {
+      console.error(err);
+      alert('Грешка при създаване на пътуване.');
+    }
+  }}
+/>
+        {/* Модали за изтриване / архивиране */}
+        {tripToDelete && (
+          <DeleteModal
+            open={deleteModalOpen}
+            trip={tripToDelete}
+            onConfirm={handleConfirmDeleteTrip}
+            onClose={() => {
+              if (deleteLoading) return;
+              setDeleteModalOpen(false);
+              setTripToDelete(null);
+            }}
+          />
+        )}
 
-          try {
-            const newTrip = await createTripForUser(
-              user.uid,
-              type,
-              name,
-              country,
-              tripCurrency
-            );
-            setOwnedTrips((prev) => [newTrip, ...prev]);
-            setIsModalOpen(false);
-          } catch (err) {
-            console.error(err);
-            alert('Грешка при създаване на пътуване.');
-          }
-        }}
-      />
-
-      {/* Модали за изтриване / архивиране – без промяна */}
-      {tripToDelete && (
-        <DeleteModal
-          open={deleteModalOpen}
-          trip={tripToDelete}
-          onConfirm={handleConfirmDeleteTrip}
-          onClose={() => {
-            if (deleteLoading) return;
-            setDeleteModalOpen(false);
-            setTripToDelete(null);
-          }}
-        />
-      )}
-
-      {tripToArchive && (
-        <ArchiveModal
-          open={archiveModalOpen}
-          trip={tripToArchive}
-          onConfirm={handleConfirmArchiveTrip}
-          onClose={() => {
-            if (archiveLoading) return;
-            setArchiveModalOpen(false);
-            setTripToArchive(null);
-          }}
-        />
-      )}
-    </div>
-  </Layout>
-);
-
+        {tripToArchive && (
+          <ArchiveModal
+            open={archiveModalOpen}
+            trip={tripToArchive}
+            onConfirm={handleConfirmArchiveTrip}
+            onClose={() => {
+              if (archiveLoading) return;
+              setArchiveModalOpen(false);
+              setTripToArchive(null);
+            }}
+          />
+        )}
+      </div>
+    </Layout>
+  );
 };
 
 export default HomePage;

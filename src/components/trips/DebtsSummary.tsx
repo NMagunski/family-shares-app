@@ -11,208 +11,241 @@ type Props = {
 
 type BalanceMap = Record<string, number>;
 
-const EPSILON = 0.005; // за закръгляне на почти нулеви стойности
+type Settlement = {
+  fromFamilyId: string;
+  toFamilyId: string;
+  amount: number;
+};
 
-const DebtsSummary: React.FC<Props> = ({ families, expenses, currency }) => {
-  const currencySymbol = getCurrencySymbol(currency);
+function formatAmount(amount: number): string {
+  return amount.toFixed(2);
+}
 
-  const { balances, settlements } = React.useMemo(() => {
-    const balance: BalanceMap = {};
-    families.forEach((f) => {
-      balance[f.id] = 0;
-    });
+/**
+ * Изчислява нетния баланс за всяко семейство:
+ *  - положително → трябва да получи
+ *  - отрицателно → трябва да даде
+ */
+function computeBalances(
+  families: TripFamily[],
+  expenses: TripExpense[],
+  currency: CurrencyCode
+): BalanceMap {
+  const balances: BalanceMap = {};
 
-    // 1) нормални разходи (expense / undefined)
-    const expenseEntries = expenses.filter(
-      (e) => (e.type ?? 'expense') === 'expense' && e.currency === currency
-    );
+  families.forEach((f) => {
+    balances[f.id] = 0;
+  });
 
-    for (const e of expenseEntries) {
-      // участници – ако няма избрани → всички семейства
-      let participants =
-        e.involvedFamilyIds && e.involvedFamilyIds.length > 0
-          ? [...e.involvedFamilyIds]
-          : families.map((f) => f.id);
+  const familyIds = families.map((f) => f.id);
 
-      // платилият винаги участва
-      if (e.paidByFamilyId && !participants.includes(e.paidByFamilyId)) {
-        participants.push(e.paidByFamilyId);
-      }
+  for (const e of expenses) {
+    // Работим само с разходите в валутата на пътуването
+    if (e.currency !== currency) continue;
 
-      if (participants.length === 0) continue;
+    const type = e.type ?? 'expense';
 
-      const share = e.amount / participants.length;
-
-      // всеки участник дължи своя дял
-      for (const fid of participants) {
-        if (balance[fid] == null) balance[fid] = 0;
-        balance[fid] -= share;
-      }
-
-      // платилият е дал цялата сума
-      if (balance[e.paidByFamilyId] == null) balance[e.paidByFamilyId] = 0;
-      balance[e.paidByFamilyId] += e.amount;
-    }
-
-    // 2) погасявания "Пито платено" (settlement)
-    const settlementEntries = expenses.filter(
-      (e) => (e.type ?? 'expense') === 'settlement' && e.currency === currency
-    );
-
-    for (const e of settlementEntries) {
-      const fromId = e.settlementFromFamilyId || e.paidByFamilyId;
+    // 👉 Пито платено (settlement) – директно прехвърляне на пари
+    if (type === 'settlement') {
+      const fromId = e.settlementFromFamilyId ?? e.paidByFamilyId;
       const toId = e.settlementToFamilyId;
 
       if (!fromId || !toId || fromId === toId) continue;
 
-      if (balance[fromId] == null) balance[fromId] = 0;
-      if (balance[toId] == null) balance[toId] = 0;
-
-      // платилият (from) намалява задължението си
-      balance[fromId] += e.amount;
-      // получателят (to) намалява вземането си
-      balance[toId] -= e.amount;
+      // Платецът "губи" пари (намалява дълга му)
+      balances[fromId] = (balances[fromId] ?? 0) - e.amount;
+      // Получателят "печели" (намалява това, което има да получава)
+      balances[toId] = (balances[toId] ?? 0) + e.amount;
+      continue;
     }
 
-    // чистим почти нулеви стойности
-    Object.keys(balance).forEach((fid) => {
-      if (Math.abs(balance[fid]) < EPSILON) {
-        balance[fid] = 0;
-      }
-    });
+    // 👉 Нормален разход
+    const participants =
+      e.involvedFamilyIds && e.involvedFamilyIds.length > 0
+        ? e.involvedFamilyIds
+        : familyIds;
 
-    // Алгоритъм за "кой на кого колко дължи"
-    type Side = { familyId: string; amount: number };
+    if (!participants || participants.length === 0) continue;
 
-    const creditors: Side[] = [];
-    const debtors: Side[] = [];
+    const share = e.amount / participants.length;
 
-    for (const [fid, value] of Object.entries(balance)) {
-      if (value > EPSILON) {
-        creditors.push({ familyId: fid, amount: value });
-      } else if (value < -EPSILON) {
-        debtors.push({ familyId: fid, amount: -value }); // пазим като положително число
-      }
+    // Всеки участник дължи своя дял
+    for (const fid of participants) {
+      balances[fid] = (balances[fid] ?? 0) - share;
     }
 
-    const settlementsResult: { fromId: string; toId: string; amount: number }[] =
-      [];
-
-    let i = 0;
-    let j = 0;
-
-    while (i < debtors.length && j < creditors.length) {
-      const debtor = debtors[i];
-      const creditor = creditors[j];
-
-      const payAmount = Math.min(debtor.amount, creditor.amount);
-
-      if (payAmount > EPSILON) {
-        settlementsResult.push({
-          fromId: debtor.familyId,
-          toId: creditor.familyId,
-          amount: payAmount,
-        });
-
-        debtor.amount -= payAmount;
-        creditor.amount -= payAmount;
-      }
-
-      if (debtor.amount <= EPSILON) i += 1;
-      if (creditor.amount <= EPSILON) j += 1;
+    // Платецът е извадил цялата сума от джоба си → трябва да получи толкова
+    if (e.paidByFamilyId) {
+      balances[e.paidByFamilyId] =
+        (balances[e.paidByFamilyId] ?? 0) + e.amount;
     }
-
-    return {
-      balances: balance,
-      settlements: settlementsResult,
-    };
-  }, [families, expenses, currency]);
-
-  const hasAnyMovement =
-    Object.values(balances).some((v) => Math.abs(v) > EPSILON) ||
-    settlements.length > 0;
-
-  if (!families.length || !expenses.length) {
-    return (
-      <p className="text-sm text-eco-text-muted">
-        Все още няма достатъчно данни за изчисляване на дълговете.
-      </p>
-    );
   }
 
+  return balances;
+}
+
+/**
+ * Изчислява минимален набор от разплащания между семейства.
+ */
+function computeSettlements(balances: BalanceMap): Settlement[] {
+  const debtors: { familyId: string; amount: number }[] = [];
+  const creditors: { familyId: string; amount: number }[] = [];
+
+  Object.entries(balances).forEach(([familyId, balance]) => {
+    if (balance < -0.01) {
+      // трябва да дава → обръщаме в положително число
+      debtors.push({ familyId, amount: -balance });
+    } else if (balance > 0.01) {
+      // трябва да получава
+      creditors.push({ familyId, amount: balance });
+    }
+  });
+
+  const settlements: Settlement[] = [];
+
+  let i = 0;
+  let j = 0;
+
+  while (i < debtors.length && j < creditors.length) {
+    const debtor = debtors[i];
+    const creditor = creditors[j];
+
+    const pay = Math.min(debtor.amount, creditor.amount);
+    if (pay <= 0) {
+      if (debtor.amount <= 0) i++;
+      if (creditor.amount <= 0) j++;
+      continue;
+    }
+
+    settlements.push({
+      fromFamilyId: debtor.familyId,
+      toFamilyId: creditor.familyId,
+      amount: pay,
+    });
+
+    debtor.amount -= pay;
+    creditor.amount -= pay;
+
+    if (debtor.amount <= 0.01) i++;
+    if (creditor.amount <= 0.01) j++;
+  }
+
+  return settlements;
+}
+
+const DebtsSummary: React.FC<Props> = ({ families, expenses, currency }) => {
+  const currencySymbol = getCurrencySymbol(currency);
+
+  const balances = React.useMemo(
+    () => computeBalances(families, expenses, currency),
+    [families, expenses, currency]
+  );
+
+  const settlements = React.useMemo(
+    () => computeSettlements(balances),
+    [balances]
+  );
+
+  const hasAnyBalance = Object.values(balances).some(
+    (v) => Math.abs(v) > 0.01
+  );
+
+  const settlementsCount = settlements.length;
+
+  const getFamilyName = (id: string) =>
+    families.find((f) => f.id === id)?.name ?? 'Непознато семейство';
+
   return (
-    <div className="space-y-3 text-sm">
-      {hasAnyMovement ? (
-        <p className="text-xs text-eco-text-muted">
-          Има{' '}
-          <span className="font-semibold text-eco-text">
-            {settlements.length}
-          </span>{' '}
-          разплащане(я) между семействата.
-        </p>
-      ) : (
-        <p className="text-xs text-eco-text-muted">
-          Всички са изравнени – няма оставащи дългове.
-        </p>
-      )}
+    <div className="space-y-4 text-sm">
+      {/* Общо резюме */}
+      <p className="text-xs text-eco-text-muted">
+        {settlementsCount > 0 ? (
+          <>
+            Има{' '}
+            <span className="font-semibold text-eco-text">
+              {settlementsCount}
+            </span>{' '}
+            разплащане(я) между семействата.
+          </>
+        ) : hasAnyBalance ? (
+          'Семействата са в баланс – няма нужда от допълнителни разплащания.'
+        ) : (
+          'Все още няма достатъчно данни за изчисляване на разплащанията.'
+        )}
+      </p>
 
       {/* Баланс по семействата */}
-      <div className="rounded-xl bg-eco-surface-soft border border-eco-border px-4 py-3 space-y-1.5">
-        <h3 className="text-sm font-semibold text-eco-text mb-1">
+      <div className="rounded-2xl bg-eco-surface-soft px-4 py-3 space-y-2">
+        <p className="text-xs font-semibold text-eco-text-muted mb-1">
           Баланс по семействата
-        </h3>
+        </p>
 
-        {families.map((f) => {
-          const val = balances[f.id] ?? 0;
+        {families.map((family) => {
+          const balance = balances[family.id] ?? 0;
 
-          let label = '0.00 ' + currencySymbol + ' (изравнени)';
-          let classes = 'text-eco-text-muted';
+          const isPositive = balance > 0.01;
+          const isNegative = balance < -0.01;
 
-          if (val > EPSILON) {
-            label = `+${val.toFixed(2)} ${currencySymbol} (трябва да получат)`;
-            classes = 'text-green-400';
-          } else if (val < -EPSILON) {
-            label = `${val.toFixed(2)} ${currencySymbol} (трябва да дадат)`;
-            classes = 'text-red-400';
+          let label = `${formatAmount(Math.abs(balance))} ${currencySymbol}`;
+          if (isPositive) {
+            label = `+${label} (трябва да получат)`;
+          } else if (isNegative) {
+            label = `-${label} (трябва да дадат)`;
+          } else {
+            label = `${label}`;
           }
 
           return (
             <div
-              key={f.id}
-              className="flex items-center justify-between rounded-lg px-3 py-1.5"
+              key={family.id}
+              className="flex items-center justify-between py-1"
             >
-              <span className="text-eco-text">{f.name}</span>
-              <span className={`text-sm font-medium ${classes}`}>{label}</span>
+              <span className="text-eco-text">{family.name}</span>
+              <div
+                className={`
+                  inline-flex items-center rounded-full border px-3 py-1 text-xs font-medium
+                  ${
+                    isPositive
+                      ? 'border-emerald-500 text-emerald-300 bg-emerald-500/10'
+                      : isNegative
+                      ? 'border-red-500 text-red-300 bg-red-500/10'
+                      : 'border-eco-border text-eco-text-muted bg-eco-surface'
+                  }
+                `}
+              >
+                {label}
+              </div>
             </div>
           );
         })}
       </div>
 
       {/* Кой на кого колко дължи */}
-      <div className="rounded-xl bg-eco-surface-soft border border-eco-border px-4 py-3 space-y-1.5">
-        <h3 className="text-sm font-semibold text-eco-text mb-1">
+      <div className="mt-2 rounded-2xl bg-eco-surface-soft px-4 py-3 space-y-2">
+        <p className="text-xs font-semibold text-eco-text-muted">
           Кой на кого колко дължи
-        </h3>
+        </p>
 
         {settlements.length === 0 ? (
-          <p className="text-xs text-eco-text-muted">
-            Няма директни разплащания – балансите са изравнени.
+          <p className="text-xs text-eco-text-muted mt-1">
+            Няма нужда от допълнителни разплащания между семействата.
           </p>
         ) : (
-          <ul className="space-y-1.5 text-sm">
-            {settlements.map((s, idx) => {
-              const fromName =
-                families.find((f) => f.id === s.fromId)?.name ?? '—';
-              const toName =
-                families.find((f) => f.id === s.toId)?.name ?? '—';
+          <ul className="mt-1 space-y-1.5">
+            {settlements.map((s, index) => {
+              const fromName = getFamilyName(s.fromFamilyId);
+              const toName = getFamilyName(s.toFamilyId);
 
               return (
-                <li key={idx} className="text-eco-text">
-                  <span className="font-medium">{fromName}</span> дължат{' '}
-                  <span className="font-semibold text-emerald-400">
-                    {s.amount.toFixed(2)} {currencySymbol}
-                  </span>{' '}
-                  на <span className="font-medium">{toName}</span>.
+                <li
+                  key={`${s.fromFamilyId}-${s.toFamilyId}-${index}`}
+                  className="text-sm text-eco-text"
+                >
+                  <span>{fromName} дължат </span>
+                  <span className="font-semibold text-emerald-300">
+                    {formatAmount(s.amount)} {currencySymbol}
+                  </span>
+                  <span> на {toName}.</span>
                 </li>
               );
             })}

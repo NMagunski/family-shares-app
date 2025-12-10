@@ -3,7 +3,6 @@ import { useRouter } from 'next/router';
 import Layout from '@/components/layout/Layout';
 import TripHeader from '@/components/trips/TripHeader';
 import FamiliesSection from '@/components/trips/FamiliesSection';
-
 import DebtsSummary from '@/components/trips/DebtsSummary';
 import AddFamilyModal from '@/components/trips/AddFamilyModal';
 import ShareTripModal from '@/components/trips/ShareTripModal';
@@ -12,10 +11,10 @@ import EditFamilyModal from '@/components/trips/EditFamilyModal';
 import ConfirmModal from '@/components/ui/ConfirmModal';
 import Button from '@/components/ui/Button';
 import { useToast } from '@/context/ToastContext';
+
 import type { Trip, TripFamily, TripExpense } from '@/types/trip';
 import ExpensesTable from '@/components/trips/ExpensesTable';
 import type { BaseExpenseInput } from '@/components/trips/AddExpenseForm';
-
 
 import {
   fetchFamilies,
@@ -38,10 +37,9 @@ import { convertToEur, getCurrencySymbol } from '@/lib/currencies';
 const TripPage: React.FC = () => {
   const router = useRouter();
   const { showToast } = useToast();
-
-  const { tripId } = router.query;
   const { user, loading: authLoading } = useAuth();
 
+  const { tripId } = router.query;
   const tripIdStr = typeof tripId === 'string' ? tripId : '';
 
   // Guard за неавторизирани
@@ -144,47 +142,44 @@ const TripPage: React.FC = () => {
 
   // Добавяне на разход
   async function handleAddExpense(exp: BaseExpenseInput) {
-  if (!tripIdStr) return;
+    if (!tripIdStr) return;
 
-  try {
-    const created = await createExpense(tripIdStr, exp);
-    setExpenses((prev) => [created, ...prev]);
-  } catch (err) {
-    console.error(err);
-    alert('Грешка при добавяне на разход');
+    try {
+      const created = await createExpense(tripIdStr, exp);
+      setExpenses((prev) => [created, ...prev]);
+    } catch (err) {
+      console.error(err);
+      alert('Грешка при добавяне на разход');
+    }
   }
-}
 
-// Редакция на разход
-async function handleUpdateExpense(
-  expenseId: string,
-  exp: BaseExpenseInput
-) {
-  try {
-    await updateExpense(expenseId, exp);
+  // Редакция на разход
+  async function handleUpdateExpense(expenseId: string, exp: BaseExpenseInput) {
+    try {
+      await updateExpense(expenseId, exp);
 
-    setExpenses((prev) =>
-      prev.map((e) =>
-        e.id === expenseId
-          ? {
-              ...e,
-              paidByFamilyId: exp.paidByFamilyId,
-              involvedFamilyIds: exp.involvedFamilyIds,
-              amount: exp.amount,
-              currency: exp.currency,
-              comment: exp.comment,
-              type: exp.type,
-              settlementFromFamilyId: exp.settlementFromFamilyId,
-              settlementToFamilyId: exp.settlementToFamilyId,
-            }
-          : e
-      )
-    );
-  } catch (err) {
-    console.error(err);
-    alert('Грешка при редакция на разход.');
+      setExpenses((prev) =>
+        prev.map((e) =>
+          e.id === expenseId
+            ? {
+                ...e,
+                paidByFamilyId: exp.paidByFamilyId,
+                involvedFamilyIds: exp.involvedFamilyIds,
+                amount: exp.amount,
+                currency: exp.currency,
+                comment: exp.comment,
+                type: exp.type,
+                settlementFromFamilyId: exp.settlementFromFamilyId,
+                settlementToFamilyId: exp.settlementToFamilyId,
+              }
+            : e
+        )
+      );
+    } catch (err) {
+      console.error(err);
+      alert('Грешка при редакция на разход.');
+    }
   }
-}
 
   // Изтриване на разход
   async function handleDeleteExpense(expenseId: string) {
@@ -271,12 +266,13 @@ async function handleUpdateExpense(
   const familiesCount = families.length;
   const expensesCount = expenses.length;
   const tripStatus = trip?.archived ? 'Архивирано' : 'Активно';
+
+  // 🔁 Централизирано: валутата на пътуването
   const tripCurrency: CurrencyCode =
-    (trip?.currency as CurrencyCode) ?? 'EUR';
+    (trip?.currency as CurrencyCode) || 'EUR';
 
   // 🔢 Данни за резюмето – реално похарчено след разделянето
   const [showSummaryInEur, setShowSummaryInEur] = React.useState(false);
-  // може да превключваме към евро, ако базовата валута не е EUR
   const canToggleToEur = tripCurrency !== 'EUR';
 
   // само разходи в валутата на пътуването и които са "expense", не "settlement"
@@ -298,7 +294,6 @@ async function handleUpdateExpense(
     });
 
     for (const e of expensesInTripCurrency) {
-      // ако няма участници (заради новата логика) → приемаме, че участват всички
       const participants =
         e.involvedFamilyIds && e.involvedFamilyIds.length > 0
           ? e.involvedFamilyIds

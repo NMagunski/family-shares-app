@@ -8,7 +8,7 @@ import { getCurrencySymbol, type CurrencyCode } from '@/lib/currencies';
 type ExpensesTableProps = {
   families: TripFamily[];
   expenses: TripExpense[];
-  tripCurrency?: CurrencyCode;
+  tripCurrency: CurrencyCode;
   onAddExpense: (exp: BaseExpenseInput) => void;
   onUpdateExpense: (expenseId: string, exp: BaseExpenseInput) => void;
   onDeleteExpense: (expenseId: string) => void;
@@ -19,7 +19,7 @@ const PAGE_SIZE = 10;
 const ExpensesTable: React.FC<ExpensesTableProps> = ({
   families,
   expenses,
-  tripCurrency = 'EUR',
+  tripCurrency,
   onAddExpense,
   onUpdateExpense,
   onDeleteExpense,
