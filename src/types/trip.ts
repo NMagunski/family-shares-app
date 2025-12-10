@@ -1,3 +1,4 @@
+// src/types/trip.ts
 import type { CurrencyCode } from '@/lib/currencies';
 
 export type TripType = 'beach' | 'flight' | 'other';
@@ -21,8 +22,8 @@ export type Trip = {
   archived?: boolean;
 
   // Държава и валута за пътуването
-  country?: string;         // напр. "BG"
-  currency?: CurrencyCode;  // валута по подразбиране за всички разходи
+  country?: string;          // напр. "BG"
+  currency?: CurrencyCode;   // валута по подразбиране за всички разходи
 
   // 👉 програмата на пътуването (по избор)
   itinerary?: TripItineraryItem[];
@@ -51,7 +52,10 @@ export type TripExpense = {
   involvedFamilyIds: string[];
 
   amount: number;
+
+  // ❗ ВАЖНО: вече използваме глобалния CurrencyCode
   currency: CurrencyCode;
+
   comment?: string;
 
   // дата/час на добавяне – може да я няма при по-стари разходи

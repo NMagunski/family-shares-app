@@ -1,28 +1,17 @@
+// src/components/trips/ExpensesTable.tsx
 import React from 'react';
-import type { TripFamily, TripExpense } from '@/types/trip';
-import AddExpenseForm from './AddExpenseForm';
+import type { TripExpense, TripFamily } from '@/types/trip';
+import AddExpenseForm, { type BaseExpenseInput } from './AddExpenseForm';
 import { Info } from 'lucide-react';
-import type { CurrencyCode } from '@/lib/currencies';
-import { getCurrencySymbol } from '@/lib/currencies';
-
-type NewExpenseInput = {
-  paidByFamilyId: string;
-  involvedFamilyIds: string[];
-  amount: number;
-  currency: CurrencyCode;
-  comment?: string;
-};
+import { getCurrencySymbol, type CurrencyCode } from '@/lib/currencies';
 
 type ExpensesTableProps = {
   families: TripFamily[];
   expenses: TripExpense[];
   tripCurrency?: CurrencyCode;
-  onAddExpense?: (expense: NewExpenseInput) => void | Promise<void>;
-  onUpdateExpense?: (
-    expenseId: string,
-    expense: NewExpenseInput
-  ) => void | Promise<void>;
-  onDeleteExpense?: (expenseId: string) => void | Promise<void>;
+  onAddExpense: (exp: BaseExpenseInput) => void;
+  onUpdateExpense: (expenseId: string, exp: BaseExpenseInput) => void;
+  onDeleteExpense: (expenseId: string) => void;
 };
 
 const PAGE_SIZE = 10;
@@ -30,7 +19,7 @@ const PAGE_SIZE = 10;
 const ExpensesTable: React.FC<ExpensesTableProps> = ({
   families,
   expenses,
-  tripCurrency = 'EUR', // fallback, ако не дойде
+  tripCurrency = 'EUR',
   onAddExpense,
   onUpdateExpense,
   onDeleteExpense,
@@ -55,10 +44,10 @@ const ExpensesTable: React.FC<ExpensesTableProps> = ({
   const endIndex = startIndex + PAGE_SIZE;
   const pageExpenses = expenses.slice(startIndex, endIndex);
 
-  function handleAdd(expense: NewExpenseInput) {
-    if (!onAddExpense) return;
+  function handleAdd(expense: BaseExpenseInput) {
     onAddExpense(expense);
-    setCurrentPage(1); // новите разходи да се виждат на първата страница
+    // новите разходи да се виждат на първата страница
+    setCurrentPage(1);
   }
 
   function handleStartEdit(exp: TripExpense) {
@@ -77,12 +66,16 @@ const ExpensesTable: React.FC<ExpensesTableProps> = ({
       return;
     }
 
-    const payload: NewExpenseInput = {
+    const payload: BaseExpenseInput = {
       paidByFamilyId: exp.paidByFamilyId,
       involvedFamilyIds: exp.involvedFamilyIds,
       amount: exp.amount,
-      currency: exp.currency,
+      currency: exp.currency as CurrencyCode,
       comment: editingComment,
+      // ако въвеждаме и „пито платено“ пазим типа и участниците
+      type: exp.type,
+      settlementFromFamilyId: exp.settlementFromFamilyId,
+      settlementToFamilyId: exp.settlementToFamilyId,
     };
 
     try {
@@ -95,15 +88,17 @@ const ExpensesTable: React.FC<ExpensesTableProps> = ({
   async function handleDelete(expenseId: string) {
     if (!onDeleteExpense) return;
 
-    const ok = window.confirm('Сигурен ли си, че искаш да изтриеш този разход?');
+    const ok = window.confirm(
+      'Сигурен ли си, че искаш да изтриеш този разход?'
+    );
     if (!ok) return;
 
     await onDeleteExpense(expenseId);
   }
 
-  function toggleInfo(expenseId: string) {
-    setOpenInfoId((prev) => (prev === expenseId ? null : expenseId));
-  }
+function toggleInfo(expenseId: string) {
+  setOpenInfoId((prev) => (prev === expenseId ? null : expenseId));
+}
 
   function toggleExpanded(expenseId: string) {
     setExpandedId((prev) => (prev === expenseId ? null : expenseId));
@@ -180,7 +175,7 @@ const ExpensesTable: React.FC<ExpensesTableProps> = ({
                   const isEditing = editingId === exp.id;
                   const isInfoOpen = openInfoId === exp.id;
                   const involvedNames = formatInvolvedFamilies(exp);
-                  const currencySymbol = getCurrencySymbol(exp.currency as CurrencyCode);
+                  const currencySymbol = getCurrencySymbol(exp.currency);
 
                   return (
                     <tr
@@ -287,7 +282,7 @@ const ExpensesTable: React.FC<ExpensesTableProps> = ({
               const isEditing = editingId === exp.id;
               const isExpanded = expandedId === exp.id;
               const involvedNames = formatInvolvedFamilies(exp);
-              const currencySymbol = getCurrencySymbol(exp.currency as CurrencyCode);
+              const currencySymbol = getCurrencySymbol(exp.currency);
 
               return (
                 <div

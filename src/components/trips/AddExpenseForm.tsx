@@ -2,7 +2,8 @@ import React from 'react';
 import type { CurrencyCode } from '@/lib/currencies';
 import { getCurrencySymbol } from '@/lib/currencies';
 
-type BaseExpenseInput = {
+// 👇 ТУК добавяме export
+export type BaseExpenseInput = {
   paidByFamilyId: string;
   involvedFamilyIds: string[];
   amount: number;
@@ -85,12 +86,10 @@ const AddExpenseForm: React.FC<Props> = ({
     // 👉 Нормален разход
     let finalInvolved = [...involved];
 
-    // 1) ако няма избран никой → всички семейства
     if (finalInvolved.length === 0) {
       finalInvolved = families.map((f) => f.id);
     }
 
-    // 2) платилият винаги участва в разделянето
     if (paidBy && !finalInvolved.includes(paidBy)) {
       finalInvolved.push(paidBy);
     }
