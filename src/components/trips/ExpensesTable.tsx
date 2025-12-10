@@ -2,18 +2,21 @@ import React from 'react';
 import type { TripFamily, TripExpense } from '@/types/trip';
 import AddExpenseForm from './AddExpenseForm';
 import { Info } from 'lucide-react';
+import type { CurrencyCode } from '@/lib/currencies';
+import { getCurrencySymbol } from '@/lib/currencies';
 
 type NewExpenseInput = {
   paidByFamilyId: string;
   involvedFamilyIds: string[];
   amount: number;
-  currency: 'BGN' | 'EUR';
+  currency: CurrencyCode;
   comment?: string;
 };
 
 type ExpensesTableProps = {
   families: TripFamily[];
   expenses: TripExpense[];
+  tripCurrency?: CurrencyCode;
   onAddExpense?: (expense: NewExpenseInput) => void | Promise<void>;
   onUpdateExpense?: (
     expenseId: string,
@@ -27,6 +30,7 @@ const PAGE_SIZE = 10;
 const ExpensesTable: React.FC<ExpensesTableProps> = ({
   families,
   expenses,
+  tripCurrency = 'EUR', // fallback, ако не дойде
   onAddExpense,
   onUpdateExpense,
   onDeleteExpense,
@@ -140,6 +144,7 @@ const ExpensesTable: React.FC<ExpensesTableProps> = ({
       <AddExpenseForm
         families={families.map((f) => ({ id: f.id, name: f.name }))}
         onAdd={handleAdd}
+        tripCurrency={tripCurrency}
       />
 
       {/* Списък с разходи */}
@@ -175,6 +180,7 @@ const ExpensesTable: React.FC<ExpensesTableProps> = ({
                   const isEditing = editingId === exp.id;
                   const isInfoOpen = openInfoId === exp.id;
                   const involvedNames = formatInvolvedFamilies(exp);
+                  const currencySymbol = getCurrencySymbol(exp.currency as CurrencyCode);
 
                   return (
                     <tr
@@ -199,7 +205,7 @@ const ExpensesTable: React.FC<ExpensesTableProps> = ({
                         {family?.name ?? '—'}
                       </td>
                       <td className="py-2 pr-4 text-eco-text">
-                        {exp.amount.toFixed(2)} {exp.currency}
+                        {exp.amount.toFixed(2)} {currencySymbol}
                       </td>
                       <td className="py-2 pr-4 text-eco-text-muted">
                         {isEditing ? (
@@ -281,6 +287,7 @@ const ExpensesTable: React.FC<ExpensesTableProps> = ({
               const isEditing = editingId === exp.id;
               const isExpanded = expandedId === exp.id;
               const involvedNames = formatInvolvedFamilies(exp);
+              const currencySymbol = getCurrencySymbol(exp.currency as CurrencyCode);
 
               return (
                 <div
@@ -308,7 +315,7 @@ const ExpensesTable: React.FC<ExpensesTableProps> = ({
                     <div className="flex flex-col items-end">
                       <span className="text-eco-text-muted">Сума</span>
                       <span className="font-semibold text-eco-text">
-                        {exp.amount.toFixed(2)} {exp.currency}
+                        {exp.amount.toFixed(2)} {currencySymbol}
                       </span>
                     </div>
                   </button>

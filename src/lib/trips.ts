@@ -19,16 +19,21 @@ const LISTS_COLLECTION = 'lists';
 
 /**
  * Създаване на ново пътуване за даден потребител
+ * country & currency са по избор – ако ги няма, взимаме BG / BGN.
  */
 export async function createTripForUser(
   ownerId: string,
   type: TripType,
-  name: string
+  name: string,
+  country: string = 'BG',
+  currency: 'BGN' | 'EUR' = 'BGN'
 ): Promise<Trip> {
   const payload = {
     ownerId,
     type,
     name,
+    country,
+    currency,
     createdAt: new Date().toISOString(),
     archived: false,
     // itinerary не е задължително поле – може да го пропуснем
@@ -64,6 +69,8 @@ export async function fetchTripsForUser(ownerId: string): Promise<Trip[]> {
       name: data.name,
       createdAt: data.createdAt ?? '',
       archived: data.archived ?? false,
+      country: data.country ?? 'BG',
+      currency: (data.currency as 'BGN' | 'EUR' | undefined) ?? 'BGN',
       // itinerary не ни трябва в списъка – оставяме го undefined
     };
   });
@@ -108,6 +115,8 @@ export async function fetchSharedTripsForUser(userId: string): Promise<Trip[]> {
       name: data.name,
       createdAt: data.createdAt ?? '',
       archived: data.archived ?? false,
+      country: data.country ?? 'BG',
+      currency: (data.currency as 'BGN' | 'EUR' | undefined) ?? 'BGN',
       // itinerary тук също не е нужен
     });
   }
@@ -118,7 +127,7 @@ export async function fetchSharedTripsForUser(userId: string): Promise<Trip[]> {
 }
 
 /**
- * Взима конкретно пътуване по ID (за заглавието на екрана)
+ * Взима конкретно пътуване по ID (за заглавието на екрана и детайла)
  */
 export async function fetchTripById(tripId: string): Promise<Trip | null> {
   const ref = doc(db, TRIPS_COLLECTION, tripId);
@@ -137,6 +146,8 @@ export async function fetchTripById(tripId: string): Promise<Trip | null> {
     name: data.name,
     createdAt: data.createdAt ?? '',
     archived: data.archived ?? false,
+    country: data.country ?? 'BG',
+    currency: (data.currency as 'BGN' | 'EUR' | undefined) ?? 'BGN',
     // 👉 ако вече има itinerary в документа – взимаме го, иначе оставяме undefined
     itinerary: (data.itinerary as TripItineraryItem[] | undefined) ?? undefined,
   };

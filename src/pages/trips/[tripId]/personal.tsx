@@ -5,6 +5,7 @@ import Card from '@/components/ui/Card';
 import Button from '@/components/ui/Button';
 import { useAuth } from '@/context/AuthContext';
 import { fetchTripById } from '@/lib/trips';
+import type { Trip } from '@/types/trip';
 import {
   createPersonalList,
   fetchPersonalListsForTrip,
@@ -15,6 +16,8 @@ import {
   type PersonalExpenseList,
   type PersonalExpense,
 } from '@/lib/personalExpenses';
+import type { CurrencyCode } from '@/lib/currencies';
+import { getCurrencySymbol } from '@/lib/currencies';
 
 const PersonalExpensesPage: React.FC = () => {
   const router = useRouter();
@@ -23,7 +26,7 @@ const PersonalExpensesPage: React.FC = () => {
 
   const { user, loading: authLoading } = useAuth();
 
-  const [tripName, setTripName] = React.useState('');
+  const [trip, setTrip] = React.useState<Trip | null>(null);
   const [lists, setLists] = React.useState<PersonalExpenseList[]>([]);
   const [loading, setLoading] = React.useState(false);
   const [error, setError] = React.useState<string | null>(null);
@@ -39,14 +42,14 @@ const PersonalExpensesPage: React.FC = () => {
     }
   }, [authLoading, user, router, tripIdStr]);
 
-  // Зареждаме името на пътуването
+  // Зареждаме пътуването (за име + валута)
   React.useEffect(() => {
     if (!tripIdStr || !user) return;
 
     async function loadTrip() {
       try {
         const t = await fetchTripById(tripIdStr);
-        setTripName(t?.name || '');
+        setTrip(t);
       } catch (err) {
         console.error('Грешка при зареждане на пътуването:', err);
       }
@@ -56,30 +59,27 @@ const PersonalExpensesPage: React.FC = () => {
   }, [tripIdStr, user]);
 
   // Зареждаме личните списъци за това пътуване
-// Зареждаме личните списъци за това пътуване
-React.useEffect(() => {
-  if (!tripIdStr || !user) return;
+  React.useEffect(() => {
+    if (!tripIdStr || !user) return;
 
-  // ✅ Тук вече сме сигурни, че user не е null
-  const userId = user.uid;
+    const userId = user.uid;
 
-  async function loadLists() {
-    try {
-      setLoading(true);
-      setError(null);
-      const data = await fetchPersonalListsForTrip(tripIdStr, userId);
-      setLists(data);
-    } catch (err) {
-      console.error(err);
-      setError('Грешка при зареждане на личните разходи.');
-    } finally {
-      setLoading(false);
+    async function loadLists() {
+      try {
+        setLoading(true);
+        setError(null);
+        const data = await fetchPersonalListsForTrip(tripIdStr, userId);
+        setLists(data);
+      } catch (err) {
+        console.error(err);
+        setError('Грешка при зареждане на личните разходи.');
+      } finally {
+        setLoading(false);
+      }
     }
-  }
 
-  loadLists();
-}, [tripIdStr, user]);
-
+    loadLists();
+  }, [tripIdStr, user]);
 
   function handleStartCreateList() {
     setCreatingList(true);
@@ -132,6 +132,11 @@ React.useEffect(() => {
     );
   }
 
+  // Валутата на пътуването за личните разходи
+  const pageCurrency: CurrencyCode =
+    (trip?.currency as CurrencyCode) ?? 'EUR';
+  const currencySymbol = getCurrencySymbol(pageCurrency);
+
   return (
     <Layout>
       <Card>
@@ -141,6 +146,11 @@ React.useEffect(() => {
             <h1 className="text-xl sm:text-2xl font-semibold text-eco-text mb-1">
               Лични разходи за пътуване
             </h1>
+            {trip?.name && (
+              <p className="text-xs text-eco-text-muted mb-1">
+                Пътуване: <span className="font-semibold">{trip.name}</span>
+              </p>
+            )}
             <p className="text-sm text-eco-text-muted max-w-xl">
               Създай лични разходни списъци за това пътуване и ги сподели само
               с хората, с които искаш да виждате заедно общите си разходи.
@@ -221,6 +231,7 @@ React.useEffect(() => {
                 key={list.id}
                 list={list}
                 currentUserId={user.uid}
+                currency={pageCurrency}
                 onDeleteList={handleDeleteList}
               />
             ))}
@@ -234,18 +245,23 @@ React.useEffect(() => {
 type PersonalListCardProps = {
   list: PersonalExpenseList;
   currentUserId: string;
+  currency: CurrencyCode;
   onDeleteList: (listId: string) => void;
 };
 
 const PersonalListCard: React.FC<PersonalListCardProps> = ({
   list,
   currentUserId,
+  currency,
   onDeleteList,
 }) => {
   const [items, setItems] = React.useState<PersonalExpense[]>([]);
   const [loadingItems, setLoadingItems] = React.useState(false);
   const [newDescription, setNewDescription] = React.useState('');
   const [newAmount, setNewAmount] = React.useState('');
+
+  // единично място, където решаваме символа
+  const currencySymbol = getCurrencySymbol(currency);
 
   React.useEffect(() => {
     async function loadItems() {
@@ -309,7 +325,6 @@ const PersonalListCard: React.FC<PersonalListCardProps> = ({
     try {
       const origin =
         typeof window !== 'undefined' ? window.location.origin : '';
-      // Страница за join ще добавим отделно, напр. /personal/join
       const url = `${origin}/personal/join?token=${list.shareToken}`;
       navigator.clipboard
         .writeText(url)
@@ -370,19 +385,21 @@ const PersonalListCard: React.FC<PersonalListCardProps> = ({
           value={newDescription}
           onChange={(e) => setNewDescription(e.target.value)}
         />
-        <input
-          className="w-full sm:w-32 rounded-lg border border-eco-border/70 bg-eco-surface-soft px-3 py-2 text-sm text-eco-text placeholder:text-eco-text-muted focus:outline-none focus:ring-2 focus:ring-emerald-500"
-          type="text"
-          placeholder="Сума"
-          value={newAmount}
-          onChange={(e) => setNewAmount(e.target.value)}
-        />
-        <button
-          type="submit"
-          className="px-3 py-2 rounded-lg bg-emerald-500 text-xs sm:text-sm font-medium text-white hover:bg-emerald-600 transition whitespace-nowrap"
-        >
-          Добави
-        </button>
+        <div className="flex gap-2 w-full sm:w-auto">
+          <input
+            className="flex-1 sm:w-32 rounded-lg border border-eco-border/70 bg-eco-surface-soft px-3 py-2 text-sm text-eco-text placeholder:text-eco-text-muted focus:outline-none focus:ring-2 focus:ring-emerald-500"
+            type="text"
+            placeholder={`Сума (${currencySymbol})`}
+            value={newAmount}
+            onChange={(e) => setNewAmount(e.target.value)}
+          />
+          <button
+            type="submit"
+            className="px-3 py-2 rounded-lg bg-emerald-500 text-xs sm:text-sm font-medium text-white hover:bg-emerald-600 transition whitespace-nowrap"
+          >
+            Добави
+          </button>
+        </div>
       </form>
 
       {/* Разходи */}
@@ -407,7 +424,7 @@ const PersonalListCard: React.FC<PersonalListCardProps> = ({
                   {item.description}
                 </p>
                 <p className="text-xs text-eco-text-muted">
-                  Сума: {item.amount.toFixed(2)} лв.
+                  Сума: {item.amount.toFixed(2)} {currencySymbol}
                 </p>
               </div>
               <button
@@ -428,7 +445,7 @@ const PersonalListCard: React.FC<PersonalListCardProps> = ({
           Общо за този списък:
         </span>
         <span className="text-sm font-semibold text-emerald-500">
-          {total.toFixed(2)} лв.
+          {total.toFixed(2)} {currencySymbol}
         </span>
       </div>
     </Card>

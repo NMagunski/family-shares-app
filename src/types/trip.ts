@@ -1,3 +1,5 @@
+import type { CurrencyCode } from '@/lib/currencies';
+
 export type TripType = 'beach' | 'flight' | 'other';
 
 export type TripItineraryItem = {
@@ -18,7 +20,11 @@ export type Trip = {
   createdAt: string; // ISO string
   archived?: boolean;
 
-  // 👉 новото поле – програмата на пътуването (по избор)
+  // Държава и валута за пътуването
+  country?: string;         // напр. "BG"
+  currency?: CurrencyCode;  // валута по подразбиране за всички разходи
+
+  // 👉 програмата на пътуването (по избор)
   itinerary?: TripItineraryItem[];
 };
 
@@ -31,7 +37,7 @@ export type TripFamily = {
   createdAt?: string;
 };
 
-// 🆕 тип на разхода – нормален или "Пито платено"
+// тип на разхода – нормален или "Пито платено"
 export type TripExpenseType = 'expense' | 'settlement';
 
 export type TripExpense = {
@@ -45,18 +51,18 @@ export type TripExpense = {
   involvedFamilyIds: string[];
 
   amount: number;
-  currency: 'BGN' | 'EUR';
+  currency: CurrencyCode;
   comment?: string;
 
-  // 🆕 дата/час на добавяне – може да я няма при по-стари разходи
+  // дата/час на добавяне – може да я няма при по-стари разходи
   createdAt?: string; // ISO string
 
-  // 🆕 тип на записа:
+  // тип на записа:
   // undefined или 'expense' → нормален разход (backwards compatible)
   // 'settlement' → "Пито платено" / погасяване на дълг
   type?: TripExpenseType;
 
-  // 🆕 за "Пито платено" – от кое семейство към кое семейство е погасяването
+  // за "Пито платено" – от кое семейство към кое семейство е погасяването
   // (използва се, когато type === 'settlement')
   settlementFromFamilyId?: string;
   settlementToFamilyId?: string;

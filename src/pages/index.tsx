@@ -286,111 +286,190 @@ React.useEffect(() => {
 
   // 👉 3) Логнат потребител → hero + активни / архивирани пътувания
   const userId = user.uid;
+  const hasAnyTrips = activeTrips.length > 0 || archivedTrips.length > 0;
+
 
   return (
-    <Layout>
-      <div className="space-y-6">
-{/* HERO: бутон за ново пътуване */}
-<div className="flex justify-center">
-  <Button
-    type="button"
-    onClick={() => setIsModalOpen(true)}
-    className="px-6 py-3 text-base font-medium"
-  >
-    + Ново пътуване
-  </Button>
-</div>
+  <Layout>
+    <div className="space-y-6">
+      {/* Ако НЯМА никакви пътувания → показваме специален empty state */}
+      {!tripsLoading && !error && !hasAnyTrips ? (
+        <div className="flex items-center justify-center min-h-[60vh] px-4">
+          <Card className="w-full max-w-3xl bg-eco-surface-soft/80 border border-eco-border shadow-eco-soft">
+            <div className="grid gap-6 md:grid-cols-[minmax(0,3fr)_minmax(0,2fr)] items-center">
+              {/* Лява колона – текст и bullet-и */}
+              <div>
+                <h1 className="text-2xl sm:text-3xl font-semibold text-eco-text">
+                  Още нямаш пътувания.
+                </h1>
+                <p className="mt-2 text-sm text-eco-text-muted leading-relaxed">
+                  Създай първото си пътуване и раздели разходите честно между
+                  семейства и приятели – без листчета, без калкулатори и без спорове.
+                </p>
 
+                <ul className="mt-4 space-y-2 text-sm text-eco-text">
+                  <li className="flex items-start gap-2">
+                    <span className="mt-[3px] h-1.5 w-1.5 rounded-full bg-emerald-400" />
+                    <span>Добави участващите семейства.</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <span className="mt-[3px] h-1.5 w-1.5 rounded-full bg-emerald-400" />
+                    <span>Въвеждай разходи в реално време – гориво, нощувки, храна.</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <span className="mt-[3px] h-1.5 w-1.5 rounded-full bg-emerald-400" />
+                    <span>Виж ясно кой на кого колко дължи накрая на пътуването.</span>
+                  </li>
+                </ul>
 
-        {/* Секции с пътувания – по-сбит layout за мобилно */}
-        <div className="grid gap-6 lg:grid-cols-2">
-          {/* Активни пътувания (моите + тези, в които участвам) */}
-          <section className="rounded-2xl border border-eco-border bg-eco-surface-soft/80 p-4 shadow-eco-soft">
-            <div className="mb-2 flex items-center justify-between gap-2">
-              <h2 className="text-base font-semibold text-eco-text">
-                Активни пътувания
-              </h2>
-              <span className="h-2.5 w-2.5 rounded-full bg-emerald-400" />
+                <div className="mt-6">
+                  <Button
+                    type="button"
+                    onClick={() => setIsModalOpen(true)}
+                    className="px-6 py-3 text-base font-medium"
+                  >
+                    Създай първо пътуване
+                  </Button>
+                </div>
+              </div>
+
+              {/* Дясна колона – малка „илюстрация“ в стила на TripSplitly */}
+              <div className="hidden md:flex items-center justify-center">
+                <div className="relative">
+                  <div className="pointer-events-none absolute -inset-6 rounded-3xl bg-[radial-gradient(circle_at_top,_rgba(16,185,129,0.3),_transparent_55%),radial-gradient(circle_at_bottom,_rgba(16,185,129,0.18),_transparent_55%)] opacity-80" />
+                  <div className="relative flex h-40 w-40 items-center justify-center rounded-full bg-eco-surface border border-eco-border shadow-eco-soft">
+                    <svg
+                      className="h-20 w-20 text-emerald-300"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="1.6"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    >
+                      <path d="M3 18l7-5 4 3 7-6" />
+                      <path d="M21 10v7h-7" />
+                      <path d="M3 6h18" />
+                    </svg>
+                  </div>
+                </div>
+              </div>
             </div>
+          </Card>
+        </div>
+      ) : (
+        <>
+          {/* HERO: бутон за ново пътуване */}
+          <div className="flex justify-center">
+            <Button
+              type="button"
+              onClick={() => setIsModalOpen(true)}
+              className="px-6 py-3 text-base font-medium"
+            >
+              + Ново пътуване
+            </Button>
+          </div>
 
-            {tripsLoading ? (
-              <p className="mt-2 text-sm text-eco-text-muted">Зареждане...</p>
-            ) : error ? (
-              <p className="mt-2 text-sm text-red-400">{error}</p>
-            ) : activeTrips.length === 0 ? (
-              <p className="mt-2 text-sm text-eco-text-muted">
-                Все още нямаш активни пътувания. Създай ново или влез с линк,
-                който ти е изпратен от приятел.
-              </p>
-            ) : (
-              <div className="mt-3 space-y-3">
-                {activeTrips.map((trip) => {
-                  const isOwner = trip.ownerId === userId;
-                  return (
+          {/* Секции с пътувания */}
+          <div className="grid gap-6 lg:grid-cols-2">
+            {/* Активни пътувания */}
+            <section className="rounded-2xl border border-eco-border bg-eco-surface-soft/80 p-4 shadow-eco-soft">
+              <div className="mb-2 flex items-center justify-between gap-2">
+                <h2 className="text-base font-semibold text-eco-text">
+                  Активни пътувания
+                </h2>
+                <span className="h-2.5 w-2.5 rounded-full bg-emerald-400" />
+              </div>
+
+              {tripsLoading ? (
+                <p className="mt-2 text-sm text-eco-text-muted">Зареждане...</p>
+              ) : error ? (
+                <p className="mt-2 text-sm text-red-400">{error}</p>
+              ) : activeTrips.length === 0 ? (
+                <p className="mt-2 text-sm text-eco-text-muted">
+                  Все още нямаш активни пътувания. Създай ново или влез с линк,
+                  който ти е изпратен от приятел.
+                </p>
+              ) : (
+                <div className="mt-3 space-y-3">
+                  {activeTrips.map((trip) => {
+                    const isOwner = trip.ownerId === userId;
+                    return (
+                      <TripCard
+                        key={trip.id}
+                        trip={trip}
+                        showManageActions={isOwner}
+                        onArchiveToggle={isOwner ? handleAskArchiveTrip : undefined}
+                        onDelete={isOwner ? handleAskDeleteTrip : undefined}
+                        role={isOwner ? 'owner' : 'participant'}
+                      />
+                    );
+                  })}
+                </div>
+              )}
+            </section>
+
+            {/* Архивирани пътувания */}
+            <section className="rounded-2xl border border-eco-border bg-eco-surface-soft/80 p-4 shadow-eco-soft">
+              <div className="mb-2 flex items-center justify-between gap-2">
+                <h2 className="text-base font-semibold text-eco-text">
+                  Архивирани пътувания
+                </h2>
+                <span className="h-2.5 w-2.5 rounded-full bg-yellow-400" />
+              </div>
+
+              {tripsLoading ? (
+                <p className="mt-2 text-sm text-eco-text-muted">Зареждане...</p>
+              ) : archivedTrips.length === 0 ? (
+                <p className="mt-2 text-sm text-eco-text-muted">
+                  Нямаш архивирани пътувания.
+                </p>
+              ) : (
+                <div className="mt-3 space-y-3">
+                  {archivedTrips.map((trip) => (
                     <TripCard
                       key={trip.id}
                       trip={trip}
-                      showManageActions={isOwner}
-                      onArchiveToggle={isOwner ? handleAskArchiveTrip : undefined}
-                      onDelete={isOwner ? handleAskDeleteTrip : undefined}
-                      // 🧩 нов проп, който ще използваме в TripCard за бейдж
-                      role={isOwner ? 'owner' : 'participant'}
+                      showManageActions
+                      onArchiveToggle={handleAskArchiveTrip}
+                      onDelete={handleAskDeleteTrip}
+                      role="owner"
                     />
-                  );
-                })}
-              </div>
-            )}
-          </section>
+                  ))}
+                </div>
+              )}
+            </section>
+          </div>
+        </>
+      )}
 
-          {/* Архивирани пътувания (само създадени от мен) */}
-          <section className="rounded-2xl border border-eco-border bg-eco-surface-soft/80 p-4 shadow-eco-soft">
-            <div className="mb-2 flex items-center justify-between gap-2">
-              <h2 className="text-base font-semibold text-eco-text">
-                Архивирани пътувания
-              </h2>
-              <span className="h-2.5 w-2.5 rounded-full bg-yellow-400" />
-            </div>
+      {/* NewTripWizard остава както вече го направихме */}
+      <NewTripWizard
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        onCreateTrip={async (type, name, country, currency) => {
+          if (!user) return;
+          const tripCurrency: 'BGN' | 'EUR' =
+            currency === 'BGN' || currency === 'EUR' ? currency : 'EUR';
 
-            {tripsLoading ? (
-              <p className="mt-2 text-sm text-eco-text-muted">Зареждане...</p>
-            ) : archivedTrips.length === 0 ? (
-              <p className="mt-2 text-sm text-eco-text-muted">
-                Нямаш архивирани пътувания.
-              </p>
-            ) : (
-              <div className="mt-3 space-y-3">
-                {archivedTrips.map((trip) => (
-                  <TripCard
-                    key={trip.id}
-                    trip={trip}
-                    showManageActions
-                    onArchiveToggle={handleAskArchiveTrip}
-                    onDelete={handleAskDeleteTrip}
-                    role="owner"
-                  />
-                ))}
-              </div>
-            )}
-          </section>
-        </div>
-      </div>
-<NewTripWizard
-  isOpen={isModalOpen}
-  onClose={() => setIsModalOpen(false)}
-  onCreateTrip={async (type, name) => {
-    if (!user) return;
-    try {
-      const newTrip = await createTripForUser(user.uid, type, name);
-      setOwnedTrips(prev => [newTrip, ...prev]);
-      setIsModalOpen(false);
-    } catch (err) {
-      console.error(err);
-      alert('Грешка при създаване на пътуване.');
-    }
-  }}
-/>
+          try {
+            const newTrip = await createTripForUser(
+              user.uid,
+              type,
+              name,
+              country,
+              tripCurrency
+            );
+            setOwnedTrips((prev) => [newTrip, ...prev]);
+            setIsModalOpen(false);
+          } catch (err) {
+            console.error(err);
+            alert('Грешка при създаване на пътуване.');
+          }
+        }}
+      />
 
-      {/* Модал за ИЗТРИВАНЕ */}
+      {/* Модали за изтриване / архивиране – без промяна */}
       {tripToDelete && (
         <DeleteModal
           open={deleteModalOpen}
@@ -404,7 +483,6 @@ React.useEffect(() => {
         />
       )}
 
-      {/* Модал за АРХИВИРАНЕ / ВРЪЩАНЕ ОТ АРХИВ */}
       {tripToArchive && (
         <ArchiveModal
           open={archiveModalOpen}
@@ -417,8 +495,10 @@ React.useEffect(() => {
           }}
         />
       )}
-    </Layout>
-  );
+    </div>
+  </Layout>
+);
+
 };
 
 export default HomePage;

@@ -10,7 +10,7 @@ import ShareTripModal from '@/components/trips/ShareTripModal';
 import SectionCard from '@/components/ui/SectionCard';
 import EditFamilyModal from '@/components/trips/EditFamilyModal';
 import ConfirmModal from '@/components/ui/ConfirmModal';
-import Button from '@/components/ui/Button'; // 🆕 добавен импорт
+import Button from '@/components/ui/Button';
 import { useToast } from '@/context/ToastContext';
 import type { Trip, TripFamily, TripExpense } from '@/types/trip';
 import {
@@ -27,15 +27,9 @@ import {
 } from '@/lib/expensesStore';
 import { fetchTripById } from '@/lib/trips';
 import { useAuth } from '@/context/AuthContext';
+import { Users, Scale, Receipt, Info, Lightbulb } from 'lucide-react';
 
-// 🆕 Lucide икони
-import {
-  Users,
-  Scale,
-  Receipt,
-  Info,
-  Lightbulb,
-} from 'lucide-react';
+const BGN_TO_EUR = 1.95583;
 
 const TripPage: React.FC = () => {
   const router = useRouter();
@@ -46,7 +40,7 @@ const TripPage: React.FC = () => {
 
   const tripIdStr = typeof tripId === 'string' ? tripId : '';
 
-  // 👉 Guard: ако не сме логнати, пращаме към /login с redirect
+  // Guard за неавторизирани
   React.useEffect(() => {
     if (!authLoading && !user) {
       const target = router.asPath || `/trips/${tripIdStr}`;
@@ -63,7 +57,7 @@ const TripPage: React.FC = () => {
   }, []);
   const shareUrl = tripIdStr ? `${origin}/join/${tripIdStr}` : '';
 
-  // Данни за пътуването
+  // Пътуване
   const [trip, setTrip] = React.useState<Trip | null>(null);
 
   // Семейства
@@ -79,15 +73,18 @@ const TripPage: React.FC = () => {
   const [showShareModal, setShowShareModal] = React.useState(false);
 
   // Edit family modal
-  const [editingFamily, setEditingFamily] = React.useState<TripFamily | null>(null);
+  const [editingFamily, setEditingFamily] = React.useState<TripFamily | null>(
+    null
+  );
   const [isEditModalOpen, setIsEditModalOpen] = React.useState(false);
 
   // Delete family modal
-  const [deletingFamily, setDeletingFamily] = React.useState<TripFamily | null>(null);
+  const [deletingFamily, setDeletingFamily] =
+    React.useState<TripFamily | null>(null);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = React.useState(false);
   const [deleteLoading, setDeleteLoading] = React.useState(false);
 
-  // Зареждане на пътуване
+  // Зареждане на пътуването
   React.useEffect(() => {
     if (!tripIdStr) return;
 
@@ -148,6 +145,9 @@ const TripPage: React.FC = () => {
     amount: number;
     currency: 'BGN' | 'EUR';
     comment?: string;
+    type?: 'expense' | 'settlement';
+    settlementFromFamilyId?: string;
+    settlementToFamilyId?: string;
   }) {
     if (!tripIdStr) return;
 
@@ -169,6 +169,9 @@ const TripPage: React.FC = () => {
       amount: number;
       currency: 'BGN' | 'EUR';
       comment?: string;
+      type?: 'expense' | 'settlement';
+      settlementFromFamilyId?: string;
+      settlementToFamilyId?: string;
     }
   ) {
     try {
@@ -184,6 +187,9 @@ const TripPage: React.FC = () => {
                 amount: exp.amount,
                 currency: exp.currency,
                 comment: exp.comment,
+                type: exp.type,
+                settlementFromFamilyId: exp.settlementFromFamilyId,
+                settlementToFamilyId: exp.settlementToFamilyId,
               }
             : e
         )
@@ -219,7 +225,7 @@ const TripPage: React.FC = () => {
     }
   }
 
-  // Отваряне на модал за редакция
+  // Редакция на семейство
   function handleEditFamily(family: TripFamily) {
     setEditingFamily(family);
     setIsEditModalOpen(true);
@@ -231,7 +237,9 @@ const TripPage: React.FC = () => {
     try {
       await updateFamilyName(editingFamily.id, newName);
       setFamilies((prev) =>
-        prev.map((f) => (f.id === editingFamily.id ? { ...f, name: newName } : f))
+        prev.map((f) =>
+          f.id === editingFamily.id ? { ...f, name: newName } : f
+        )
       );
       setIsEditModalOpen(false);
       setEditingFamily(null);
@@ -241,13 +249,12 @@ const TripPage: React.FC = () => {
     }
   }
 
-  // Отваряне на модал за изтриване
+  // Изтриване на семейство
   function handleAskDeleteFamily(family: TripFamily) {
     setDeletingFamily(family);
     setIsDeleteModalOpen(true);
   }
 
-  // Потвърждение за изтриване
   async function handleConfirmDeleteFamily() {
     if (!deletingFamily || !tripIdStr) return;
 
@@ -255,10 +262,7 @@ const TripPage: React.FC = () => {
       setDeleteLoading(true);
       await deleteFamilyAndExpenses(tripIdStr, deletingFamily.id);
 
-      // махаме семейството от стейта
       setFamilies((prev) => prev.filter((f) => f.id !== deletingFamily.id));
-
-      // махаме всички разходи, свързани с това семейство
       setExpenses((prev) =>
         prev.filter(
           (exp) =>
@@ -281,8 +285,66 @@ const TripPage: React.FC = () => {
   const familiesCount = families.length;
   const expensesCount = expenses.length;
   const tripStatus = trip?.archived ? 'Архивирано' : 'Активно';
+  const tripCurrency: 'BGN' | 'EUR' =
+    (trip?.currency as 'BGN' | 'EUR') ?? 'BGN';
 
-  // Докато auth се зарежда или правим redirect → не показваме детайлите
+  // 🔢 Данни за резюмето – реално похарчено след разделянето
+  const [showSummaryInEur, setShowSummaryInEur] = React.useState(false);
+  const canToggleToEur = tripCurrency === 'BGN';
+
+  // само разходи в валутата на пътуването и които са "expense", не "settlement"
+  const expensesInTripCurrency = React.useMemo(
+    () =>
+      expenses.filter(
+        (e) =>
+          e.currency === tripCurrency &&
+          (e.type ?? 'expense') !== 'settlement'
+      ),
+    [expenses, tripCurrency]
+  );
+
+  const perFamilyShare: Record<string, number> = React.useMemo(() => {
+    const result: Record<string, number> = {};
+
+    families.forEach((f) => {
+      result[f.id] = 0;
+    });
+
+    for (const e of expensesInTripCurrency) {
+      // ако няма участници (заради новата логика) → приемаме, че участват всички
+      const participants =
+        e.involvedFamilyIds && e.involvedFamilyIds.length > 0
+          ? e.involvedFamilyIds
+          : families.map((f) => f.id);
+
+      if (participants.length === 0) continue;
+
+      const share = e.amount / participants.length;
+
+      for (const fid of participants) {
+        if (result[fid] == null) result[fid] = 0;
+        result[fid] += share;
+      }
+    }
+
+    return result;
+  }, [families, expensesInTripCurrency]);
+
+  function formatSummaryAmount(amount: number): string {
+    if (showSummaryInEur && tripCurrency === 'BGN') {
+      const eur = amount / BGN_TO_EUR;
+      return eur.toFixed(2);
+    }
+    return amount.toFixed(2);
+  }
+
+  const summaryCurrencyLabel =
+    showSummaryInEur && tripCurrency === 'BGN'
+      ? '€'
+      : tripCurrency === 'BGN'
+      ? 'лв'
+      : '€';
+
   if (authLoading || !user) {
     return (
       <Layout>
@@ -296,21 +358,25 @@ const TripPage: React.FC = () => {
   return (
     <Layout>
       <div className="flex flex-col gap-6">
-        {/* HEADER НА ПЪТУВАНЕТО */}
+        {/* HEADER */}
         <TripHeader
-  tripName={tripName}
-  onAddFamily={() => setShowFamilyModal(true)}
-  onOpenLists={() => router.push(`/trips/${tripIdStr}/lists`)}
-  onOpenItinerary={() => router.push(`/trips/${tripIdStr}/itinerary`)}
-  onOpenPersonalExpenses={() =>
-    router.push(`/trips/${tripIdStr}/personal`)
-  }
-  onShare={() => setShowShareModal(true)}
-  onOpenSettings={() => router.push(`/trips/${tripIdStr}/settings`)}
-/>
-        {/* GRID LAYOUT */}
+          tripName={tripName}
+          onAddFamily={() => setShowFamilyModal(true)}
+          onOpenLists={() => router.push(`/trips/${tripIdStr}/lists`)}
+          onOpenItinerary={() =>
+            router.push(`/trips/${tripIdStr}/itinerary`)
+          }
+          onOpenPersonalExpenses={() =>
+            router.push(`/trips/${tripIdStr}/personal`)
+          }
+          onShare={() => setShowShareModal(true)}
+          onOpenSettings={() =>
+            router.push(`/trips/${tripIdStr}/settings`)
+          }
+        />
+
         <div className="grid gap-6 lg:grid-cols-3 lg:items-start">
-          {/* ЛЯВА КОЛОНА – основни секции */}
+          {/* Лява колона */}
           <div className="space-y-6 lg:col-span-2">
             <SectionCard title="Участници" icon={Users}>
               {familiesLoading ? (
@@ -326,9 +392,12 @@ const TripPage: React.FC = () => {
               )}
             </SectionCard>
 
-            {/* Преместено НАГОРЕ – Кой на кого колко дължи */}
             <SectionCard title="Кой на кого колко дължи" icon={Scale}>
-              <DebtsSummary families={families} expenses={expenses} />
+              <DebtsSummary
+                families={families}
+                expenses={expenses}
+                currency={trip?.currency === 'EUR' ? 'EUR' : 'BGN'}
+              />
             </SectionCard>
 
             <SectionCard title="Разходи" icon={Receipt}>
@@ -340,6 +409,7 @@ const TripPage: React.FC = () => {
                 <ExpensesTable
                   families={families}
                   expenses={expenses}
+                  tripCurrency={trip?.currency}
                   onAddExpense={handleAddExpense}
                   onUpdateExpense={handleUpdateExpense}
                   onDeleteExpense={handleDeleteExpense}
@@ -348,62 +418,123 @@ const TripPage: React.FC = () => {
             </SectionCard>
           </div>
 
-          {/* ДЯСНА КОЛОНА – резюме и инфо */}
+          {/* Дясна колона */}
           <div className="space-y-6 lg:col-span-1">
-           <SectionCard title="Резюме на пътуването" icon={Info}>
-  <div className="grid gap-3 text-sm">
-    <div className="flex items-center justify-between rounded-xl border border-eco-border bg-eco-surface-soft px-3 py-2">
-      <span className="text-eco-text-muted">Статус</span>
-      <span className="font-medium text-eco-text">{tripStatus}</span>
-    </div>
+            <SectionCard title="Резюме на пътуването" icon={Info}>
+              <div className="grid gap-3 text-sm">
+                <div className="flex items-center justify-between rounded-xl border border-eco-border bg-eco-surface-soft px-3 py-2">
+                  <span className="text-eco-text-muted">Статус</span>
+                  <span className="font-medium text-eco-text">
+                    {tripStatus}
+                  </span>
+                </div>
 
-    <div className="flex items-center justify-between rounded-xl border border-eco-border bg-eco-surface-soft px-3 py-2">
-      <span className="text-eco-text-muted">Брой семейства</span>
-      <span className="font-medium text-eco-text">{familiesCount}</span>
-    </div>
+                <div className="flex items-center justify-between rounded-xl border border-eco-border bg-eco-surface-soft px-3 py-2">
+                  <span className="text-eco-text-muted">
+                    Брой семейства
+                  </span>
+                  <span className="font-medium text-eco-text">
+                    {familiesCount}
+                  </span>
+                </div>
 
-    <div className="flex items-center justify-between rounded-xl border border-eco-border bg-eco-surface-soft px-3 py-2">
-      <span className="text-eco-text-muted">Брой разходи</span>
-      <span className="font-medium text-eco-text">{expensesCount}</span>
-    </div>
+                <div className="flex items-center justify-between rounded-xl border border-eco-border bg-eco-surface-soft px-3 py-2">
+                  <span className="text-eco-text-muted">
+                    Брой разходи
+                  </span>
+                  <span className="font-medium text-eco-text">
+                    {expensesCount}
+                  </span>
+                </div>
 
-<button
-  type="button"
-  onClick={() => {
-    navigator.clipboard
-      .writeText(shareUrl)
-      .then(() => showToast('Линкът за споделяне е копиран!'))
-      .catch(() =>
-        showToast('Възникна проблем при копиране на линка.')
-      );
-  }}
-  className="
-    text-xs font-semibold 
-    text-emerald-400 
-    hover:text-emerald-300 
-    underline 
-    underline-offset-2
-    transition
-  "
->
-  Копирай линка
-</button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    navigator.clipboard
+                      .writeText(shareUrl)
+                      .then(() =>
+                        showToast('Линкът за споделяне е копиран!')
+                      )
+                      .catch(() =>
+                        showToast(
+                          'Възникна проблем при копиране на линка.'
+                        )
+                      );
+                  }}
+                  className="text-xs font-semibold text-emerald-400 hover:text-emerald-300 underline underline-offset-2 transition"
+                >
+                  Копирай линка
+                </button>
 
+                {/* НОВО: реално похарчено по семейства */}
+                {families.length > 0 &&
+                  expensesInTripCurrency.length > 0 && (
+                    <div className="mt-1 border-t border-eco-border/60 pt-3 space-y-2">
+                      <div className="flex items-center justify-between gap-2">
+                        <span className="text-sm font-medium text-eco-text">
+                          Реално похарчено по семейства
+                        </span>
 
-  </div>
-</SectionCard>
+                        <button
+                          type="button"
+                          onClick={() =>
+                            canToggleToEur &&
+                            setShowSummaryInEur((prev) => !prev)
+                          }
+                          disabled={!canToggleToEur}
+                          className={`text-xs px-2 py-1 rounded-md border ${
+                            canToggleToEur
+                              ? 'border-eco-accent text-eco-accent hover:bg-eco-accent/10 transition'
+                              : 'border-eco-border text-eco-text-muted cursor-default'
+                          }`}
+                        >
+                          {summaryCurrencyLabel}
+                        </button>
+                      </div>
+
+                      <p className="text-xs text-eco-text-muted">
+                        Показва колко реално е похарчило всяко семейство
+                        след разделянето на общите разходи.
+                        {tripCurrency === 'BGN' &&
+                          ' Кликни върху валутата, за да видиш сумите в евро.'}
+                      </p>
+
+                      <div className="space-y-1.5">
+                        {families.map((f) => {
+                          const base = perFamilyShare[f.id] || 0;
+                          return (
+                            <div
+                              key={f.id}
+                              className="flex items-center justify-between rounded-lg bg-eco-surface-soft px-3 py-1.5 text-sm"
+                            >
+                              <span className="text-eco-text">
+                                {f.name}
+                              </span>
+                              <span className="font-medium text-eco-text">
+                                {formatSummaryAmount(base)}{' '}
+                                {summaryCurrencyLabel}
+                              </span>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  )}
+              </div>
+            </SectionCard>
 
             <SectionCard title="Съвет" icon={Lightbulb}>
               <p className="text-sm leading-relaxed text-eco-text-muted">
-                Добави всички участващи семейства и отбелязвай кой какво плаща.
-                Накрая автоматично ще видиш кой на кого колко дължи.
+                Добави всички участващи семейства и отбелязвай кой какво
+                плаща. Накрая автоматично ще видиш кой на кого колко
+                дължи.
               </p>
             </SectionCard>
           </div>
         </div>
       </div>
 
-      {/* МОДАЛИ */}
+      {/* Модали */}
       <AddFamilyModal
         isOpen={showFamilyModal}
         onClose={() => setShowFamilyModal(false)}
