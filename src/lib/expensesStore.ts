@@ -9,7 +9,10 @@ import {
   doc,
   deleteDoc,
 } from 'firebase/firestore';
-import type { TripExpense, TripExpenseType, TripCurrency } from '@/types/trip';
+
+// 🔹 Вече НЯМА TripCurrency тук
+import type { TripExpense, TripExpenseType } from '@/types/trip';
+import type { CurrencyCode } from '@/lib/currencies';
 
 const EXPENSES_COLLECTION = 'expenses';
 
@@ -28,19 +31,21 @@ export async function fetchExpenses(tripId: string): Promise<TripExpense[]> {
       typeof data.createdAt === 'string' ? data.createdAt : undefined;
 
     const type = (data.type as TripExpenseType | undefined) ?? undefined;
+
     const settlementFromFamilyId =
       typeof data.settlementFromFamilyId === 'string'
         ? data.settlementFromFamilyId
         : undefined;
+
     const settlementToFamilyId =
       typeof data.settlementToFamilyId === 'string'
         ? data.settlementToFamilyId
         : undefined;
 
-    // 🔹 Нормализираме валутата от Firestore към TripCurrency (BGN/EUR)
+    // 🔹 Нормализираме валутата от Firestore към CurrencyCode
     const rawCurrency = data.currency as string | undefined;
-    const currency: TripCurrency =
-      rawCurrency === 'EUR' ? 'EUR' : 'BGN';
+    const currency: CurrencyCode =
+      (rawCurrency as CurrencyCode) ?? ('EUR' as CurrencyCode);
 
     return {
       id: docSnap.id,
@@ -74,9 +79,9 @@ export type ExpenseInput = {
   paidByFamilyId: string;
   involvedFamilyIds: string[];
   amount: number;
-  currency: TripCurrency; // 🔹 тук също
+  currency: CurrencyCode;        // 🔹 тук е CurrencyCode
   comment?: string;
-  type?: TripExpenseType; // 'expense' | 'settlement'
+  type?: TripExpenseType;        // 'expense' | 'settlement'
   settlementFromFamilyId?: string;
   settlementToFamilyId?: string;
 };
@@ -92,7 +97,7 @@ export async function createExpense(
     paidByFamilyId: input.paidByFamilyId,
     involvedFamilyIds: input.involvedFamilyIds,
     amount: input.amount,
-    currency: input.currency ?? 'BGN',
+    currency: input.currency ?? ('EUR' as CurrencyCode),
     comment: input.comment ?? '',
     createdAt,
   };
@@ -113,7 +118,7 @@ export async function createExpense(
   return {
     id: docRef.id,
     ...payload,
-  };
+  } as TripExpense;
 }
 
 // Редакция на вече съществуващ разход
@@ -127,7 +132,7 @@ export async function updateExpense(
     paidByFamilyId: updates.paidByFamilyId,
     involvedFamilyIds: updates.involvedFamilyIds,
     amount: updates.amount,
-    currency: updates.currency ?? 'BGN',
+    currency: updates.currency ?? ('EUR' as CurrencyCode),
     comment: updates.comment ?? '',
   };
 

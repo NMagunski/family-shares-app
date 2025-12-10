@@ -3,7 +3,7 @@ import { useRouter } from 'next/router';
 import Layout from '@/components/layout/Layout';
 import TripHeader from '@/components/trips/TripHeader';
 import FamiliesSection from '@/components/trips/FamiliesSection';
-import ExpensesTable from '@/components/trips/ExpensesTable';
+
 import DebtsSummary from '@/components/trips/DebtsSummary';
 import AddFamilyModal from '@/components/trips/AddFamilyModal';
 import ShareTripModal from '@/components/trips/ShareTripModal';
@@ -13,6 +13,10 @@ import ConfirmModal from '@/components/ui/ConfirmModal';
 import Button from '@/components/ui/Button';
 import { useToast } from '@/context/ToastContext';
 import type { Trip, TripFamily, TripExpense } from '@/types/trip';
+import ExpensesTable from '@/components/trips/ExpensesTable';
+import type { BaseExpenseInput } from '@/components/trips/AddExpenseForm';
+
+
 import {
   fetchFamilies,
   createFamily,
@@ -28,8 +32,8 @@ import {
 import { fetchTripById } from '@/lib/trips';
 import { useAuth } from '@/context/AuthContext';
 import { Users, Scale, Receipt, Info, Lightbulb } from 'lucide-react';
-
-const BGN_TO_EUR = 1.95583;
+import type { CurrencyCode } from '@/lib/currencies';
+import { convertToEur, getCurrencySymbol } from '@/lib/currencies';
 
 const TripPage: React.FC = () => {
   const router = useRouter();
@@ -139,66 +143,48 @@ const TripPage: React.FC = () => {
   }, [tripIdStr]);
 
   // Добавяне на разход
-  async function handleAddExpense(exp: {
-    paidByFamilyId: string;
-    involvedFamilyIds: string[];
-    amount: number;
-    currency: 'BGN' | 'EUR';
-    comment?: string;
-    type?: 'expense' | 'settlement';
-    settlementFromFamilyId?: string;
-    settlementToFamilyId?: string;
-  }) {
-    if (!tripIdStr) return;
+  async function handleAddExpense(exp: BaseExpenseInput) {
+  if (!tripIdStr) return;
 
-    try {
-      const created = await createExpense(tripIdStr, exp);
-      setExpenses((prev) => [created, ...prev]);
-    } catch (err) {
-      console.error(err);
-      alert('Грешка при добавяне на разход');
-    }
+  try {
+    const created = await createExpense(tripIdStr, exp);
+    setExpenses((prev) => [created, ...prev]);
+  } catch (err) {
+    console.error(err);
+    alert('Грешка при добавяне на разход');
   }
+}
 
-  // Редакция на разход
-  async function handleUpdateExpense(
-    expenseId: string,
-    exp: {
-      paidByFamilyId: string;
-      involvedFamilyIds: string[];
-      amount: number;
-      currency: 'BGN' | 'EUR';
-      comment?: string;
-      type?: 'expense' | 'settlement';
-      settlementFromFamilyId?: string;
-      settlementToFamilyId?: string;
-    }
-  ) {
-    try {
-      await updateExpense(expenseId, exp);
+// Редакция на разход
+async function handleUpdateExpense(
+  expenseId: string,
+  exp: BaseExpenseInput
+) {
+  try {
+    await updateExpense(expenseId, exp);
 
-      setExpenses((prev) =>
-        prev.map((e) =>
-          e.id === expenseId
-            ? {
-                ...e,
-                paidByFamilyId: exp.paidByFamilyId,
-                involvedFamilyIds: exp.involvedFamilyIds,
-                amount: exp.amount,
-                currency: exp.currency,
-                comment: exp.comment,
-                type: exp.type,
-                settlementFromFamilyId: exp.settlementFromFamilyId,
-                settlementToFamilyId: exp.settlementToFamilyId,
-              }
-            : e
-        )
-      );
-    } catch (err) {
-      console.error(err);
-      alert('Грешка при редакция на разход.');
-    }
+    setExpenses((prev) =>
+      prev.map((e) =>
+        e.id === expenseId
+          ? {
+              ...e,
+              paidByFamilyId: exp.paidByFamilyId,
+              involvedFamilyIds: exp.involvedFamilyIds,
+              amount: exp.amount,
+              currency: exp.currency,
+              comment: exp.comment,
+              type: exp.type,
+              settlementFromFamilyId: exp.settlementFromFamilyId,
+              settlementToFamilyId: exp.settlementToFamilyId,
+            }
+          : e
+      )
+    );
+  } catch (err) {
+    console.error(err);
+    alert('Грешка при редакция на разход.');
   }
+}
 
   // Изтриване на разход
   async function handleDeleteExpense(expenseId: string) {
@@ -285,12 +271,13 @@ const TripPage: React.FC = () => {
   const familiesCount = families.length;
   const expensesCount = expenses.length;
   const tripStatus = trip?.archived ? 'Архивирано' : 'Активно';
-  const tripCurrency: 'BGN' | 'EUR' =
-    (trip?.currency as 'BGN' | 'EUR') ?? 'BGN';
+  const tripCurrency: CurrencyCode =
+    (trip?.currency as CurrencyCode) ?? 'EUR';
 
   // 🔢 Данни за резюмето – реално похарчено след разделянето
   const [showSummaryInEur, setShowSummaryInEur] = React.useState(false);
-  const canToggleToEur = tripCurrency === 'BGN';
+  // може да превключваме към евро, ако базовата валута не е EUR
+  const canToggleToEur = tripCurrency !== 'EUR';
 
   // само разходи в валутата на пътуването и които са "expense", не "settlement"
   const expensesInTripCurrency = React.useMemo(
@@ -331,19 +318,17 @@ const TripPage: React.FC = () => {
   }, [families, expensesInTripCurrency]);
 
   function formatSummaryAmount(amount: number): string {
-    if (showSummaryInEur && tripCurrency === 'BGN') {
-      const eur = amount / BGN_TO_EUR;
+    if (showSummaryInEur && tripCurrency !== 'EUR') {
+      const eur = convertToEur(amount, tripCurrency);
       return eur.toFixed(2);
     }
     return amount.toFixed(2);
   }
 
   const summaryCurrencyLabel =
-    showSummaryInEur && tripCurrency === 'BGN'
+    showSummaryInEur || tripCurrency === 'EUR'
       ? '€'
-      : tripCurrency === 'BGN'
-      ? 'лв'
-      : '€';
+      : getCurrencySymbol(tripCurrency);
 
   if (authLoading || !user) {
     return (
@@ -396,7 +381,7 @@ const TripPage: React.FC = () => {
               <DebtsSummary
                 families={families}
                 expenses={expenses}
-                currency={trip?.currency === 'EUR' ? 'EUR' : 'BGN'}
+                currency={tripCurrency}
               />
             </SectionCard>
 
@@ -409,7 +394,7 @@ const TripPage: React.FC = () => {
                 <ExpensesTable
                   families={families}
                   expenses={expenses}
-                  tripCurrency={trip?.currency}
+                  tripCurrency={tripCurrency}
                   onAddExpense={handleAddExpense}
                   onUpdateExpense={handleUpdateExpense}
                   onDeleteExpense={handleDeleteExpense}
@@ -466,7 +451,7 @@ const TripPage: React.FC = () => {
                   Копирай линка
                 </button>
 
-                {/* НОВО: реално похарчено по семейства */}
+                {/* Реално похарчено по семейства */}
                 {families.length > 0 &&
                   expensesInTripCurrency.length > 0 && (
                     <div className="mt-1 border-t border-eco-border/60 pt-3 space-y-2">
@@ -495,7 +480,7 @@ const TripPage: React.FC = () => {
                       <p className="text-xs text-eco-text-muted">
                         Показва колко реално е похарчило всяко семейство
                         след разделянето на общите разходи.
-                        {tripCurrency === 'BGN' &&
+                        {tripCurrency !== 'EUR' &&
                           ' Кликни върху валутата, за да видиш сумите в евро.'}
                       </p>
 
