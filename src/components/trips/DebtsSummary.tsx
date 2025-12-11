@@ -45,17 +45,19 @@ function computeBalances(
 
     const type = e.type ?? 'expense';
 
-    // 👉 Пито платено (settlement) – директно прехвърляне на пари
+    // 👉 Пито платено (settlement) – директно разплащане между две семейства
     if (type === 'settlement') {
       const fromId = e.settlementFromFamilyId ?? e.paidByFamilyId;
       const toId = e.settlementToFamilyId;
 
       if (!fromId || !toId || fromId === toId) continue;
 
-      // Платецът "губи" пари (намалява дълга му)
-      balances[fromId] = (balances[fromId] ?? 0) - e.amount;
-      // Получателят "печели" (намалява това, което има да получава)
-      balances[toId] = (balances[toId] ?? 0) + e.amount;
+      // ⚠️ ТУК БЕШЕ ГРЕШКАТА:
+      // Платецът трябва да се приближи към нула → + amount
+      // Получателят трябва да се приближи към нула от положителната страна → - amount
+      balances[fromId] = (balances[fromId] ?? 0) + e.amount;
+      balances[toId] = (balances[toId] ?? 0) - e.amount;
+
       continue;
     }
 

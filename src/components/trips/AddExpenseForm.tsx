@@ -120,7 +120,7 @@ const AddExpenseForm: React.FC<Props> = ({
         Платено от
       </label>
       <select
-        className="w-full rounded-lg border border-eco-border bg-eco-surface-soft px-3 py-2 text-sm text-eco-text focus:border-eco-accent focus:outline-none focus:ring-2 focus:ring-eco-accent"
+        className="w-full rounded-lg border border-eco-border bg-eco-surface-soft px-3 py-2 text-base sm:text-sm text-eco-text focus:border-eco-accent focus:outline-none focus:ring-2 focus:ring-eco-accent"
         value={paidBy}
         onChange={(e) => setPaidBy(e.target.value)}
       >
@@ -206,7 +206,7 @@ const AddExpenseForm: React.FC<Props> = ({
             Към кое семейство е плащането?
           </label>
           <select
-            className="w-full rounded-lg border border-eco-border bg-eco-surface-soft px-3 py-2 text-sm text-eco-text focus:border-eco-accent focus:outline-none focus:ring-2 focus:ring-eco-accent"
+            className="w-full rounded-lg border border-eco-border bg-eco-surface-soft px-3 py-2 text-base sm:text-sm text-eco-text focus:border-eco-accent focus:outline-none focus:ring-2 focus:ring-eco-accent"
             value={settlementTo}
             onChange={(e) => setSettlementTo(e.target.value)}
           >
@@ -233,7 +233,7 @@ const AddExpenseForm: React.FC<Props> = ({
           placeholder="0.00"
           step="0.01"
           min="0"
-          className="flex-1 rounded-lg border border-eco-border bg-eco-surface-soft px-3 py-2 text-sm text-eco-text placeholder:text-eco-text-muted focus:border-eco-accent focus:outline-none focus:ring-2 focus:ring-eco-accent"
+          className="flex-1 rounded-lg border border-eco-border bg-eco-surface-soft px-3 py-2 text-base sm:text-sm text-eco-text placeholder:text-eco-text-muted focus:border-eco-accent focus:outline-none focus:ring-2 focus:ring-eco-accent"
           value={amount}
           onChange={(e) => setAmount(e.target.value)}
         />
@@ -257,7 +257,7 @@ const AddExpenseForm: React.FC<Props> = ({
             ? 'пример: пито платено за дълг към Петрови...'
             : 'пример: вечеря, бензин, хот-дог...'
         }
-        className="w-full rounded-lg border border-eco-border bg-eco-surface-soft px-3 py-2 text-sm text-eco-text placeholder:text-eco-text-muted focus:border-eco-accent focus:outline-none focus:ring-2 focus:ring-eco-accent"
+        className="w-full rounded-lg border border-eco-border bg-eco-surface-soft px-3 py-2 text-base sm:text-sm text-eco-text placeholder:text-eco-text-muted focus:border-eco-accent focus:outline-none focus:ring-2 focus:ring-eco-accent"
         value={comment}
         onChange={(e) => setComment(e.target.value)}
       />
