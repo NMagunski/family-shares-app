@@ -4,7 +4,7 @@ import Layout from '@/components/layout/Layout';
 import Card from '@/components/ui/Card';
 import TripCard from '@/components/trips/TripCard';
 import { useAuth } from '@/context/AuthContext';
-import type { Trip, TripType } from '@/types/trip';
+import type { Trip } from '@/types/trip';
 import NewTripWizard from '@/components/trips/NewTripWizard';
 import type { CurrencyCode } from '@/lib/currencies';
 

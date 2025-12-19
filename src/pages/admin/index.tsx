@@ -13,6 +13,10 @@ const AdminDashboardPage: React.FC = () => {
   const [archivedTripsCount, setArchivedTripsCount] = React.useState<number>(0);
   const [loading, setLoading] = React.useState<boolean>(true);
 
+  type TripDoc = {
+  archived?: boolean;
+};
+
   React.useEffect(() => {
     const loadStats = async () => {
       try {
@@ -29,7 +33,7 @@ const AdminDashboardPage: React.FC = () => {
 
         tripsSnap.forEach((docSnap) => {
           total += 1;
-          const data = docSnap.data() as any;
+          const data = docSnap.data() as TripDoc;
           const isArchived = data.archived === true;
 
           if (isArchived) archived += 1;

@@ -9,6 +9,7 @@ import {
   doc,
   deleteDoc,
 } from 'firebase/firestore';
+import type { DocumentData } from 'firebase/firestore';
 import type { TripFamily } from '@/types/trip';
 
 const FAMILIES_COLLECTION = 'families';
@@ -23,14 +24,15 @@ export async function fetchFamilies(tripId: string): Promise<TripFamily[]> {
   const snapshot = await getDocs(q);
 
   const families: TripFamily[] = snapshot.docs.map((docSnap) => {
-    const data = docSnap.data() as any;
+    const data = docSnap.data() as DocumentData;
+
     return {
       id: docSnap.id,
-      tripId: data.tripId,
-      name: data.name,
-      userId: data.userId ?? '',
-      isOwnerFamily: data.isOwnerFamily ?? false,
-      createdAt: data.createdAt,
+      tripId: typeof data.tripId === 'string' ? data.tripId : tripId,
+      name: typeof data.name === 'string' ? data.name : '',
+      userId: typeof data.userId === 'string' ? data.userId : '',
+      isOwnerFamily: Boolean(data.isOwnerFamily),
+      createdAt: typeof data.createdAt === 'string' ? data.createdAt : '',
     };
   });
 
@@ -56,6 +58,7 @@ export async function createFamily(
   return {
     id: docRef.id,
     ...payload,
+    isOwnerFamily: false,
   };
 }
 
@@ -91,11 +94,16 @@ export async function deleteFamilyAndExpenses(
   const deletions: Promise<void>[] = [];
 
   expensesSnap.forEach((docSnap) => {
-    const data = docSnap.data() as any;
-    const isPayer = data.paidByFamilyId === familyId;
-    const isInvolved =
-      Array.isArray(data.involvedFamilyIds) &&
-      data.involvedFamilyIds.includes(familyId);
+    const data = docSnap.data() as DocumentData;
+
+    const isPayer =
+      typeof data.paidByFamilyId === 'string' && data.paidByFamilyId === familyId;
+
+    const involvedIds = Array.isArray(data.involvedFamilyIds)
+      ? (data.involvedFamilyIds.filter((x: unknown) => typeof x === 'string') as string[])
+      : [];
+
+    const isInvolved = involvedIds.includes(familyId);
 
     if (isPayer || isInvolved) {
       deletions.push(deleteDoc(docSnap.ref));

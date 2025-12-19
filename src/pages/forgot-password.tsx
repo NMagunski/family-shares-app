@@ -4,6 +4,18 @@ import { auth } from '@/lib/firebase';
 import Layout from '@/components/layout/Layout';
 import { useRouter } from 'next/router';
 
+type FirebaseAuthErrorLike = {
+  code?: string;
+};
+
+function getErrorCode(err: unknown): string | undefined {
+  if (typeof err === 'object' && err !== null && 'code' in err) {
+    const maybe = (err as FirebaseAuthErrorLike).code;
+    return typeof maybe === 'string' ? maybe : undefined;
+  }
+  return undefined;
+}
+
 const ForgotPasswordPage: React.FC = () => {
   const [email, setEmail] = React.useState('');
   const [submitting, setSubmitting] = React.useState(false);
@@ -28,11 +40,13 @@ const ForgotPasswordPage: React.FC = () => {
       setMessage(
         'Изпратихме ти имейл с линк за смяна на паролата. Провери пощата си (вкл. спам/промоции).'
       );
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error(err);
-      if (err.code === 'auth/user-not-found') {
+      const code = getErrorCode(err);
+
+      if (code === 'auth/user-not-found') {
         setError('Няма регистриран потребител с този имейл.');
-      } else if (err.code === 'auth/invalid-email') {
+      } else if (code === 'auth/invalid-email') {
         setError('Невалиден имейл адрес.');
       } else {
         setError('Възникна грешка. Опитай отново по-късно.');

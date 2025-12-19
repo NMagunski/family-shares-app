@@ -8,6 +8,7 @@ import {
   deleteDoc,
   query,
   where,
+  writeBatch,
 } from 'firebase/firestore';
 
 export type TripList = {
@@ -24,12 +25,32 @@ export type TripListItem = {
   createdAt: number;
 };
 
-export type TripListWithItems = TripList & { items: TripListItem[] };
+export type TripListWithItems = TripList & {
+  items: TripListItem[];
+};
 
-const LISTS_COLLECTION = 'tripLists';
+const LISTS_COLLECTION = 'lists';
 const ITEMS_COLLECTION = 'items';
 
-/** Взимаме всички списъци + техните items за дадено пътуване */
+function asRecord(v: unknown): Record<string, unknown> {
+  return (v ?? {}) as Record<string, unknown>;
+}
+
+function asString(v: unknown, fallback = ''): string {
+  return typeof v === 'string' ? v : fallback;
+}
+
+function asNumber(v: unknown, fallback = 0): number {
+  return typeof v === 'number' && Number.isFinite(v) ? v : fallback;
+}
+
+function asBoolean(v: unknown, fallback = false): boolean {
+  return typeof v === 'boolean' ? v : fallback;
+}
+
+/**
+ * Взима всички списъци за пътуване + техните items
+ */
 export async function fetchListsWithItemsForTrip(
   tripId: string
 ): Promise<TripListWithItems[]> {
@@ -42,95 +63,106 @@ export async function fetchListsWithItemsForTrip(
   const lists: TripListWithItems[] = [];
 
   for (const listDoc of snap.docs) {
-    const data = listDoc.data() as any;
-    const listId = listDoc.id;
+    const data = asRecord(listDoc.data());
+
+    const list: TripList = {
+      id: listDoc.id,
+      tripId: asString(data.tripId, tripId),
+      name: asString(data.name, ''),
+      createdAt: asNumber(data.createdAt, 0),
+    };
 
     const itemsSnap = await getDocs(
-      collection(db, LISTS_COLLECTION, listId, ITEMS_COLLECTION)
+      collection(db, LISTS_COLLECTION, listDoc.id, ITEMS_COLLECTION)
     );
 
-    let items: TripListItem[] = itemsSnap.docs.map((d) => {
-      const ddata = d.data() as any;
-      return {
-        id: d.id,
-        text: ddata.text ?? '',
-        done: Boolean(ddata.done),
-        createdAt: ddata.createdAt ?? 0,
-      };
-    });
+    const items: TripListItem[] = itemsSnap.docs
+      .map((d) => {
+        const ddata = asRecord(d.data());
+        return {
+          id: d.id,
+          text: asString(ddata.text, ''),
+          done: asBoolean(ddata.done, false),
+          createdAt: asNumber(ddata.createdAt, 0),
+        };
+      })
+      .sort((a, b) => b.createdAt - a.createdAt);
 
-    // неизпълнени → изпълнени, после по време
-    items.sort(
-      (a, b) =>
-        Number(a.done) - Number(b.done) ||
-        (a.createdAt ?? 0) - (b.createdAt ?? 0)
-    );
-
-    lists.push({
-      id: listId,
-      tripId,
-      name: data.name ?? '',
-      createdAt: data.createdAt ?? 0,
-      items,
-    });
+    lists.push({ ...list, items });
   }
 
-  // Най-новите списъци най-отгоре
-  lists.sort((a, b) => (b.createdAt ?? 0) - (a.createdAt ?? 0));
+  // newest first
+  lists.sort((a, b) => b.createdAt - a.createdAt);
 
   return lists;
 }
 
-/** Създаване на списък */
+/**
+ * Създава нов списък
+ */
 export async function createTripList(
   tripId: string,
   name: string
 ): Promise<TripList> {
-  const now = Date.now();
-  const docRef = await addDoc(collection(db, LISTS_COLLECTION), {
+  const payload: Omit<TripList, 'id'> = {
     tripId,
     name,
-    createdAt: now,
-  });
+    createdAt: Date.now(),
+  };
+
+  const ref = await addDoc(collection(db, LISTS_COLLECTION), payload);
 
   return {
-    id: docRef.id,
-    tripId,
-    name,
-    createdAt: now,
+    id: ref.id,
+    ...payload,
   };
 }
 
-/** Триене на списък */
+/**
+ * Изтрива списък + всички items в него
+ */
 export async function deleteTripList(listId: string): Promise<void> {
-  await deleteDoc(doc(db, LISTS_COLLECTION, listId));
+  // batch delete items first
+  const itemsSnap = await getDocs(
+    collection(db, LISTS_COLLECTION, listId, ITEMS_COLLECTION)
+  );
+
+  const batch = writeBatch(db);
+  itemsSnap.docs.forEach((d) => batch.delete(d.ref));
+
+  // delete list doc
+  batch.delete(doc(db, LISTS_COLLECTION, listId));
+
+  await batch.commit();
 }
 
-/** Добавяне на елемент към списък */
+/**
+ * Добавя item към списък
+ */
 export async function addTripListItem(
   listId: string,
   text: string
 ): Promise<TripListItem> {
-  const now = Date.now();
+  const payload: Omit<TripListItem, 'id'> = {
+    text,
+    done: false,
+    createdAt: Date.now(),
+  };
 
-  const docRef = await addDoc(
+  const ref = await addDoc(
     collection(db, LISTS_COLLECTION, listId, ITEMS_COLLECTION),
-    {
-      text,
-      done: false,
-      createdAt: now,
-    }
+    payload
   );
 
   return {
-    id: docRef.id,
-    text,
-    done: false,
-    createdAt: now,
+    id: ref.id,
+    ...payload,
   };
 }
 
-/** Обновяване на done флага на елемент */
+/**
+ * Маркира item done/undone
+ */
 export async function setTripListItemDone(
   listId: string,
   itemId: string,
@@ -140,7 +172,9 @@ export async function setTripListItemDone(
   await updateDoc(ref, { done });
 }
 
-/** Изтриване на елемент */
+/**
+ * Изтрива item
+ */
 export async function deleteTripListItem(
   listId: string,
   itemId: string

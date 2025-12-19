@@ -10,6 +10,7 @@ import {
   updateDoc,
   deleteDoc,
 } from 'firebase/firestore';
+import type { DocumentData } from 'firebase/firestore';
 import type { Trip, TripType, TripItineraryItem } from '@/types/trip';
 import type { CurrencyCode } from '@/lib/currencies';
 
@@ -19,9 +20,7 @@ const EXPENSES_COLLECTION = 'expenses';
 const LISTS_COLLECTION = 'lists';
 
 /**
- * Създаване на ново пътуване за даден потребител.
- * ВАЛИДНИ стойности за country / currency се подават от UI-то (NewTripWizard),
- * тук не слагаме допълнителни default-и освен при четене от базата.
+ * Създаване на ново пътуване
  */
 export async function createTripForUser(
   ownerId: string,
@@ -35,24 +34,21 @@ export async function createTripForUser(
     type,
     name: name.trim(),
     country,
-    currency, // идва директно от UI – не го променяме
+    currency,
     createdAt: new Date().toISOString(),
     archived: false,
-    // itinerary не е задължително поле – може да го пропуснем
   };
 
   const docRef = await addDoc(collection(db, TRIPS_COLLECTION), payload);
 
-  const trip: Trip = {
+  return {
     id: docRef.id,
     ...payload,
   };
-
-  return trip;
 }
 
 /**
- * Пътувания, които потребителят е създал (той е owner)
+ * Пътувания, създадени от потребителя
  */
 export async function fetchTripsForUser(ownerId: string): Promise<Trip[]> {
   const q = query(
@@ -63,30 +59,33 @@ export async function fetchTripsForUser(ownerId: string): Promise<Trip[]> {
   const snapshot = await getDocs(q);
 
   const trips: Trip[] = snapshot.docs.map((docSnap) => {
-    const data = docSnap.data() as any;
+    const data = docSnap.data() as DocumentData;
+
     return {
       id: docSnap.id,
-      ownerId: data.ownerId,
-      type: data.type,
-      name: data.name,
-      createdAt: data.createdAt ?? '',
-      archived: data.archived ?? false,
-      country: data.country ?? 'BG',
-      // пълен тип CurrencyCode, fallback към BGN ако липсва
-      currency: (data.currency as CurrencyCode | undefined) ?? 'BGN',
-      // itinerary не ни трябва в списъка – оставяме го undefined
+      ownerId: typeof data.ownerId === 'string' ? data.ownerId : '',
+      type: data.type as TripType,
+      name: typeof data.name === 'string' ? data.name : '',
+      createdAt: typeof data.createdAt === 'string' ? data.createdAt : '',
+      archived: Boolean(data.archived),
+      country: typeof data.country === 'string' ? data.country : 'BG',
+      currency:
+        typeof data.currency === 'string'
+          ? (data.currency as CurrencyCode)
+          : 'BGN',
     };
   });
 
   trips.sort((a, b) => (a.createdAt < b.createdAt ? 1 : -1));
-
   return trips;
 }
 
 /**
- * Пътувания, в които потребителят участва чрез семейства (споделени trips)
+ * Споделени пътувания (чрез семейства)
  */
-export async function fetchSharedTripsForUser(userId: string): Promise<Trip[]> {
+export async function fetchSharedTripsForUser(
+  userId: string
+): Promise<Trip[]> {
   const famQuery = query(
     collection(db, FAMILIES_COLLECTION),
     where('userId', '==', userId)
@@ -95,67 +94,74 @@ export async function fetchSharedTripsForUser(userId: string): Promise<Trip[]> {
 
   const tripIds = Array.from(
     new Set(
-      famSnapshot.docs.map((d) => (d.data() as any).tripId as string)
+      famSnapshot.docs
+        .map((d) => {
+          const data = d.data() as DocumentData;
+          return typeof data.tripId === 'string' ? data.tripId : null;
+        })
+        .filter((id): id is string => Boolean(id))
     )
   );
 
-  if (tripIds.length === 0) {
-    return [];
-  }
+  if (tripIds.length === 0) return [];
 
   const trips: Trip[] = [];
 
-  for (const tid of tripIds) {
-    const tripRef = doc(db, TRIPS_COLLECTION, tid);
+  for (const tripId of tripIds) {
+    const tripRef = doc(db, TRIPS_COLLECTION, tripId);
     const tripSnap = await getDoc(tripRef);
     if (!tripSnap.exists()) continue;
 
-    const data = tripSnap.data() as any;
+    const data = tripSnap.data() as DocumentData;
+
     trips.push({
       id: tripSnap.id,
-      ownerId: data.ownerId,
-      type: data.type,
-      name: data.name,
-      createdAt: data.createdAt ?? '',
-      archived: data.archived ?? false,
-      country: data.country ?? 'BG',
-      currency: (data.currency as CurrencyCode | undefined) ?? 'BGN',
-      // itinerary тук също не е нужен
+      ownerId: typeof data.ownerId === 'string' ? data.ownerId : '',
+      type: data.type as TripType,
+      name: typeof data.name === 'string' ? data.name : '',
+      createdAt: typeof data.createdAt === 'string' ? data.createdAt : '',
+      archived: Boolean(data.archived),
+      country: typeof data.country === 'string' ? data.country : 'BG',
+      currency:
+        typeof data.currency === 'string'
+          ? (data.currency as CurrencyCode)
+          : 'BGN',
     });
   }
 
   trips.sort((a, b) => (a.createdAt < b.createdAt ? 1 : -1));
-
   return trips;
 }
 
 /**
- * Взима конкретно пътуване по ID (за заглавието на екрана и детайла)
+ * Конкретно пътуване по ID
  */
-export async function fetchTripById(tripId: string): Promise<Trip | null> {
+export async function fetchTripById(
+  tripId: string
+): Promise<Trip | null> {
   const ref = doc(db, TRIPS_COLLECTION, tripId);
   const snap = await getDoc(ref);
 
-  if (!snap.exists()) {
-    return null;
-  }
+  if (!snap.exists()) return null;
 
-  const data = snap.data() as any;
+  const data = snap.data() as DocumentData;
 
-  const trip: Trip = {
+  return {
     id: snap.id,
-    ownerId: data.ownerId,
-    type: data.type,
-    name: data.name,
-    createdAt: data.createdAt ?? '',
-    archived: data.archived ?? false,
-    country: data.country ?? 'BG',
-    currency: (data.currency as CurrencyCode | undefined) ?? 'BGN',
-    // ако вече има itinerary в документа – взимаме го, иначе undefined
-    itinerary: (data.itinerary as TripItineraryItem[] | undefined) ?? undefined,
+    ownerId: typeof data.ownerId === 'string' ? data.ownerId : '',
+    type: data.type as TripType,
+    name: typeof data.name === 'string' ? data.name : '',
+    createdAt: typeof data.createdAt === 'string' ? data.createdAt : '',
+    archived: Boolean(data.archived),
+    country: typeof data.country === 'string' ? data.country : 'BG',
+    currency:
+      typeof data.currency === 'string'
+        ? (data.currency as CurrencyCode)
+        : 'BGN',
+    itinerary: Array.isArray(data.itinerary)
+      ? (data.itinerary as TripItineraryItem[])
+      : undefined,
   };
-
-  return trip;
 }
 
 /**
@@ -165,66 +171,38 @@ export async function setTripArchived(
   tripId: string,
   archived: boolean
 ): Promise<void> {
-  const ref = doc(db, TRIPS_COLLECTION, tripId);
-  await updateDoc(ref, { archived });
+  await updateDoc(doc(db, TRIPS_COLLECTION, tripId), { archived });
 }
 
 /**
- * Обновява програмата (itinerary) на пътуването
+ * Обновява itinerary
  */
 export async function updateTripItinerary(
   tripId: string,
   items: TripItineraryItem[]
 ): Promise<void> {
-  const ref = doc(db, TRIPS_COLLECTION, tripId);
-  await updateDoc(ref, {
+  await updateDoc(doc(db, TRIPS_COLLECTION, tripId), {
     itinerary: items,
   });
 }
 
 /**
- * Изтрива пътуване + всички свързани семейства, разходи и списъци
+ * Изтрива пътуване + всичко свързано
  */
-export async function deleteTripCompletely(tripId: string): Promise<void> {
-  // трием всички семейства за това пътуване
-  const famQuery = query(
-    collection(db, FAMILIES_COLLECTION),
-    where('tripId', '==', tripId)
-  );
-  const famSnap = await getDocs(famQuery);
+export async function deleteTripCompletely(
+  tripId: string
+): Promise<void> {
+  const collections = [
+    FAMILIES_COLLECTION,
+    EXPENSES_COLLECTION,
+    LISTS_COLLECTION,
+  ];
 
-  const famDeletions: Promise<void>[] = [];
-  famSnap.forEach((docSnap) => {
-    famDeletions.push(deleteDoc(docSnap.ref));
-  });
+  for (const col of collections) {
+    const q = query(collection(db, col), where('tripId', '==', tripId));
+    const snap = await getDocs(q);
+    await Promise.all(snap.docs.map((d) => deleteDoc(d.ref)));
+  }
 
-  // трием всички разходи за това пътуване
-  const expQuery = query(
-    collection(db, EXPENSES_COLLECTION),
-    where('tripId', '==', tripId)
-  );
-  const expSnap = await getDocs(expQuery);
-
-  const expDeletions: Promise<void>[] = [];
-  expSnap.forEach((docSnap) => {
-    expDeletions.push(deleteDoc(docSnap.ref));
-  });
-
-  // трием всички списъци за това пътуване (ако има)
-  const listQuery = query(
-    collection(db, LISTS_COLLECTION),
-    where('tripId', '==', tripId)
-  );
-  const listSnap = await getDocs(listQuery);
-
-  const listDeletions: Promise<void>[] = [];
-  listSnap.forEach((docSnap) => {
-    listDeletions.push(deleteDoc(docSnap.ref));
-  });
-
-  await Promise.all([...famDeletions, ...expDeletions, ...listDeletions]);
-
-  // трием самото пътуване
-  const tripRef = doc(db, TRIPS_COLLECTION, tripId);
-  await deleteDoc(tripRef);
+  await deleteDoc(doc(db, TRIPS_COLLECTION, tripId));
 }

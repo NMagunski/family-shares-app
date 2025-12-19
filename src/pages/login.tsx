@@ -8,15 +8,26 @@ import Card from '@/components/ui/Card';
 import Input from '@/components/ui/Input';
 import Button from '@/components/ui/Button';
 
+type FirebaseAuthErrorLike = {
+  code?: string;
+  message?: string;
+};
+
+function getErrorCode(err: unknown): string | undefined {
+  if (typeof err === 'object' && err !== null && 'code' in err) {
+    const maybe = (err as FirebaseAuthErrorLike).code;
+    return typeof maybe === 'string' ? maybe : undefined;
+  }
+  return undefined;
+}
+
 const LoginPage: React.FC = () => {
   const router = useRouter();
   const { redirect } = router.query;
 
   // безопасен redirect (само вътрешни URL-и)
   const redirectTarget =
-    typeof redirect === 'string' && redirect.startsWith('/')
-      ? redirect
-      : '/';
+    typeof redirect === 'string' && redirect.startsWith('/') ? redirect : '/';
 
   const [email, setEmail] = React.useState('');
   const [password, setPassword] = React.useState('');
@@ -32,13 +43,18 @@ const LoginPage: React.FC = () => {
       const trimmedEmail = email.trim();
       await signInWithEmailAndPassword(auth, trimmedEmail, password);
       await router.replace(redirectTarget);
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error(err);
-      const code = err?.code as string | undefined;
+      const code = getErrorCode(err);
 
       if (code === 'auth/user-not-found') {
-        setError('Няма регистриран потребител с този email. Моля, регистрирай се.');
-      } else if (code === 'auth/invalid-credential' || code === 'auth/wrong-password') {
+        setError(
+          'Няма регистриран потребител с този email. Моля, регистрирай се.'
+        );
+      } else if (
+        code === 'auth/invalid-credential' ||
+        code === 'auth/wrong-password'
+      ) {
         setError('Грешен email или парола. Провери данните и опитай отново.');
       } else if (code === 'auth/too-many-requests') {
         setError(

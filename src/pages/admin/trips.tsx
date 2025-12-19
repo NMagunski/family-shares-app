@@ -8,7 +8,9 @@ import {
   getDocs,
   query,
   orderBy,
+  Timestamp,
 } from 'firebase/firestore';
+import type { DocumentData } from 'firebase/firestore';
 import { firestore } from '@/lib/firebase';
 
 type AdminTrip = {
@@ -20,6 +22,17 @@ type AdminTrip = {
   status: 'active' | 'archived';
   createdAt?: string;
 };
+
+function formatCreatedAt(value: unknown): string | undefined {
+  if (value instanceof Timestamp) {
+    return value.toDate().toLocaleString('bg-BG');
+  }
+  if (typeof value === 'string') {
+    const d = new Date(value);
+    if (!Number.isNaN(d.getTime())) return d.toLocaleString('bg-BG');
+  }
+  return undefined;
+}
 
 const AdminTripsPage: React.FC = () => {
   const [trips, setTrips] = React.useState<AdminTrip[]>([]);
@@ -33,8 +46,9 @@ const AdminTripsPage: React.FC = () => {
         const usersMap = new Map<string, string>(); // uid -> email
 
         usersSnap.forEach((docSnap) => {
-          const data = docSnap.data() as any;
-          usersMap.set(docSnap.id, data.email || '—');
+          const data = docSnap.data() as DocumentData;
+          const email = typeof data.email === 'string' ? data.email : '—';
+          usersMap.set(docSnap.id, email);
         });
 
         // 2) Зареждаме всички trips, сортирани по createdAt (ако го има)
@@ -50,25 +64,26 @@ const AdminTripsPage: React.FC = () => {
         }
 
         const tripsData: AdminTrip[] = tripsSnap.docs.map((docSnap) => {
-          const data = docSnap.data() as any;
+          const data = docSnap.data() as DocumentData;
 
-          const createdAt =
-            data.createdAt && data.createdAt.toDate
-              ? data.createdAt.toDate().toLocaleString('bg-BG')
-              : undefined;
+          const name = typeof data.name === 'string' ? data.name : '—';
+          const type = typeof data.type === 'string' ? data.type : 'other';
 
           const archived = data.archived === true;
-          const ownerId = data.ownerId as string | undefined;
+
+          const ownerId =
+            typeof data.ownerId === 'string' ? data.ownerId : undefined;
+
           const ownerEmail = ownerId ? usersMap.get(ownerId) || '—' : '—';
 
           return {
             id: docSnap.id,
-            name: data.name || '—',
-            type: data.type || 'other',
+            name,
+            type,
             ownerId,
             ownerEmail,
             status: archived ? 'archived' : 'active',
-            createdAt,
+            createdAt: formatCreatedAt(data.createdAt),
           };
         });
 

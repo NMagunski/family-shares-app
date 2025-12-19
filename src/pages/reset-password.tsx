@@ -7,6 +7,18 @@ import Card from '@/components/ui/Card';
 import Input from '@/components/ui/Input';
 import Button from '@/components/ui/Button';
 
+type FirebaseAuthErrorLike = {
+  code?: string;
+};
+
+function getErrorCode(err: unknown): string | undefined {
+  if (typeof err === 'object' && err !== null && 'code' in err) {
+    const maybe = (err as FirebaseAuthErrorLike).code;
+    return typeof maybe === 'string' ? maybe : undefined;
+  }
+  return undefined;
+}
+
 const ResetPasswordPage: React.FC = () => {
   const [email, setEmail] = React.useState('');
   const [error, setError] = React.useState<string | null>(null);
@@ -19,7 +31,7 @@ const ResetPasswordPage: React.FC = () => {
     setSuccess(null);
 
     if (!email.trim()) {
-      setError("Моля въведи email.");
+      setError('Моля въведи email.');
       return;
     }
 
@@ -27,17 +39,18 @@ const ResetPasswordPage: React.FC = () => {
       setLoading(true);
       await sendPasswordResetEmail(auth, email.trim());
       setSuccess(
-        "Ако съществува акаунт с този email, изпратихме ти линк за смяна на паролата."
+        'Ако съществува акаунт с този email, изпратихме ти линк за смяна на паролата.'
       );
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error(err);
+      const code = getErrorCode(err);
 
-      if (err.code === "auth/user-not-found") {
-        setError("Няма потребител с този email.");
-      } else if (err.code === "auth/invalid-email") {
-        setError("Невалиден email адрес.");
+      if (code === 'auth/user-not-found') {
+        setError('Няма потребител с този email.');
+      } else if (code === 'auth/invalid-email') {
+        setError('Невалиден email адрес.');
       } else {
-        setError("Грешка при изпращане на имейл. Опитай отново.");
+        setError('Грешка при изпращане на имейл. Опитай отново.');
       }
     } finally {
       setLoading(false);
@@ -69,7 +82,7 @@ const ResetPasswordPage: React.FC = () => {
             {success && <p className="text-emerald-400 text-sm">{success}</p>}
 
             <Button type="submit" disabled={loading}>
-              {loading ? "Изпращане..." : "Изпрати линк"}
+              {loading ? 'Изпращане...' : 'Изпрати линк'}
             </Button>
           </form>
 
