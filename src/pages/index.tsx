@@ -1,3 +1,4 @@
+import { TRIP_INVITATIONS_ENABLED } from '@/lib/features';
 import { availableResults } from '@/lib/availableResults';
 import { collection, query, where, onSnapshot } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
@@ -95,7 +96,7 @@ const HomePage: React.FC = () => {
       }
     }
 
-    const unsubscribe = onSnapshot(query(collection(db, 'tripMemberships'), where('userId', '==', userId)), () => void loadTrips(userId), err => { console.warn('Membership listener unavailable:', err); if (active) void loadTrips(userId); });
+    const unsubscribe = onSnapshot(query(collection(db, TRIP_INVITATIONS_ENABLED ? 'tripMemberships' : 'families'), where('userId', '==', userId)), () => void loadTrips(userId), err => { console.warn('Trip access listener unavailable:', err); if (active) void loadTrips(userId); });
     void loadTrips(userId);
     return () => { active = false; unsubscribe(); };
   }, [user, authLoading, reloadKey]);

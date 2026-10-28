@@ -1,3 +1,4 @@
+import { TRIP_INVITATIONS_ENABLED } from '@/lib/features';
 import { availableResults } from '@/lib/availableResults';
 import { community } from '@/lib/community';
 import { db } from '@/lib/firebase';
@@ -88,7 +89,7 @@ export async function fetchSharedTripsForUser(
   onPartialFailure?: (error: unknown) => void
 ): Promise<Trip[]> {
   const sources = await availableResults([
-    getDocs(query(collection(db, 'tripMemberships'), where('userId', '==', userId))).then(s => s.docs),
+    ...(TRIP_INVITATIONS_ENABLED ? [getDocs(query(collection(db, 'tripMemberships'), where('userId', '==', userId))).then(s => s.docs)] : []),
     getDocs(query(collection(db, FAMILIES_COLLECTION), where('userId', '==', userId))).then(s => s.docs),
   ]);
   sources.errors.forEach(error => onPartialFailure?.(error));

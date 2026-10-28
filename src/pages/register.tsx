@@ -1,3 +1,4 @@
+import { TRIP_INVITATIONS_ENABLED } from '@/lib/features';
 import { localRedirect } from '@/lib/redirect';
 import { community } from '@/lib/community';
 import { normalizeUsername } from '@/lib/usernames';
@@ -45,13 +46,13 @@ const RegisterPage: React.FC = () => {
     setLoading(true);
 
     try {
-      normalizeUsername(username);
+      if (TRIP_INVITATIONS_ENABLED) normalizeUsername(username);
       if (!registeredUid.current) {
         const credential = await createUserWithEmailAndPassword(auth, email.trim(), password);
         registeredUid.current = credential.user.uid;
       }
       if (auth.currentUser?.uid !== registeredUid.current) throw new Error('Влез отново и избери username в профила.');
-      await community({ action: 'username', username, displayName: username });
+      if (TRIP_INVITATIONS_ENABLED) await community({ action: 'username', username, displayName: username });
       await router.replace(redirectTarget);
     } catch (err: unknown) {
       console.error(err);
@@ -87,8 +88,8 @@ const RegisterPage: React.FC = () => {
           </h1>
 
           <form onSubmit={handleSubmit} className="flex flex-col gap-4">
-            <Input label="Username" value={username} onChange={e => setUsername(e.target.value)} required minLength={3} maxLength={24} autoComplete="username"/>
-            <p className="text-xs text-eco-text-muted">Латински букви, цифри и _. Започва с буква; главни и малки букви са равнозначни.</p>
+            {TRIP_INVITATIONS_ENABLED && <><Input label="Username" value={username} onChange={e => setUsername(e.target.value)} required minLength={3} maxLength={24} autoComplete="username"/>
+            <p className="text-xs text-eco-text-muted">Латински букви, цифри и _. Започва с буква; главни и малки букви са равнозначни.</p></>}
             <Input
               label="Email"
               type="email"

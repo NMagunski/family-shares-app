@@ -1,3 +1,4 @@
+import { TRIP_INVITATIONS_ENABLED } from '@/lib/features';
 import { collection, doc, onSnapshot, query, where } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import React from 'react';
@@ -9,12 +10,12 @@ const Navbar: React.FC = () => {
   const { user, loading, logout } = useAuth();
   const [needsUsername, setNeedsUsername] = React.useState(false);
   React.useEffect(() => {
-    if (!user) return;
+    if (!user || !TRIP_INVITATIONS_ENABLED) return;
     return onSnapshot(doc(db, 'publicProfiles', user.uid), snap => setNeedsUsername(!snap.exists()), () => setNeedsUsername(true));
   }, [user]);
   const [pending, setPending] = React.useState(0);
   React.useEffect(() => {
-    if (!user) return;
+    if (!user || !TRIP_INVITATIONS_ENABLED) return;
     return onSnapshot(query(collection(db, 'tripInvitations'), where('targetId', '==', user.uid)), snap => setPending(snap.docs.filter(d => d.data().status === 'pending' && d.data().expiresAt > Date.now()).length), () => setPending(0));
   }, [user]);
   const [isMobileOpen, setIsMobileOpen] = React.useState(false);
@@ -57,8 +58,8 @@ const Navbar: React.FC = () => {
             {user.email}
           </span>
 
-          <Link href="/invitations" className={ghostButton} onClick={handleCloseMobile}>Покани ({pending})</Link>
-          <Link href="/profile" className={ghostButton} onClick={handleCloseMobile}>{needsUsername ? 'Избери username' : 'Профил'}</Link>
+          {TRIP_INVITATIONS_ENABLED && <Link href="/invitations" className={ghostButton} onClick={handleCloseMobile}>Покани ({pending})</Link>}
+          {TRIP_INVITATIONS_ENABLED && <Link href="/profile" className={ghostButton} onClick={handleCloseMobile}>{needsUsername ? 'Избери username' : 'Профил'}</Link>}
           {/* 🔥 Admin бутон – вижда се само ако user е admin */}
           {isAdmin && (
             <Link

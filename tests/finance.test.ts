@@ -46,3 +46,13 @@ test('unavailable membership source does not discard owned or legacy trips', asy
  assert.equal(failedShared.errors.length, 2);
  assert.deepEqual((await availableResults([Promise.resolve(['owned-trip']), Promise.resolve(failedShared.values)])).values, ['owned-trip']);
 });
+
+test('invitation rollout defaults off until infrastructure is explicitly enabled', async () => {
+ const { invitationsEnabled } = await import('../src/lib/features');
+ assert.equal(invitationsEnabled({ production: true }), false);
+ assert.equal(invitationsEnabled({ production: false }), false);
+ assert.equal(invitationsEnabled({ enabled: 'false', production: false }), false);
+ assert.equal(invitationsEnabled({ enabled: 'true', production: true }), true);
+ assert.equal(invitationsEnabled({ emulator: 'true', production: false }), true);
+ assert.equal(invitationsEnabled({ emulator: 'true', production: true }), false);
+});

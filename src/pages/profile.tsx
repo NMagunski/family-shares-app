@@ -1,3 +1,4 @@
+import { TRIP_INVITATIONS_ENABLED, INVITATIONS_SETUP_MESSAGE } from '@/lib/features';
 import Link from 'next/link';
 import React from 'react';
 import Layout from '@/components/layout/Layout';
@@ -13,11 +14,12 @@ export default function Profile() {
   const [username, setUsername] = React.useState(''), [name, setName] = React.useState('');
   const [chosen, setChosen] = React.useState(false), [busy, setBusy] = React.useState(false), [status, setStatus] = React.useState('');
   React.useEffect(() => {
-    if (!user) return;
+    if (!user || !TRIP_INVITATIONS_ENABLED) return;
     return onSnapshot(doc(db, 'publicProfiles', user.uid), snap => {
       if (snap.exists()) { setUsername(snap.data().username); setName(snap.data().displayName); setChosen(true); }
     }, () => setStatus('Профилът не може да бъде зареден.'));
   }, [user]);
+  if (!TRIP_INVITATIONS_ENABLED) return <Layout><p role="status">{INVITATIONS_SETUP_MESSAGE}</p></Layout>;
   return <Layout><Card><h1 className="text-3xl mb-4">Твоят профил</h1>{loading ? <p>Зареждане…</p> : !user ? <Link href="/login">Вход</Link> : <form className="grid gap-4" onSubmit={async e => {
     e.preventDefault(); if (busy) return; setBusy(true); setStatus('');
     try { await community({ action: 'username', username, displayName: name }); setChosen(true); setStatus('✓ Профилът е запазен.'); }

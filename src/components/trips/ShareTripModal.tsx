@@ -1,3 +1,4 @@
+import { TRIP_INVITATIONS_ENABLED, INVITATIONS_SETUP_MESSAGE } from '@/lib/features';
 import React from 'react';
 import Card from '@/components/ui/Card';
 import Input from '@/components/ui/Input';
@@ -17,12 +18,13 @@ export default function ShareTripModal({ isOpen, onClose, shareUrl }: { isOpen: 
   const [familyId, setFamilyId] = React.useState('');
   const [invites, setInvites] = React.useState<Invite[]>([]);
   React.useEffect(() => {
-    if (!isOpen || !tripId) return;
+    if (!isOpen || !tripId || !TRIP_INVITATIONS_ENABLED) return;
     const stopFamilies = auth.currentUser ? onSnapshot(query(collection(db, 'families'), where('tripId', '==', tripId), where('userId', '==', auth.currentUser.uid)), snap => setOwnFamilies(snap.docs.map(d => ({id:d.id,name:d.data().name}))), () => setOwnFamilies([])) : () => {};
     const stopInvites = onSnapshot(query(collection(db, 'tripInvitations'), where('tripId', '==', tripId)), snap => setInvites(snap.docs.map(d => ({ ...d.data(), id: d.id } as Invite))), () => setStatus('Само организаторът може да преглежда поканите.'));
     return () => { stopFamilies(); stopInvites(); };
   }, [tripId, isOpen]);
   if (!isOpen) return null;
+  if (!TRIP_INVITATIONS_ENABLED) return <div className="fixed inset-0 z-50 grid place-items-center bg-black/60 p-4"><Card><p role="status">{INVITATIONS_SETUP_MESSAGE}</p><Button onClick={onClose}>Затвори</Button></Card></div>;
   async function run(action: () => Promise<unknown>, message: string) {
     if (busy) return; setBusy(true); setStatus('');
     try { await action(); setStatus(message); } catch (err) { setStatus(err instanceof Error ? err.message : 'Опитай отново.'); } finally { setBusy(false); }

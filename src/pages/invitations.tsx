@@ -1,3 +1,4 @@
+import { TRIP_INVITATIONS_ENABLED, INVITATIONS_SETUP_MESSAGE } from '@/lib/features';
 import Link from 'next/link';
 import React from 'react';
 import { collection, onSnapshot, query, where } from 'firebase/firestore';
@@ -16,7 +17,7 @@ function Invitation({ invite }: { invite: Invite }) {
   const [families, setFamilies] = React.useState<{id:string;name:string}[]>([]);
   const [familyId, setFamilyId] = React.useState('');
   React.useEffect(() => {
-    if (!user) return;
+    if (!user || !TRIP_INVITATIONS_ENABLED) return;
     return onSnapshot(query(collection(db, 'families'), where('userId', '==', user.uid), where('tripId', '==', invite.tripId)), snap => setFamilies(snap.docs.map(d => ({id:d.id,name:d.data().name}))), () => setFamilies([]));
   }, [user, invite.tripId]);
   const [familyName, setFamilyName] = React.useState(''), [busy, setBusy] = React.useState(false), [message, setMessage] = React.useState('');
@@ -32,8 +33,9 @@ export default function Invitations() {
   const { user, loading } = useAuth();
   const [invites, setInvites] = React.useState<Invite[]>([]), [error, setError] = React.useState('');
   React.useEffect(() => {
-    if (!user) return;
+    if (!user || !TRIP_INVITATIONS_ENABLED) return;
     return onSnapshot(query(collection(db, 'tripInvitations'), where('targetId', '==', user.uid)), snap => setInvites(snap.docs.map(d => ({ ...d.data(), id: d.id } as Invite))), () => setError('Поканите не могат да се заредят.'));
   }, [user]);
+  if (!TRIP_INVITATIONS_ENABLED) return <Layout><p role="status">{INVITATIONS_SETUP_MESSAGE}</p></Layout>;
   return <Layout><h1 className="text-3xl mb-6">Твоите покани</h1><div className="grid gap-4">{loading ? 'Зареждане…' : !user ? <Link href="/login">Влез в профила си</Link> : invites.length ? invites.map(i => <Invitation key={i.id} invite={i}/>) : 'Няма покани.'}<p role="alert">{error}</p></div></Layout>;
 }
