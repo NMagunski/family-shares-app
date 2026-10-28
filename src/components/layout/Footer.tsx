@@ -19,14 +19,14 @@ const Footer: React.FC = () => {
         <div className="flex flex-wrap items-center gap-3">
           <Link
             href="/privacy"
-            className="hover:text-emerald-300 transition-colors"
+            className="hover:text-eco-accent transition-colors"
           >
             Политика за поверителност
           </Link>
           <span className="hidden sm:inline text-eco-text-muted">·</span>
           <Link
             href="/terms"
-            className="hover:text-emerald-300 transition-colors"
+            className="hover:text-eco-accent transition-colors"
           >
             Общи условия
           </Link>

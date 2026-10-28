@@ -8,13 +8,13 @@ type LayoutProps = {
 
 const Layout: React.FC<LayoutProps> = ({ children }) => {
   return (
-    <div className="min-h-screen bg-[#020a08] text-eco-text">
+    <div className="min-h-screen bg-eco-bg text-eco-text">
       {/* Глобален футуристичен фон + layout */}
       <div
         className="
           min-h-screen
           flex flex-col
-          bg-[radial-gradient(circle_at_top,_rgba(16,185,129,0.18),_transparent_60%),radial-gradient(circle_at_bottom,_rgba(16,185,129,0.12),_transparent_60%)]
+          bg-eco-bg
         "
       >
         <Navbar />

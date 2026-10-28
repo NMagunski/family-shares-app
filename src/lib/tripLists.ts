@@ -1,3 +1,4 @@
+import { community } from '@/lib/community';
 import { db } from '@/lib/firebase';
 import {
   collection,
@@ -8,7 +9,6 @@ import {
   deleteDoc,
   query,
   where,
-  writeBatch,
 } from 'firebase/firestore';
 
 export type TripList = {
@@ -122,18 +122,7 @@ export async function createTripList(
  * Изтрива списък + всички items в него
  */
 export async function deleteTripList(listId: string): Promise<void> {
-  // batch delete items first
-  const itemsSnap = await getDocs(
-    collection(db, LISTS_COLLECTION, listId, ITEMS_COLLECTION)
-  );
-
-  const batch = writeBatch(db);
-  itemsSnap.docs.forEach((d) => batch.delete(d.ref));
-
-  // delete list doc
-  batch.delete(doc(db, LISTS_COLLECTION, listId));
-
-  await batch.commit();
+  await community({ action: 'deleteList', listId });
 }
 
 /**

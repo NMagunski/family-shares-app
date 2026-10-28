@@ -1,3 +1,6 @@
+import { availableResults } from '@/lib/availableResults';
+import { collection, query, where, onSnapshot } from 'firebase/firestore';
+import { db } from '@/lib/firebase';
 import React from 'react';
 import { useRouter } from 'next/router';
 import Layout from '@/components/layout/Layout';
@@ -42,7 +45,9 @@ const HomePage: React.FC = () => {
   const [archiveModalOpen, setArchiveModalOpen] = React.useState(false);
   const [archiveLoading, setArchiveLoading] = React.useState(false);
 
+  const [reloadKey, setReloadKey] = React.useState(0);
   React.useEffect(() => {
+    if (authLoading) return;
     // ако няма логнат → чистим стейта и излизаме
     if (!user) {
       setOwnedTrips([]);
@@ -52,34 +57,48 @@ const HomePage: React.FC = () => {
     }
 
     const userId = user.uid;
+    let generation = 0;
+    let active = true;
 
     async function loadTrips(forUserId: string) {
+      const request = ++generation;
       try {
         setTripsLoading(true);
         setError(null);
 
-        const [owned, sharedRaw] = await Promise.all([
+        const partialErrors: unknown[] = [];
+        const result = await availableResults([
           fetchTripsForUser(forUserId),
-          fetchSharedTripsForUser(forUserId),
+          fetchSharedTripsForUser(forUserId, error => partialErrors.push(error)),
         ]);
-
-        const activeOwned = owned.filter((t) => !t.archived);
-        const archived = owned.filter((t) => t.archived);
-        const shared = sharedRaw.filter((t) => t.ownerId !== forUserId);
+        if (!active || request !== generation) return;
+        const trips = [...new Map(result.values.map(trip => [trip.id, trip])).values()];
+        const activeOwned = trips.filter(t => t.ownerId === forUserId && !t.archived);
+        const archived = trips.filter(t => t.archived);
+        const shared = trips.filter(t => t.ownerId !== forUserId && !t.archived);
+        const errors = [...result.errors, ...partialErrors];
+        if (errors.length) {
+          console.error('Trip sources unavailable:', errors);
+          setError(trips.length
+            ? 'Част от пътуванията не могат да се заредят. Показани са достъпните.'
+            : 'Пътуванията не могат да се заредят напълно. Провери достъпа и конфигурацията на Firebase.');
+        }
 
         setOwnedTrips(activeOwned);
         setArchivedTrips(archived);
         setSharedTrips(shared);
       } catch (err) {
         console.error(err);
-        setError('Проблем при зареждане на пътуванията.');
+        if (active && request === generation) setError('Проблем при зареждане на пътуванията.');
       } finally {
-        setTripsLoading(false);
+        if (active && request === generation) setTripsLoading(false);
       }
     }
 
-    loadTrips(userId);
-  }, [user]);
+    const unsubscribe = onSnapshot(query(collection(db, 'tripMemberships'), where('userId', '==', userId)), () => void loadTrips(userId), err => { console.warn('Membership listener unavailable:', err); if (active) void loadTrips(userId); });
+    void loadTrips(userId);
+    return () => { active = false; unsubscribe(); };
+  }, [user, authLoading, reloadKey]);
 
   function handleAskArchiveTrip(trip: Trip) {
     setTripToArchive(trip);
@@ -235,7 +254,7 @@ const HomePage: React.FC = () => {
                 <div className="relative flex h-full items-center justify-center">
                   <div className="flex h-32 w-32 items-center justify-center rounded-full bg-eco-surface border border-eco-border shadow-eco-soft">
                     <svg
-                      className="h-16 w-16 text-emerald-300"
+                      className="h-16 w-16 text-eco-accent"
                       viewBox="0 0 24 24"
                       fill="none"
                       stroke="currentColor"
@@ -264,6 +283,9 @@ const HomePage: React.FC = () => {
   return (
     <Layout>
       <div className="space-y-6">
+        {error && <div role="alert" className="rounded-xl border border-eco-border bg-eco-surface p-4 text-sm">
+          <p>{error}</p><button type="button" className="mt-2 font-semibold text-eco-accent" disabled={tripsLoading} onClick={() => setReloadKey(key => key + 1)}>Опитай отново</button>
+        </div>}
         {/* Ако НЯМА никакви пътувания → показваме специален empty state */}
         {!tripsLoading && !error && !hasAnyTrips ? (
           <div className="flex items-center justify-center min-h-[60vh] px-4">
@@ -311,7 +333,7 @@ const HomePage: React.FC = () => {
                     <div className="pointer-events-none absolute -inset-6 rounded-3xl bg-[radial-gradient(circle_at_top,_rgba(16,185,129,0.3),_transparent_55%),radial-gradient(circle_at_bottom,_rgba(16,185,129,0.18),_transparent_55%)] opacity-80" />
                     <div className="relative flex h-40 w-40 items-center justify-center rounded-full bg-eco-surface border border-eco-border shadow-eco-soft">
                       <svg
-                        className="h-20 w-20 text-emerald-300"
+                        className="h-20 w-20 text-eco-accent"
                         viewBox="0 0 24 24"
                         fill="none"
                         stroke="currentColor"
@@ -355,12 +377,9 @@ const HomePage: React.FC = () => {
 
                 {tripsLoading ? (
                   <p className="mt-2 text-sm text-eco-text-muted">Зареждане...</p>
-                ) : error ? (
-                  <p className="mt-2 text-sm text-red-400">{error}</p>
                 ) : activeTrips.length === 0 ? (
                   <p className="mt-2 text-sm text-eco-text-muted">
-                    Все още нямаш активни пътувания. Създай ново или влез с линк,
-                    който ти е изпратен от приятел.
+                    {error ? 'Няма заредени активни пътувания.' : 'Нямаш активни пътувания. Създай ново или приеми покана от приятел.'}
                   </p>
                 ) : (
                   <div className="mt-3 space-y-3">
@@ -394,7 +413,7 @@ const HomePage: React.FC = () => {
                   <p className="mt-2 text-sm text-eco-text-muted">Зареждане...</p>
                 ) : archivedTrips.length === 0 ? (
                   <p className="mt-2 text-sm text-eco-text-muted">
-                    Нямаш архивирани пътувания.
+                    {error ? 'Няма заредени архивирани пътувания.' : 'Нямаш архивирани пътувания.'}
                   </p>
                 ) : (
                   <div className="mt-3 space-y-3">
@@ -402,10 +421,10 @@ const HomePage: React.FC = () => {
                       <TripCard
                         key={trip.id}
                         trip={trip}
-                        showManageActions
-                        onArchiveToggle={handleAskArchiveTrip}
-                        onDelete={handleAskDeleteTrip}
-                        role="owner"
+                        showManageActions={trip.ownerId === userId}
+                        onArchiveToggle={trip.ownerId === userId ? handleAskArchiveTrip : undefined}
+                        onDelete={trip.ownerId === userId ? handleAskDeleteTrip : undefined}
+                        role={trip.ownerId === userId ? 'owner' : 'participant'}
                       />
                     ))}
                   </div>

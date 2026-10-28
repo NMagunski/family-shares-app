@@ -1,15 +1,13 @@
+import { community } from '@/lib/community';
 import { db } from '@/lib/firebase';
 import {
   collection,
-  addDoc,
   getDocs,
   query,
   where,
   doc,
-  updateDoc,
   deleteDoc,
   getDoc,
-  deleteField,
 } from 'firebase/firestore';
 
 import type { TripExpense } from '@/types/trip';
@@ -18,6 +16,7 @@ import type { CurrencyCode } from '@/lib/currencies';
 export type TripExpenseType = 'expense' | 'settlement';
 
 export type ExpenseInput = {
+  requestId?: string;
   paidByFamilyId: string;
   involvedFamilyIds: string[];
   amount: number;
@@ -94,33 +93,7 @@ export async function createExpense(
   tripId: string,
   input: ExpenseInput
 ): Promise<TripExpense> {
-  const createdAt = new Date().toISOString();
-
-  const payload: Record<string, unknown> = {
-    tripId,
-    paidByFamilyId: input.paidByFamilyId,
-    involvedFamilyIds: input.involvedFamilyIds,
-    amount: input.amount,
-    currency: input.currency,
-    comment: input.comment ?? '',
-    createdAt,
-    type: input.type ?? 'expense',
-  };
-
-  if (typeof input.settlementFromFamilyId === 'string') {
-    payload.settlementFromFamilyId = input.settlementFromFamilyId;
-  }
-  if (typeof input.settlementToFamilyId === 'string') {
-    payload.settlementToFamilyId = input.settlementToFamilyId;
-  }
-
-  const ref = await addDoc(collection(db, EXPENSES_COLLECTION), payload);
-
-  // връщаме TripExpense
-  return {
-    id: ref.id,
-    ...(payload as unknown as Omit<TripExpense, 'id'>),
-  } as TripExpense;
+  return community<TripExpense>({ action: 'expense', tripId, input, requestId: input.requestId ?? crypto.randomUUID() });
 }
 
 /**
@@ -130,27 +103,9 @@ export async function updateExpense(
   expenseId: string,
   updates: ExpenseInput
 ): Promise<void> {
-  const ref = doc(db, EXPENSES_COLLECTION, expenseId);
-
-  const updatePayload: Record<string, unknown> = {
-    paidByFamilyId: updates.paidByFamilyId,
-    involvedFamilyIds: updates.involvedFamilyIds,
-    amount: updates.amount,
-    currency: updates.currency,
-    comment: updates.comment ?? '',
-    type: updates.type ?? 'expense',
-  };
-
-  // ако не е settlement – чистим settlement полетата
-  if ((updates.type ?? 'expense') !== 'settlement') {
-    updatePayload.settlementFromFamilyId = deleteField();
-    updatePayload.settlementToFamilyId = deleteField();
-  } else {
-    updatePayload.settlementFromFamilyId = updates.settlementFromFamilyId ?? '';
-    updatePayload.settlementToFamilyId = updates.settlementToFamilyId ?? '';
-  }
-
-  await updateDoc(ref, updatePayload);
+  const old = await fetchExpenseById(expenseId);
+  if (!old) throw new Error('Разходът не съществува.');
+  await community({ action: 'expense', tripId: old.tripId, expenseId, input: updates });
 }
 
 /**

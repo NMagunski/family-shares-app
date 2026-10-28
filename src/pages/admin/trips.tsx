@@ -1,3 +1,4 @@
+import { useAuth } from '@/context/AuthContext';
 // pages/admin/trips.tsx
 import React from 'react';
 import AdminGuard from '@/components/admin/AdminGuard';
@@ -38,7 +39,10 @@ const AdminTripsPage: React.FC = () => {
   const [trips, setTrips] = React.useState<AdminTrip[]>([]);
   const [loading, setLoading] = React.useState(true);
 
+  const { user, loading: authLoading } = useAuth();
+
   React.useEffect(() => {
+    if (authLoading || !user?.isAdmin) return;
     const loadTrips = async () => {
       try {
         // 1) Зареждаме всички потребители, за да покажем email на собственика
@@ -96,7 +100,7 @@ const AdminTripsPage: React.FC = () => {
     };
 
     loadTrips();
-  }, []);
+  }, [user, authLoading]);
 
   return (
     <AdminGuard>
@@ -110,26 +114,26 @@ const AdminTripsPage: React.FC = () => {
           </div>
         </div>
 
-        <div className="overflow-hidden rounded-2xl border border-emerald-700/40 bg-slate-900/70">
+        <div className="overflow-hidden rounded-2xl border border-emerald-700/40 bg-eco-surface">
           <table className="min-w-full text-sm">
-            <thead className="bg-slate-900/90">
+            <thead className="bg-eco-surface">
               <tr>
-                <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-400">
+                <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-eco-text-muted">
                   Име
                 </th>
-                <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-400">
+                <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-eco-text-muted">
                   Тип
                 </th>
-                <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-400">
+                <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-eco-text-muted">
                   Собственик
                 </th>
-                <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-400">
+                <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-eco-text-muted">
                   Статус
                 </th>
-                <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-400">
+                <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-eco-text-muted">
                   Създадено на
                 </th>
-                <th className="px-4 py-3 text-right text-xs font-semibold uppercase tracking-wide text-slate-400">
+                <th className="px-4 py-3 text-right text-xs font-semibold uppercase tracking-wide text-eco-text-muted">
                   Действия
                 </th>
               </tr>
@@ -139,7 +143,7 @@ const AdminTripsPage: React.FC = () => {
                 <tr>
                   <td
                     colSpan={6}
-                    className="px-4 py-6 text-center text-sm text-slate-400"
+                    className="px-4 py-6 text-center text-sm text-eco-text-muted"
                   >
                     Зареждане на пътувания...
                   </td>
@@ -150,7 +154,7 @@ const AdminTripsPage: React.FC = () => {
                 <tr>
                   <td
                     colSpan={6}
-                    className="px-4 py-6 text-center text-sm text-slate-400"
+                    className="px-4 py-6 text-center text-sm text-eco-text-muted"
                   >
                     Няма намерени пътувания.
                   </td>
@@ -159,23 +163,23 @@ const AdminTripsPage: React.FC = () => {
 
               {!loading &&
                 trips.map((trip) => (
-                  <tr key={trip.id} className="hover:bg-slate-800/70">
-                    <td className="px-4 py-3 text-slate-100">{trip.name}</td>
-                    <td className="px-4 py-3 text-slate-300">{trip.type}</td>
-                    <td className="px-4 py-3 text-slate-300">
+                  <tr key={trip.id} className="hover:bg-eco-surface">
+                    <td className="px-4 py-3 text-eco-text">{trip.name}</td>
+                    <td className="px-4 py-3 text-eco-text">{trip.type}</td>
+                    <td className="px-4 py-3 text-eco-text">
                       {trip.ownerEmail || '—'}
                     </td>
-                    <td className="px-4 py-3 text-slate-300">
+                    <td className="px-4 py-3 text-eco-text">
                       {trip.status === 'archived' ? 'Архивирано' : 'Активно'}
                     </td>
-                    <td className="px-4 py-3 text-slate-300">
+                    <td className="px-4 py-3 text-eco-text">
                       {trip.createdAt || '—'}
                     </td>
                     <td className="px-4 py-3 text-right text-sm">
                       <div className="flex items-center justify-end gap-2">
                         <Link
                           href={`/trips/${trip.id}`}
-                          className="rounded-lg bg-slate-800/80 px-3 py-1 text-xs font-medium text-slate-100 hover:bg-slate-700/80"
+                          className="rounded-lg bg-eco-surface px-3 py-1 text-xs font-medium text-eco-text hover:bg-slate-700/80"
                         >
                           View
                         </Link>

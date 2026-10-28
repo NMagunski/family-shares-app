@@ -1,0 +1,7 @@
+{
+ "indexes": [
+  {"collectionGroup":"personalExpenseLists","queryScope":"COLLECTION","fields":[{"fieldPath":"tripId","order":"ASCENDING"},{"fieldPath":"memberUserIds","arrayConfig":"CONTAINS"}]},
+  {"collectionGroup":"families","queryScope":"COLLECTION","fields":[{"fieldPath":"tripId","order":"ASCENDING"},{"fieldPath":"userId","order":"ASCENDING"}]}
+ ],
+ "fieldOverrides": []
+}

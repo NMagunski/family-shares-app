@@ -11,20 +11,20 @@ module.exports = {
     extend: {
       colors: {
         // 🌿 Eco green dark палитра
-        'eco-bg': '#0f1812',
-        'eco-surface': '#17251a',
-        'eco-surface-soft': '#1f3124',
-        'eco-border': '#1f3124',
-        'eco-accent': '#34d399',        // emerald-400
-        'eco-accent-strong': '#059669', // emerald-600
-        'eco-text': '#e5f2e9',
-        'eco-text-muted': '#9caea3',
+        'eco-bg': 'var(--eco-bg)',
+        'eco-surface': 'var(--eco-surface)',
+        'eco-surface-soft': 'var(--eco-surface-soft)',
+        'eco-border': 'var(--eco-border)',
+        'eco-accent': 'var(--eco-accent)',        // emerald-400
+        'eco-accent-strong': 'var(--eco-accent-strong)', // emerald-600
+        'eco-text': 'var(--eco-text)',
+        'eco-text-muted': 'var(--eco-text-muted)',
       },
       borderRadius: {
         '2xl': '1rem',
       },
       boxShadow: {
-        'eco-soft': '0 10px 30px rgba(0,0,0,0.35)',
+        'eco-soft': '0 10px 30px rgba(23,63,48,0.07)',
       },
     },
   },

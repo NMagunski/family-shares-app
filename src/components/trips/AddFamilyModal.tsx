@@ -9,7 +9,7 @@ import { UserPlus, X } from 'lucide-react';
 type AddFamilyModalProps = {
   isOpen: boolean;
   onClose: () => void;
-  onCreate: (name: string) => void;
+  onCreate: (name: string) => Promise<void>;
 };
 
 const AddFamilyModal: React.FC<AddFamilyModalProps> = ({
@@ -17,6 +17,8 @@ const AddFamilyModal: React.FC<AddFamilyModalProps> = ({
   onClose,
   onCreate,
 }) => {
+  const [saving, setSaving] = React.useState(false);
+  const [error, setError] = React.useState('');
   const [name, setName] = React.useState('');
 
   React.useEffect(() => {
@@ -27,11 +29,12 @@ const AddFamilyModal: React.FC<AddFamilyModalProps> = ({
 
   if (!isOpen) return null;
 
-  function handleSubmit(e: React.FormEvent) {
+  async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     const trimmed = name.trim();
-    if (!trimmed) return;
-    onCreate(trimmed);
+    if (!trimmed || saving) return;
+    setSaving(true); setError('');
+    try { await onCreate(trimmed); } catch { setError('Семейството не е запазено. Опитай отново.'); } finally { setSaving(false); }
   }
 
   return (
@@ -69,6 +72,7 @@ const AddFamilyModal: React.FC<AddFamilyModalProps> = ({
             </h2>
           </div>
 
+          <p role="status">{error}</p>
           <form onSubmit={handleSubmit} className="flex flex-col gap-4 mt-2">
 
             <Input
@@ -89,7 +93,7 @@ const AddFamilyModal: React.FC<AddFamilyModalProps> = ({
                 Отказ
               </Button>
 
-              <Button type="submit" className="whitespace-nowrap">
+              <Button disabled={saving} type="submit" className="whitespace-nowrap">
                 Добави
               </Button>
             </div>

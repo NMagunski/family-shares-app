@@ -338,7 +338,7 @@ const ListCard: React.FC<ListCardProps> = ({
         <button
           type="button"
           onClick={() => onDeleteList(list.id)}
-          className="text-xs font-medium text-red-300 hover:text-red-400 hover:underline transition"
+          className="text-xs font-medium text-red-600 hover:text-red-400 hover:underline transition"
         >
           Изтрий списъка
         </button>

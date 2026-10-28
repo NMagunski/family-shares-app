@@ -9,8 +9,8 @@ type ExpensesTableProps = {
   families: TripFamily[];
   expenses: TripExpense[];
   tripCurrency: CurrencyCode;
-  onAddExpense: (exp: BaseExpenseInput) => void;
-  onUpdateExpense: (expenseId: string, exp: BaseExpenseInput) => void;
+  onAddExpense: (exp: BaseExpenseInput) => Promise<void>;
+  onUpdateExpense: (expenseId: string, exp: BaseExpenseInput) => Promise<void>;
   onDeleteExpense: (expenseId: string) => void;
 };
 
@@ -24,6 +24,8 @@ const ExpensesTable: React.FC<ExpensesTableProps> = ({
   onUpdateExpense,
   onDeleteExpense,
 }) => {
+  const [editSaving, setEditSaving] = React.useState(false);
+  const [editError, setEditError] = React.useState('');
   const [editingId, setEditingId] = React.useState<string | null>(null);
   const [editingComment, setEditingComment] = React.useState<string>('');
   const [openInfoId, setOpenInfoId] = React.useState<string | null>(null);
@@ -44,8 +46,8 @@ const ExpensesTable: React.FC<ExpensesTableProps> = ({
   const endIndex = startIndex + PAGE_SIZE;
   const pageExpenses = expenses.slice(startIndex, endIndex);
 
-  function handleAdd(expense: BaseExpenseInput) {
-    onAddExpense(expense);
+  async function handleAdd(expense: BaseExpenseInput) {
+    await onAddExpense(expense);
     // новите разходи да се виждат на първата страница
     setCurrentPage(1);
   }
@@ -78,11 +80,11 @@ const ExpensesTable: React.FC<ExpensesTableProps> = ({
       settlementToFamilyId: exp.settlementToFamilyId,
     };
 
-    try {
-      await onUpdateExpense(exp.id, payload);
-    } finally {
-      handleCancelEdit();
-    }
+    if (editSaving) return;
+    setEditSaving(true); setEditError('');
+    try { await onUpdateExpense(exp.id, payload); handleCancelEdit(); }
+    catch { setEditError('Редакцията не е запазена. Опитай отново.'); }
+    finally { setEditSaving(false); }
   }
 
   async function handleDelete(expenseId: string) {
@@ -135,12 +137,14 @@ function toggleInfo(expenseId: string) {
 
   return (
     <div className="space-y-4">
+      <p role="status">{editError || (editSaving ? 'Запазване…' : '')}</p>
       {/* Форма за добавяне на разход */}
+      <details id="expense-entry" className="rounded-2xl border border-eco-border p-4"><summary className="cursor-pointer font-semibold text-eco-accent">Добави разход или погасяване</summary>
       <AddExpenseForm
         families={families.map((f) => ({ id: f.id, name: f.name }))}
         onAdd={handleAdd}
         tripCurrency={tripCurrency}
-      />
+      /></details>
 
       {/* Списък с разходи */}
       {expenses.length === 0 ? (

@@ -1,3 +1,5 @@
+import { db } from '@/lib/firebase';
+import { doc, collection, query, where, onSnapshot } from 'firebase/firestore';
 import React from 'react';
 import { useRouter } from 'next/router';
 import Layout from '@/components/layout/Layout';
@@ -9,26 +11,22 @@ import ShareTripModal from '@/components/trips/ShareTripModal';
 import SectionCard from '@/components/ui/SectionCard';
 import EditFamilyModal from '@/components/trips/EditFamilyModal';
 import ConfirmModal from '@/components/ui/ConfirmModal';
-import Button from '@/components/ui/Button';
-import { useToast } from '@/context/ToastContext';
+//import Button from '@/components/ui/Button';
 
 import type { Trip, TripFamily, TripExpense } from '@/types/trip';
 import ExpensesTable from '@/components/trips/ExpensesTable';
 import type { BaseExpenseInput } from '@/components/trips/AddExpenseForm';
 
 import {
-  fetchFamilies,
   createFamily,
   updateFamilyName,
   deleteFamilyAndExpenses,
 } from '@/lib/families';
 import {
-  fetchExpenses,
   createExpense,
   updateExpense,
   deleteExpense,
 } from '@/lib/expensesStore';
-import { fetchTripById } from '@/lib/trips';
 import { useAuth } from '@/context/AuthContext';
 import { Users, Scale, Receipt, Info, Lightbulb } from 'lucide-react';
 import type { CurrencyCode } from '@/lib/currencies';
@@ -36,7 +34,6 @@ import { convertToEur, getCurrencySymbol } from '@/lib/currencies';
 
 const TripPage: React.FC = () => {
   const router = useRouter();
-  const { showToast } = useToast();
   const { user, loading: authLoading } = useAuth();
 
   const { tripId } = router.query;
@@ -86,59 +83,23 @@ const TripPage: React.FC = () => {
   const [isDeleteModalOpen, setIsDeleteModalOpen] = React.useState(false);
   const [deleteLoading, setDeleteLoading] = React.useState(false);
 
-  // Зареждане на пътуването
+  const [loadError, setLoadError] = React.useState('');
   React.useEffect(() => {
-    if (!tripIdStr) return;
-
-    async function loadTrip() {
-      try {
-        const t = await fetchTripById(tripIdStr);
-        setTrip(t);
-      } catch (err) {
-        console.error('Грешка при зареждане на пътуването:', err);
-      }
-    }
-
-    loadTrip();
-  }, [tripIdStr]);
-
-  // Зареждане на семейства
-  React.useEffect(() => {
-    if (!tripIdStr) return;
-
-    async function loadFamilies() {
-      try {
-        setFamiliesLoading(true);
-        const data = await fetchFamilies(tripIdStr);
-        setFamilies(data);
-      } catch (err) {
-        console.error(err);
-      } finally {
-        setFamiliesLoading(false);
-      }
-    }
-
-    loadFamilies();
-  }, [tripIdStr]);
-
-  // Зареждане на разходи
-  React.useEffect(() => {
-    if (!tripIdStr) return;
-
-    async function loadExpenses() {
-      try {
-        setExpensesLoading(true);
-        const data = await fetchExpenses(tripIdStr);
-        setExpenses(data);
-      } catch (err) {
-        console.error(err);
-      } finally {
-        setExpensesLoading(false);
-      }
-    }
-
-    loadExpenses();
-  }, [tripIdStr]);
+    if (!tripIdStr || authLoading || !user) return;
+    setTrip(null); setFamilies([]); setExpenses([]); setLoadError('');
+    setFamiliesLoading(true); setExpensesLoading(true);
+    const failed = () => { setLoadError('Данните не могат да се заредят. Провери достъпа си и презареди.'); setFamiliesLoading(false); setExpensesLoading(false); };
+    const unsubscribeTrip = onSnapshot(doc(db, 'trips', tripIdStr), snap => setTrip(snap.exists() ? { ...snap.data(), id: snap.id } as Trip : null), failed);
+    const unsubscribeFamilies = onSnapshot(query(collection(db, 'families'), where('tripId', '==', tripIdStr)), snap => {
+      setFamilies(snap.docs.map(d => ({...d.data(),id:d.id} as TripFamily)).sort((a,b) => a.name.localeCompare(b.name)));
+      setFamiliesLoading(false);
+    }, failed);
+    const unsubscribeExpenses = onSnapshot(query(collection(db, 'expenses'), where('tripId', '==', tripIdStr)), snap => {
+      setExpenses(snap.docs.map(d => ({...d.data(),id:d.id} as TripExpense)).sort((a,b) => (b.createdAt ?? '').localeCompare(a.createdAt ?? '')));
+      setExpensesLoading(false);
+    }, failed);
+    return () => { unsubscribeTrip(); unsubscribeFamilies(); unsubscribeExpenses(); };
+  }, [tripIdStr, authLoading, user]);
 
   // Добавяне на разход
   async function handleAddExpense(exp: BaseExpenseInput) {
@@ -146,10 +107,10 @@ const TripPage: React.FC = () => {
 
     try {
       const created = await createExpense(tripIdStr, exp);
-      setExpenses((prev) => [created, ...prev]);
+      setExpenses((prev) => [created, ...prev.filter(e => e.id !== created.id)]);
     } catch (err) {
       console.error(err);
-      alert('Грешка при добавяне на разход');
+      throw err;
     }
   }
 
@@ -177,7 +138,7 @@ const TripPage: React.FC = () => {
       );
     } catch (err) {
       console.error(err);
-      alert('Грешка при редакция на разход.');
+      throw err;
     }
   }
 
@@ -198,11 +159,11 @@ const TripPage: React.FC = () => {
 
     try {
       const fam = await createFamily(tripIdStr, name, user.uid);
-      setFamilies((prev) => [...prev, fam]);
+      setFamilies((prev) => [...prev.filter(f => f.id !== fam.id), fam]);
       setShowFamilyModal(false);
     } catch (err) {
       console.error(err);
-      alert('Грешка при добавяне на семейство');
+      throw err;
     }
   }
 
@@ -273,7 +234,7 @@ const TripPage: React.FC = () => {
 
   // 🔢 Данни за резюмето – реално похарчено след разделянето
   const [showSummaryInEur, setShowSummaryInEur] = React.useState(false);
-  const canToggleToEur = tripCurrency !== 'EUR';
+  const canToggleToEur = tripCurrency === 'BGN';
 
   // само разходи в валутата на пътуването и които са "expense", не "settlement"
   const expensesInTripCurrency = React.useMemo(
@@ -294,18 +255,15 @@ const TripPage: React.FC = () => {
     });
 
     for (const e of expensesInTripCurrency) {
-      const participants =
-        e.involvedFamilyIds && e.involvedFamilyIds.length > 0
-          ? e.involvedFamilyIds
-          : families.map((f) => f.id);
+      const participants = [...new Set(e.involvedFamilyIds?.length ? e.involvedFamilyIds : families.map(f => f.id))].sort();
 
       if (participants.length === 0) continue;
 
-      const share = e.amount / participants.length;
-
-      for (const fid of participants) {
+      const cents = Math.round(e.amount * 100);
+      const share = Math.floor(cents / participants.length);
+      for (const [index, fid] of participants.entries()) {
         if (result[fid] == null) result[fid] = 0;
-        result[fid] += share;
+        result[fid] += (share + (index < cents % participants.length ? 1 : 0)) / 100;
       }
     }
 
@@ -338,9 +296,17 @@ const TripPage: React.FC = () => {
   return (
     <Layout>
       <div className="flex flex-col gap-6">
+        {loadError && <p role="alert">{loadError}</p>}
         {/* HEADER */}
         <TripHeader
           tripName={tripName}
+          isOwner={trip?.ownerId === user.uid}
+          onAddExpense={() => {
+            const entry = document.getElementById('expense-entry') as HTMLDetailsElement | null;
+            if (entry) { entry.open = true; entry.scrollIntoView({ block: 'start' }); entry.querySelector('select')?.focus(); }
+          }}
+          familiesCount={families.length}
+          total={`${(expensesInTripCurrency.reduce((sum, e) => sum + Math.round(e.amount * 100), 0) / 100).toFixed(2)} ${getCurrencySymbol(tripCurrency)}`}
           onAddFamily={() => setShowFamilyModal(true)}
           onOpenLists={() => router.push(`/trips/${tripIdStr}/lists`)}
           onOpenItinerary={() =>
@@ -358,28 +324,6 @@ const TripPage: React.FC = () => {
         <div className="grid gap-6 lg:grid-cols-3 lg:items-start">
           {/* Лява колона */}
           <div className="space-y-6 lg:col-span-2">
-            <SectionCard title="Участници" icon={Users}>
-              {familiesLoading ? (
-                <p className="text-sm text-eco-text-muted">
-                  Зареждане на семейства...
-                </p>
-              ) : (
-                <FamiliesSection
-                  families={families}
-                  onEditFamily={handleEditFamily}
-                  onDeleteFamily={handleAskDeleteFamily}
-                />
-              )}
-            </SectionCard>
-
-            <SectionCard title="Кой на кого колко дължи" icon={Scale}>
-              <DebtsSummary
-                families={families}
-                expenses={expenses}
-                currency={tripCurrency}
-              />
-            </SectionCard>
-
             <SectionCard title="Разходи" icon={Receipt}>
               {expensesLoading ? (
                 <p className="text-sm text-eco-text-muted">
@@ -396,10 +340,35 @@ const TripPage: React.FC = () => {
                 />
               )}
             </SectionCard>
+            <SectionCard title="Участници" icon={Users}>
+              {familiesLoading ? (
+                <p className="text-sm text-eco-text-muted">
+                  Зареждане на семейства...
+                </p>
+              ) : (
+                <FamiliesSection
+                  families={families}
+                  onEditFamily={trip?.ownerId === user.uid ? handleEditFamily : undefined}
+                  onDeleteFamily={trip?.ownerId === user.uid ? handleAskDeleteFamily : undefined}
+                />
+              )}
+            </SectionCard>
+
+
+
+
+
           </div>
 
           {/* Дясна колона */}
           <div className="space-y-6 lg:col-span-1">
+            <SectionCard title="Кой на кого колко дължи" icon={Scale}>
+              <DebtsSummary
+                families={families}
+                expenses={expenses}
+                currency={tripCurrency}
+              />
+            </SectionCard>
             <SectionCard title="Резюме на пътуването" icon={Info}>
               <div className="grid gap-3 text-sm">
                 <div className="flex items-center justify-between rounded-xl border border-eco-border bg-eco-surface-soft px-3 py-2">
@@ -427,24 +396,7 @@ const TripPage: React.FC = () => {
                   </span>
                 </div>
 
-                <button
-                  type="button"
-                  onClick={() => {
-                    navigator.clipboard
-                      .writeText(shareUrl)
-                      .then(() =>
-                        showToast('Линкът за споделяне е копиран!')
-                      )
-                      .catch(() =>
-                        showToast(
-                          'Възникна проблем при копиране на линка.'
-                        )
-                      );
-                  }}
-                  className="text-xs font-semibold text-emerald-400 hover:text-emerald-300 underline underline-offset-2 transition"
-                >
-                  Копирай линка
-                </button>
+                {trip?.ownerId === user.uid && <button type="button" className="text-eco-accent" onClick={() => setShowShareModal(true)}>Покани по username</button>}
 
                 {/* Реално похарчено по семейства */}
                 {families.length > 0 &&
@@ -542,7 +494,7 @@ const TripPage: React.FC = () => {
         title="Изтриване на семейство"
         description={
           deletingFamily
-            ? `Семейство "${deletingFamily.name}" и всички разходи, в които участва, ще бъдат изтрити. Сигурен ли си?`
+            ? `Семейство "${deletingFamily.name}" ще бъде премахнато само ако няма свързани разходи. Членството на потребителя се запазва. Продължи?`
             : ''
         }
         confirmLabel={deleteLoading ? 'Изтриване...' : 'Изтрий'}

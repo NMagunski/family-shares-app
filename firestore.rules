@@ -1,0 +1,60 @@
+rules_version = '2';
+service cloud.firestore {
+ match /databases/{database}/documents {
+  function signed() { return request.auth != null; }
+  function admin() { return signed() && request.auth.token.admin == true; }
+  function owner(t) { return signed() && get(/databases/$(database)/documents/trips/$(t)).data.ownerId == request.auth.uid; }
+  function member(t) { return signed() && (owner(t) || (exists(/databases/$(database)/documents/tripMemberships/$(t + '_' + request.auth.uid)) && get(/databases/$(database)/documents/tripMemberships/$(t + '_' + request.auth.uid)).data.userId == request.auth.uid && get(/databases/$(database)/documents/tripMemberships/$(t + '_' + request.auth.uid)).data.tripId == t)); }
+  function active(t) { return !get(/databases/$(database)/documents/trips/$(t)).data.get('archived', false) && !get(/databases/$(database)/documents/trips/$(t)).data.get('deleting', false); }
+  function privateMember(l) { return signed() && request.auth.uid in get(/databases/$(database)/documents/personalExpenseLists/$(l)).data.memberUserIds; }
+  match /users/{uid} {
+   allow read: if signed() && (request.auth.uid == uid || admin());
+   allow create: if signed() && request.auth.uid == uid && request.resource.data.isAdmin == false;
+   allow update: if signed() && request.auth.uid == uid && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['email', 'lastLogin', 'displayName']);
+  }
+  match /publicProfiles/{uid} { allow get: if signed() && uid == request.auth.uid; }
+  match /tripMemberships/{id} { allow read: if signed() && (resource.data.userId == request.auth.uid || owner(resource.data.tripId)); }
+  match /tripInvitations/{id} { allow read: if signed() && (resource.data.targetId == request.auth.uid || owner(resource.data.tripId)); }
+  match /trips/{t} {
+   allow read: if signed() && (resource.data.ownerId == request.auth.uid || (exists(/databases/$(database)/documents/tripMemberships/$(t + '_' + request.auth.uid)) && get(/databases/$(database)/documents/tripMemberships/$(t + '_' + request.auth.uid)).data.userId == request.auth.uid && get(/databases/$(database)/documents/tripMemberships/$(t + '_' + request.auth.uid)).data.tripId == t) || admin());
+   allow create: if signed() && request.resource.data.ownerId == request.auth.uid && request.resource.data.archived == false && !request.resource.data.get('deleting', false);
+   allow update: if (owner(t) && active(t) && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['name','type','country','archived','itinerary'])) ||
+     (owner(t) && !resource.data.get('deleting', false) && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['archived'])) ||
+     (member(t) && active(t) && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['itinerary']));
+  }
+  match /families/{f} {
+   allow read: if signed() && (resource.data.userId == request.auth.uid || member(resource.data.tripId) || admin());
+   allow create: if owner(request.resource.data.tripId) && active(request.resource.data.tripId) && request.resource.data.userId == request.auth.uid;
+   allow update: if owner(resource.data.tripId) && active(resource.data.tripId) && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['name']);
+   // Deletion uses a trusted transaction that checks financial references.
+  }
+  match /expenses/{e} {
+   allow read: if member(resource.data.tripId);
+   // Financial writes are validated by the trusted API.
+   allow delete: if owner(resource.data.tripId) && active(resource.data.tripId);
+  }
+  match /lists/{l} {
+   allow read: if member(resource.data.tripId);
+   allow create: if member(request.resource.data.tripId) && active(request.resource.data.tripId);
+   allow update: if member(resource.data.tripId) && active(resource.data.tripId) && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['name']);
+   // List deletion is locked and recursive in the trusted API.
+   match /items/{i} {
+    function trip() { return get(/databases/$(database)/documents/lists/$(l)).data.tripId; }
+    allow read: if member(trip());
+    allow write: if member(trip()) && active(trip()) && !get(/databases/$(database)/documents/lists/$(l)).data.get('deleting', false);
+   }
+  }
+  match /personalExpenseLists/{l} {
+   allow read: if signed() && request.auth.uid in resource.data.memberUserIds;
+   allow create: if member(request.resource.data.tripId) && active(request.resource.data.tripId) && request.resource.data.ownerUserId == request.auth.uid && request.resource.data.memberUserIds == [request.auth.uid];
+   allow update: if signed() && resource.data.ownerUserId == request.auth.uid && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['name']);
+   // Private list deletion is performed by its owner through the trusted API.
+  }
+  match /personalExpenseItems/{i} {
+   allow read: if privateMember(resource.data.listId);
+   allow create: if privateMember(request.resource.data.listId) && !get(/databases/$(database)/documents/personalExpenseLists/$(request.resource.data.listId)).data.get('deleting', false) && active(get(/databases/$(database)/documents/personalExpenseLists/$(request.resource.data.listId)).data.tripId) && request.resource.data.createdByUserId == request.auth.uid && request.resource.data.amount is number && request.resource.data.amount > 0;
+   allow delete: if privateMember(resource.data.listId);
+  }
+  match /{document=**} { allow read, write: if false; }
+ }
+}

@@ -23,8 +23,8 @@ const AuthForm: React.FC<AuthFormProps> = ({ mode, onSubmit }) => {
 
     try {
       await onSubmit?.({ email, password });
-    } catch (err: any) {
-      setError(err?.message || 'Възникна грешка. Опитай отново.');
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : 'Възникна грешка. Опитай отново.');
     } finally {
       setLoading(false);
     }

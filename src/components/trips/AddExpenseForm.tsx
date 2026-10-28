@@ -4,6 +4,7 @@ import { getCurrencySymbol } from '@/lib/currencies';
 
 // 👇 export за базовия input
 export type BaseExpenseInput = {
+  requestId?: string;
   paidByFamilyId: string;
   involvedFamilyIds: string[];
   amount: number;
@@ -18,7 +19,7 @@ type Props = {
   families: { id: string; name: string }[];
   // ❗ вече задължителна – винаги трябва да знаем валутата на пътуването
   tripCurrency: CurrencyCode;
-  onAdd: (expense: BaseExpenseInput) => void;
+  onAdd: (expense: BaseExpenseInput) => Promise<void>;
 };
 
 const AddExpenseForm: React.FC<Props> = ({
@@ -26,6 +27,17 @@ const AddExpenseForm: React.FC<Props> = ({
   tripCurrency,
   onAdd,
 }) => {
+  const formId = React.useId();
+  const [saving, setSaving] = React.useState(false);
+  const [status, setStatus] = React.useState('');
+  const requestId = React.useRef<string | null>(null);
+  const savingRef = React.useRef(false);
+  async function save(payload: BaseExpenseInput) {
+    savingRef.current = true; setSaving(true); setStatus('');
+    try { requestId.current ??= crypto.randomUUID(); await onAdd({ ...payload, requestId: requestId.current }); requestId.current = null; resetForm(); setStatus('✓ Разходът е записан.'); }
+    catch { setStatus('Записът не успя. Данните са запазени — опитай отново.'); }
+    finally { savingRef.current = false; setSaving(false); }
+  }
   const [paidBy, setPaidBy] = React.useState('');
   const [involved, setInvolved] = React.useState<string[]>([]);
   const [amount, setAmount] = React.useState('');
@@ -54,11 +66,12 @@ const AddExpenseForm: React.FC<Props> = ({
     setSettlementTo('');
   }
 
-  function handleSubmit(e: React.FormEvent) {
+  async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
+    if (savingRef.current) return;
 
     const numericAmount = parseFloat(amount);
-    if (!paidBy || !amount || Number.isNaN(numericAmount) || numericAmount <= 0) {
+    if (!paidBy || !amount || !Number.isFinite(numericAmount) || numericAmount <= 0) {
       return;
     }
 
@@ -79,8 +92,7 @@ const AddExpenseForm: React.FC<Props> = ({
         settlementToFamilyId: settlementTo,
       };
 
-      onAdd(payload);
-      resetForm();
+      await save(payload);
       return;
     }
 
@@ -91,9 +103,6 @@ const AddExpenseForm: React.FC<Props> = ({
       finalInvolved = families.map((f) => f.id);
     }
 
-    if (paidBy && !finalInvolved.includes(paidBy)) {
-      finalInvolved.push(paidBy);
-    }
 
     const payload: BaseExpenseInput = {
       paidByFamilyId: paidBy,
@@ -104,8 +113,7 @@ const AddExpenseForm: React.FC<Props> = ({
       type: 'expense',
     };
 
-    onAdd(payload);
-    resetForm();
+    await save(payload);
   }
 
   return (
@@ -113,14 +121,17 @@ const AddExpenseForm: React.FC<Props> = ({
       onSubmit={handleSubmit}
       className="mt-4 mb-6 flex flex-col gap-4 rounded-xl bg-eco-surface p-4 shadow-eco-soft"
     >
+      <fieldset disabled={saving} className="contents">
       <h3 className="text-lg font-semibold text-eco-text">Добави нов разход</h3>
 
       {/* Платено от */}
-      <label className="text-sm font-medium text-eco-text-muted">
+      <label htmlFor={`${formId}-payer`} className="text-sm font-medium text-eco-text-muted">
         Платено от
       </label>
       <select
         className="w-full rounded-lg border border-eco-border bg-eco-surface-soft px-3 py-2 text-base sm:text-sm text-eco-text focus:border-eco-accent focus:outline-none focus:ring-2 focus:ring-eco-accent"
+        id={`${formId}-payer`}
+        required
         value={paidBy}
         onChange={(e) => setPaidBy(e.target.value)}
       >
@@ -169,7 +180,7 @@ const AddExpenseForm: React.FC<Props> = ({
           </label>
           <p className="text-xs text-eco-text-muted mb-1">
             Ако не избереш никого, разходът ще се разпредели автоматично между
-            всички семейства. Платилият винаги участва в разделянето.
+            всички семейства. Платецът може да бъде изключен от разделянето.
           </p>
           <div className="flex flex-col gap-2">
             {families.map((f) => {
@@ -179,6 +190,7 @@ const AddExpenseForm: React.FC<Props> = ({
                   key={f.id}
                   type="button"
                   onClick={() => toggleInvolved(f.id)}
+                  aria-pressed={selected}
                   className={`flex w-full items-center justify-between rounded-lg border px-3 py-2 text-sm transition
                     ${
                       selected
@@ -202,11 +214,13 @@ const AddExpenseForm: React.FC<Props> = ({
       {/* Към кое семейство е плащането (Пито платено) */}
       {isSettlement && (
         <>
-          <label className="text-sm font-medium text-eco-text-muted">
+          <label htmlFor={`${formId}-recipient`} className="text-sm font-medium text-eco-text-muted">
             Към кое семейство е плащането?
           </label>
           <select
             className="w-full rounded-lg border border-eco-border bg-eco-surface-soft px-3 py-2 text-base sm:text-sm text-eco-text focus:border-eco-accent focus:outline-none focus:ring-2 focus:ring-eco-accent"
+            id={`${formId}-recipient`}
+            required
             value={settlementTo}
             onChange={(e) => setSettlementTo(e.target.value)}
           >
@@ -226,13 +240,15 @@ const AddExpenseForm: React.FC<Props> = ({
       )}
 
       {/* Сума */}
-      <label className="text-sm font-medium text-eco-text-muted">Сума</label>
+      <label htmlFor={`${formId}-amount`} className="text-sm font-medium text-eco-text-muted">Сума</label>
       <div className="flex gap-2 items-center">
         <input
+          id={`${formId}-amount`}
+          required
           type="number"
           placeholder="0.00"
           step="0.01"
-          min="0"
+          min="0.01"
           className="flex-1 rounded-lg border border-eco-border bg-eco-surface-soft px-3 py-2 text-base sm:text-sm text-eco-text placeholder:text-eco-text-muted focus:border-eco-accent focus:outline-none focus:ring-2 focus:ring-eco-accent"
           value={amount}
           onChange={(e) => setAmount(e.target.value)}
@@ -248,10 +264,11 @@ const AddExpenseForm: React.FC<Props> = ({
       </p>
 
       {/* Коментар */}
-      <label className="text-sm font-medium text-eco-text-muted">
+      <label htmlFor={`${formId}-comment`} className="text-sm font-medium text-eco-text-muted">
         Коментар (по избор)
       </label>
       <input
+        id={`${formId}-comment`}
         placeholder={
           isSettlement
             ? 'пример: пито платено за дълг към Петрови...'
@@ -264,10 +281,13 @@ const AddExpenseForm: React.FC<Props> = ({
 
       <button
         type="submit"
+        disabled={saving}
         className="mt-2 w-full rounded-lg bg-eco-accent-strong px-4 py-2 text-sm font-semibold text-white shadow-md hover:bg-eco-accent transition"
       >
-        {isSettlement ? '✅ Добави „Пито платено“' : '➕ Добави разход'}
+        {saving ? 'Запазване…' : isSettlement ? 'Запиши погасяване' : 'Добави разход'}
       </button>
+      </fieldset>
+      <p role="status" aria-live="polite">{status}</p>
     </form>
   );
 };

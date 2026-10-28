@@ -1,3 +1,5 @@
+import { availableResults } from '@/lib/availableResults';
+import { community } from '@/lib/community';
 import { db } from '@/lib/firebase';
 import {
   collection,
@@ -8,7 +10,7 @@ import {
   doc,
   getDoc,
   updateDoc,
-  deleteDoc,
+  runTransaction,
 } from 'firebase/firestore';
 import type { DocumentData } from 'firebase/firestore';
 import type { Trip, TripType, TripItineraryItem } from '@/types/trip';
@@ -16,8 +18,6 @@ import type { CurrencyCode } from '@/lib/currencies';
 
 const TRIPS_COLLECTION = 'trips';
 const FAMILIES_COLLECTION = 'families';
-const EXPENSES_COLLECTION = 'expenses';
-const LISTS_COLLECTION = 'lists';
 
 /**
  * Създаване на ново пътуване
@@ -84,24 +84,16 @@ export async function fetchTripsForUser(ownerId: string): Promise<Trip[]> {
  * Споделени пътувания (чрез семейства)
  */
 export async function fetchSharedTripsForUser(
-  userId: string
+  userId: string,
+  onPartialFailure?: (error: unknown) => void
 ): Promise<Trip[]> {
-  const famQuery = query(
-    collection(db, FAMILIES_COLLECTION),
-    where('userId', '==', userId)
-  );
-  const famSnapshot = await getDocs(famQuery);
-
-  const tripIds = Array.from(
-    new Set(
-      famSnapshot.docs
-        .map((d) => {
-          const data = d.data() as DocumentData;
-          return typeof data.tripId === 'string' ? data.tripId : null;
-        })
-        .filter((id): id is string => Boolean(id))
-    )
-  );
+  const sources = await availableResults([
+    getDocs(query(collection(db, 'tripMemberships'), where('userId', '==', userId))).then(s => s.docs),
+    getDocs(query(collection(db, FAMILIES_COLLECTION), where('userId', '==', userId))).then(s => s.docs),
+  ]);
+  sources.errors.forEach(error => onPartialFailure?.(error));
+  const tripIds = [...new Set(sources.values
+    .map(d => d.data().tripId as unknown).filter((id): id is string => typeof id === 'string' && !!id))];
 
   if (tripIds.length === 0) return [];
 
@@ -109,7 +101,10 @@ export async function fetchSharedTripsForUser(
 
   for (const tripId of tripIds) {
     const tripRef = doc(db, TRIPS_COLLECTION, tripId);
-    const tripSnap = await getDoc(tripRef);
+    // A revoked or obsolete reference must not hide other accessible trips.
+    let tripSnap;
+    try { tripSnap = await getDoc(tripRef); }
+    catch (error) { onPartialFailure?.(error); continue; }
     if (!tripSnap.exists()) continue;
 
     const data = tripSnap.data() as DocumentData;
@@ -179,10 +174,36 @@ export async function setTripArchived(
  */
 export async function updateTripItinerary(
   tripId: string,
-  items: TripItineraryItem[]
+  items: TripItineraryItem[],
+  base: TripItineraryItem[]
 ): Promise<void> {
-  await updateDoc(doc(db, TRIPS_COLLECTION, tripId), {
-    itinerary: items,
+  const ref = doc(db, TRIPS_COLLECTION, tripId);
+  await runTransaction(db, async tx => {
+    const snap = await tx.get(ref);
+    if (!snap.exists() || snap.data().archived) throw new Error('Пътуването не е активно.');
+    const current = (snap.data().itinerary ?? []) as TripItineraryItem[];
+    const next = new Map(current.map(item => [item.id, item]));
+    for (const old of base) {
+      if (!items.some(item => item.id === old.id)) {
+        if (JSON.stringify(next.get(old.id)) !== JSON.stringify(old)) throw new Error('Денят е променен от друг участник. Презареди програмата.');
+        next.delete(old.id);
+      }
+    }
+    for (const item of items) {
+      const old = base.find(v => v.id === item.id);
+      if (JSON.stringify(old) === JSON.stringify(item)) continue;
+      const live = next.get(item.id);
+      if (old && !live) throw new Error('Денят вече е изтрит.');
+      const merged = { ...live, ...item };
+      if (old && live) {
+        for (const key of Object.keys(item) as (keyof TripItineraryItem)[]) {
+          if (item[key] === old[key]) Object.assign(merged, { [key]: live[key] });
+          else if (live[key] !== old[key] && live[key] !== item[key]) throw new Error('Конфликт при редакция. Презареди програмата.');
+        }
+      }
+      next.set(item.id, merged);
+    }
+    tx.update(ref, { itinerary: [...next.values()] });
   });
 }
 
@@ -192,17 +213,5 @@ export async function updateTripItinerary(
 export async function deleteTripCompletely(
   tripId: string
 ): Promise<void> {
-  const collections = [
-    FAMILIES_COLLECTION,
-    EXPENSES_COLLECTION,
-    LISTS_COLLECTION,
-  ];
-
-  for (const col of collections) {
-    const q = query(collection(db, col), where('tripId', '==', tripId));
-    const snap = await getDocs(q);
-    await Promise.all(snap.docs.map((d) => deleteDoc(d.ref)));
-  }
-
-  await deleteDoc(doc(db, TRIPS_COLLECTION, tripId));
+  await community({ action: 'deleteTrip', tripId });
 }

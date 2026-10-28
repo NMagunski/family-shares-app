@@ -135,7 +135,6 @@ const PersonalExpensesPage: React.FC = () => {
   // Валутата на пътуването за личните разходи
   const pageCurrency: CurrencyCode =
     (trip?.currency as CurrencyCode) ?? 'EUR';
-  const currencySymbol = getCurrencySymbol(pageCurrency);
 
   return (
     <Layout>
@@ -366,7 +365,7 @@ const PersonalListCard: React.FC<PersonalListCardProps> = ({
           <button
             type="button"
             onClick={() => onDeleteList(list.id)}
-            className="text-xs font-medium text-red-300 hover:text-red-400 hover:underline transition"
+            className="text-xs font-medium text-red-600 hover:text-red-400 hover:underline transition"
           >
             Изтрий
           </button>

@@ -152,8 +152,9 @@ export function getCurrencySymbol(code: CurrencyCode): string {
 }
 
 export function convertToEur(amount: number, code: CurrencyCode): number {
+  if (code !== 'EUR' && code !== 'BGN') throw new Error('Няма потвърден курс за тази валута.');
   const meta = CURRENCIES[code];
-  if (!meta) return amount;
+  if (!meta) throw new Error('Непозната валута.');
   return amount * meta.rateToEur;
 }
 

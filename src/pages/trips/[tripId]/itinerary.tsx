@@ -18,6 +18,10 @@ const TripItineraryPage: React.FC = () => {
 
   const [trip, setTrip] = React.useState<Trip | null>(null);
   const [itinerary, setItinerary] = React.useState<TripItineraryItem[]>([]);
+  const failedBase = React.useRef<TripItineraryItem[] | null>(null);
+  const [retrying, setRetrying] = React.useState(false);
+  const writeQueue = React.useRef(Promise.resolve());
+  const [saveError, setSaveError] = React.useState('');
   const [loading, setLoading] = React.useState(false);
 
   React.useEffect(() => {
@@ -90,21 +94,29 @@ const TripItineraryPage: React.FC = () => {
               title="Програма по дни"
               icon={CalendarRange}   // 👈 подаваме компонент, не <CalendarRange />
             >
+              {saveError && <p role="alert">{saveError} <button disabled={retrying} onClick={async () => {
+                setRetrying(true);
+                try { await updateTripItinerary(tripIdStr, itinerary, failedBase.current ?? itinerary); failedBase.current = null; setSaveError(''); }
+                catch (err) { setSaveError(err instanceof Error ? err.message : 'Записът не успя.'); }
+                finally { setRetrying(false); }
+              }}>{retrying ? 'Запазване…' : 'Опитай отново'}</button> <button onClick={() => router.reload()}>Презареди</button></p>}
               {loading ? (
                 <p className="text-sm text-eco-text-muted">Зареждане...</p>
               ) : (
                 <TripItinerary
                   items={itinerary}
                   onChange={async (updated) => {
+                    const base = itinerary;
                     setItinerary(updated);
                     if (!tripIdStr) return;
 
-                    try {
-                      await updateTripItinerary(tripIdStr, updated);
-                    } catch (err) {
-                      console.error('Грешка при записване на програмата:', err);
-                      alert('Грешка при записване на програмата.');
-                    }
+                    writeQueue.current = writeQueue.current.then(async () => {
+                      await updateTripItinerary(tripIdStr, updated, base);
+                      failedBase.current = null; setSaveError('');
+                    }).catch((err: unknown) => {
+                      failedBase.current ??= base;
+                      setSaveError(err instanceof Error ? err.message : 'Записът не успя. Презареди за повторен опит.');
+                    });
                   }}
                 />
               )}

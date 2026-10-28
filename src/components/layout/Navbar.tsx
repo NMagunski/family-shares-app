@@ -1,11 +1,22 @@
+import { collection, doc, onSnapshot, query, where } from 'firebase/firestore';
+import { db } from '@/lib/firebase';
 import React from 'react';
 import Link from 'next/link';
-import Image from 'next/image';
 import { useAuth } from '@/context/AuthContext';
-import { Menu, X, LogOut } from 'lucide-react';
+import { Menu, X, LogOut, Compass } from 'lucide-react';
 
 const Navbar: React.FC = () => {
   const { user, loading, logout } = useAuth();
+  const [needsUsername, setNeedsUsername] = React.useState(false);
+  React.useEffect(() => {
+    if (!user) return;
+    return onSnapshot(doc(db, 'publicProfiles', user.uid), snap => setNeedsUsername(!snap.exists()), () => setNeedsUsername(true));
+  }, [user]);
+  const [pending, setPending] = React.useState(0);
+  React.useEffect(() => {
+    if (!user) return;
+    return onSnapshot(query(collection(db, 'tripInvitations'), where('targetId', '==', user.uid)), snap => setPending(snap.docs.filter(d => d.data().status === 'pending' && d.data().expiresAt > Date.now()).length), () => setPending(0));
+  }, [user]);
   const [isMobileOpen, setIsMobileOpen] = React.useState(false);
 
   const handleToggleMobile = () => setIsMobileOpen((prev) => !prev);
@@ -19,7 +30,7 @@ const Navbar: React.FC = () => {
     }
   };
 
-  const isAdmin = (user as any)?.isAdmin === true;
+  const isAdmin = user?.isAdmin === true;
 
   const baseLink = 'text-sm font-medium transition-colors';
   const primaryButton =
@@ -46,6 +57,8 @@ const Navbar: React.FC = () => {
             {user.email}
           </span>
 
+          <Link href="/invitations" className={ghostButton} onClick={handleCloseMobile}>Покани ({pending})</Link>
+          <Link href="/profile" className={ghostButton} onClick={handleCloseMobile}>{needsUsername ? 'Избери username' : 'Профил'}</Link>
           {/* 🔥 Admin бутон – вижда се само ако user е admin */}
           {isAdmin && (
             <Link
@@ -112,21 +125,10 @@ const Navbar: React.FC = () => {
         border-b border-eco-border/60
         bg-eco-surface/70
         backdrop-blur-xl
-        shadow-[0_20px_40px_rgb(0_0_0/0.45)]
+        shadow-sm
         relative overflow-hidden
       "
     >
-      {/* Футуристичен градиент фон */}
-      <div
-        className="
-          pointer-events-none
-          absolute inset-0
-          opacity-80
-          bg-[radial-gradient(circle_at_0%_0%,rgba(16,185,129,0.45),transparent_55%),radial-gradient(circle_at_100%_0%,rgba(16,185,129,0.3),transparent_55%)]
-        "
-        aria-hidden="true"
-      />
-
       {/* Основно съдържание */}
       <div className="relative max-w-5xl mx-auto px-4 py-3 flex items-center justify-between gap-4">
         {/* Лого */}
@@ -136,12 +138,7 @@ const Navbar: React.FC = () => {
           onClick={handleCloseMobile}
         >
           <div className="flex items-center justify-center rounded-xl bg-eco-surface-soft/90 border border-eco-border/70 p-1.5 shadow-eco-soft">
-            <Image
-              src="/icons/tripsplitly-192.png"
-              alt="TripSplitly logo"
-              width={28}
-              height={28}
-            />
+            <span className="brand-mark"><Compass aria-hidden="true" size={24} /></span>
           </div>
 
           <span className="text-lg font-semibold tracking-tight">
@@ -177,6 +174,8 @@ const Navbar: React.FC = () => {
 
       {/* Mobile menu */}
       <div
+        inert={!isMobileOpen}
+        aria-hidden={!isMobileOpen}
         className={`
           md:hidden border-t border-eco-border/60
           bg-eco-surface/80 backdrop-blur-xl

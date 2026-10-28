@@ -1,3 +1,4 @@
+import { useAuth } from '@/context/AuthContext';
 // pages/admin/index.tsx
 import React from 'react';
 import AdminGuard from '@/components/admin/AdminGuard';
@@ -17,7 +18,10 @@ const AdminDashboardPage: React.FC = () => {
   archived?: boolean;
 };
 
+  const { user, loading: authLoading } = useAuth();
+
   React.useEffect(() => {
+    if (authLoading || !user?.isAdmin) return;
     const loadStats = async () => {
       try {
         // 🔹 Брой потребители
@@ -51,7 +55,7 @@ const AdminDashboardPage: React.FC = () => {
     };
 
     loadStats();
-  }, []);
+  }, [user, authLoading]);
 
   return (
     <AdminGuard>
@@ -66,7 +70,7 @@ const AdminDashboardPage: React.FC = () => {
         </div>
 
         {loading ? (
-          <div className="py-12 text-center text-sm text-slate-400">
+          <div className="py-12 text-center text-sm text-eco-text-muted">
             Зареждане на статистики...
           </div>
         ) : (

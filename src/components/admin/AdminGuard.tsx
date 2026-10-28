@@ -13,13 +13,13 @@ const AdminGuard: React.FC<Props> = ({ children }) => {
     return (
       <Layout>
         <div className="flex items-center justify-center py-16">
-          <p className="text-slate-300">Зареждане...</p>
+          <p className="text-eco-text">Зареждане...</p>
         </div>
       </Layout>
     );
   }
 
-  const isAdmin = (user as any)?.isAdmin === true;
+  const isAdmin = user?.isAdmin === true;
 
   if (!user || !isAdmin) {
     return (
@@ -28,7 +28,7 @@ const AdminGuard: React.FC<Props> = ({ children }) => {
           <p className="text-xl font-semibold text-red-400">
             Нямаш достъп до тази страница.
           </p>
-          <p className="mt-2 text-sm text-slate-300">
+          <p className="mt-2 text-sm text-eco-text">
             Само администраторите могат да виждат Admin панела.
           </p>
         </div>

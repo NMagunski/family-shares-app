@@ -1,3 +1,4 @@
+import { calculateFamilyBalances, calculateDebts } from '@/lib/expenses';
 import React from 'react';
 import type { TripFamily, TripExpense } from '@/types/trip';
 import type { CurrencyCode } from '@/lib/currencies';
@@ -9,147 +10,23 @@ type Props = {
   currency: CurrencyCode;
 };
 
-type BalanceMap = Record<string, number>;
-
-type Settlement = {
-  fromFamilyId: string;
-  toFamilyId: string;
-  amount: number;
-};
-
-function formatAmount(amount: number): string {
-  return amount.toFixed(2);
-}
-
-/**
- * Изчислява нетния баланс за всяко семейство:
- *  - положително → трябва да получи
- *  - отрицателно → трябва да даде
- */
-function computeBalances(
-  families: TripFamily[],
-  expenses: TripExpense[],
-  currency: CurrencyCode
-): BalanceMap {
-  const balances: BalanceMap = {};
-
-  families.forEach((f) => {
-    balances[f.id] = 0;
-  });
-
-  const familyIds = families.map((f) => f.id);
-
-  for (const e of expenses) {
-    // Работим само с разходите в валутата на пътуването
-    if (e.currency !== currency) continue;
-
-    const type = e.type ?? 'expense';
-
-    // 👉 Пито платено (settlement) – директно разплащане между две семейства
-    if (type === 'settlement') {
-      const fromId = e.settlementFromFamilyId ?? e.paidByFamilyId;
-      const toId = e.settlementToFamilyId;
-
-      if (!fromId || !toId || fromId === toId) continue;
-
-      // ⚠️ ТУК БЕШЕ ГРЕШКАТА:
-      // Платецът трябва да се приближи към нула → + amount
-      // Получателят трябва да се приближи към нула от положителната страна → - amount
-      balances[fromId] = (balances[fromId] ?? 0) + e.amount;
-      balances[toId] = (balances[toId] ?? 0) - e.amount;
-
-      continue;
-    }
-
-    // 👉 Нормален разход
-    const participants =
-      e.involvedFamilyIds && e.involvedFamilyIds.length > 0
-        ? e.involvedFamilyIds
-        : familyIds;
-
-    if (!participants || participants.length === 0) continue;
-
-    const share = e.amount / participants.length;
-
-    // Всеки участник дължи своя дял
-    for (const fid of participants) {
-      balances[fid] = (balances[fid] ?? 0) - share;
-    }
-
-    // Платецът е извадил цялата сума от джоба си → трябва да получи толкова
-    if (e.paidByFamilyId) {
-      balances[e.paidByFamilyId] =
-        (balances[e.paidByFamilyId] ?? 0) + e.amount;
-    }
-  }
-
-  return balances;
-}
-
-/**
- * Изчислява минимален набор от разплащания между семейства.
- */
-function computeSettlements(balances: BalanceMap): Settlement[] {
-  const debtors: { familyId: string; amount: number }[] = [];
-  const creditors: { familyId: string; amount: number }[] = [];
-
-  Object.entries(balances).forEach(([familyId, balance]) => {
-    if (balance < -0.01) {
-      // трябва да дава → обръщаме в положително число
-      debtors.push({ familyId, amount: -balance });
-    } else if (balance > 0.01) {
-      // трябва да получава
-      creditors.push({ familyId, amount: balance });
-    }
-  });
-
-  const settlements: Settlement[] = [];
-
-  let i = 0;
-  let j = 0;
-
-  while (i < debtors.length && j < creditors.length) {
-    const debtor = debtors[i];
-    const creditor = creditors[j];
-
-    const pay = Math.min(debtor.amount, creditor.amount);
-    if (pay <= 0) {
-      if (debtor.amount <= 0) i++;
-      if (creditor.amount <= 0) j++;
-      continue;
-    }
-
-    settlements.push({
-      fromFamilyId: debtor.familyId,
-      toFamilyId: creditor.familyId,
-      amount: pay,
-    });
-
-    debtor.amount -= pay;
-    creditor.amount -= pay;
-
-    if (debtor.amount <= 0.01) i++;
-    if (creditor.amount <= 0.01) j++;
-  }
-
-  return settlements;
-}
+function formatAmount(amount: number): string { return amount.toFixed(2); }
 
 const DebtsSummary: React.FC<Props> = ({ families, expenses, currency }) => {
   const currencySymbol = getCurrencySymbol(currency);
 
   const balances = React.useMemo(
-    () => computeBalances(families, expenses, currency),
+    () => calculateFamilyBalances(families, expenses, currency),
     [families, expenses, currency]
   );
 
   const settlements = React.useMemo(
-    () => computeSettlements(balances),
-    [balances]
+    () => calculateDebts(families, balances),
+    [families, balances]
   );
 
   const hasAnyBalance = Object.values(balances).some(
-    (v) => Math.abs(v) > 0.01
+    (v) => Math.abs(v) >= 0.01
   );
 
   const settlementsCount = settlements.length;
@@ -172,7 +49,7 @@ const DebtsSummary: React.FC<Props> = ({ families, expenses, currency }) => {
         ) : hasAnyBalance ? (
           'Семействата са в баланс – няма нужда от допълнителни разплащания.'
         ) : (
-          'Все още няма достатъчно данни за изчисляване на разплащанията.'
+          expenses.length ? 'Сметките са уредени.' : 'Все още няма разходи.'
         )}
       </p>
 
@@ -185,8 +62,8 @@ const DebtsSummary: React.FC<Props> = ({ families, expenses, currency }) => {
         {families.map((family) => {
           const balance = balances[family.id] ?? 0;
 
-          const isPositive = balance > 0.01;
-          const isNegative = balance < -0.01;
+          const isPositive = balance >= 0.01;
+          const isNegative = balance <= -0.01;
 
           let label = `${formatAmount(Math.abs(balance))} ${currencySymbol}`;
           if (isPositive) {
@@ -208,9 +85,9 @@ const DebtsSummary: React.FC<Props> = ({ families, expenses, currency }) => {
                   inline-flex items-center rounded-full border px-3 py-1 text-xs font-medium
                   ${
                     isPositive
-                      ? 'border-emerald-500 text-emerald-300 bg-emerald-500/10'
+                      ? 'border-emerald-500 text-eco-accent bg-emerald-500/10'
                       : isNegative
-                      ? 'border-red-500 text-red-300 bg-red-500/10'
+                      ? 'border-red-500 text-red-600 bg-red-500/10'
                       : 'border-eco-border text-eco-text-muted bg-eco-surface'
                   }
                 `}
@@ -244,7 +121,7 @@ const DebtsSummary: React.FC<Props> = ({ families, expenses, currency }) => {
                   className="text-sm text-eco-text"
                 >
                   <span>{fromName} дължат </span>
-                  <span className="font-semibold text-emerald-300">
+                  <span className="font-semibold text-eco-accent">
                     {formatAmount(s.amount)} {currencySymbol}
                   </span>
                   <span> на {toName}.</span>

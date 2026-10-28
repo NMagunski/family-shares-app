@@ -75,7 +75,7 @@ const TripSettingsPage: React.FC = () => {
 
   async function handleSave(e: React.FormEvent) {
     e.preventDefault();
-    if (!trip || !tripIdStr || !isDirty) return;
+    if (!trip || trip.ownerId !== user?.uid || !tripIdStr || !isDirty) return;
 
     try {
       setSaving(true);
@@ -149,6 +149,8 @@ const TripSettingsPage: React.FC = () => {
   const tripName = trip?.name ?? '';
 
   // Докато auth се зарежда → избягваме мигания
+  if (trip && user && trip.ownerId !== user.uid) return <Layout><p>Настройките са достъпни само за организатора.</p></Layout>;
+
   if (authLoading || !user) {
     return (
       <Layout>
@@ -260,7 +262,7 @@ const TripSettingsPage: React.FC = () => {
                 type="button"
                 onClick={handleToggleArchive}
                 disabled={archiveLoading}
-                className="inline-flex items-center justify-center rounded-xl border border-emerald-500/60 bg-transparent px-4 py-2 text-sm font-medium text-emerald-300 hover:bg-emerald-500/10 disabled:opacity-60 disabled:cursor-not-allowed transition-colors"
+                className="inline-flex items-center justify-center rounded-xl border border-emerald-500/60 bg-transparent px-4 py-2 text-sm font-medium text-eco-accent hover:bg-emerald-500/10 disabled:opacity-60 disabled:cursor-not-allowed transition-colors"
               >
                 {archiveLoading
                   ? 'Обновяване...'
@@ -272,7 +274,7 @@ const TripSettingsPage: React.FC = () => {
 
             {/* Опасна зона */}
             <div className="mt-6">
-              <h2 className="text-lg font-semibold text-red-300 mb-2">
+              <h2 className="text-lg font-semibold text-red-600 mb-2">
                 Опасна зона
               </h2>
               <p className="text-sm text-eco-text-muted mb-3">

@@ -1,12 +1,12 @@
+import { community } from '@/lib/community';
 // lib/personalExpenses.ts
 
 import {
   collection,
   doc,
   addDoc,
-  getDoc,
+  // getDoc,
   getDocs,
-  updateDoc,
   deleteDoc,
   query,
   where,
@@ -77,7 +77,8 @@ export async function fetchPersonalListsForTrip(
 ): Promise<PersonalExpenseList[]> {
   const q = query(
     collection(db, 'personalExpenseLists'),
-    where('tripId', '==', tripId)
+    where('tripId', '==', tripId),
+    where('memberUserIds', 'array-contains', userId)
   );
 
   const snap = await getDocs(q);
@@ -105,27 +106,8 @@ export async function joinPersonalListByToken(
   token: string,
   userId: string
 ): Promise<PersonalExpenseList | null> {
-  const q = query(
-    collection(db, 'personalExpenseLists'),
-    where('shareToken', '==', token)
-  );
-
-  const snap = await getDocs(q);
-  if (snap.empty) return null;
-
-  const docRef = snap.docs[0].ref;
-  const data = snap.docs[0].data() as PersonalExpenseList;
-
-  if (!data.memberUserIds.includes(userId)) {
-    await updateDoc(docRef, {
-      memberUserIds: [...data.memberUserIds, userId],
-    });
-  }
-
-  return {
-    ...data,
-    id: snap.docs[0].id,
-  };
+  void userId; // Server derives identity exclusively from the verified token.
+  return community<PersonalExpenseList>({ action: 'joinPersonal', token });
 }
 
 // --------------------------------------------------
@@ -133,18 +115,7 @@ export async function joinPersonalListByToken(
 // --------------------------------------------------
 
 export async function deletePersonalList(listId: string): Promise<void> {
-  // Delete all items first
-  const q = query(
-    collection(db, 'personalExpenseItems'),
-    where('listId', '==', listId)
-  );
-  const snap = await getDocs(q);
-
-  for (const item of snap.docs) {
-    await deleteDoc(item.ref);
-  }
-
-  await deleteDoc(doc(db, 'personalExpenseLists', listId));
+  await community({ action: 'deletePersonalList', listId });
 }
 
 // --------------------------------------------------

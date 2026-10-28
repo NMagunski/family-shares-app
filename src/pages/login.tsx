@@ -1,3 +1,5 @@
+import { localRedirect } from '@/lib/redirect';
+import AuthWelcome from '@/components/auth/AuthWelcome';
 import React from 'react';
 import { useRouter } from 'next/router';
 import Link from 'next/link';
@@ -27,7 +29,7 @@ const LoginPage: React.FC = () => {
 
   // безопасен redirect (само вътрешни URL-и)
   const redirectTarget =
-    typeof redirect === 'string' && redirect.startsWith('/') ? redirect : '/';
+    localRedirect(redirect);
 
   const [email, setEmail] = React.useState('');
   const [password, setPassword] = React.useState('');
@@ -69,14 +71,14 @@ const LoginPage: React.FC = () => {
   }
 
   const registerHref =
-    typeof redirect === 'string' && redirect.startsWith('/')
+    typeof redirect === 'string' && localRedirect(redirect, '') !== ''
       ? `/register?redirect=${encodeURIComponent(redirect)}`
       : '/register';
 
   return (
     <Layout>
-      <div className="max-w-md mx-auto mt-12 px-4">
-        <Card className="p-6">
+      <div className="max-w-4xl mx-auto mt-6 px-4">
+        <Card className="p-6 auth-card"><AuthWelcome mode="login"/>
           <h1 className="text-xl font-semibold text-eco-text mb-4">Вход</h1>
 
           <form onSubmit={handleSubmit} className="flex flex-col gap-4">

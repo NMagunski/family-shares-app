@@ -20,7 +20,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    let generation = 0;
     const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
+      const request = ++generation;
+      setLoading(true);
       if (!firebaseUser) {
         setUser(null);
         setLoading(false);
@@ -57,23 +60,23 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         // четем актуалните данни
         snapshot = await getDoc(userRef);
         const data = snapshot.data() || {};
-        const isAdmin = data.isAdmin === true;
+        const claims = await firebaseUser.getIdTokenResult();
+        const isAdmin = claims.claims.admin === true;
+        void data;
 
-        const extendedUser: ExtendedUser = {
-          ...firebaseUser,
-          isAdmin,
-        };
-
+        const extendedUser = firebaseUser as ExtendedUser;
+        extendedUser.isAdmin = isAdmin;
+        if (request !== generation) return;
         setUser(extendedUser);
       } catch (err) {
         console.error('Error loading user profile:', err);
-        setUser(firebaseUser as ExtendedUser);
+        if (request === generation) setUser(firebaseUser as ExtendedUser);
       } finally {
-        setLoading(false);
+        if (request === generation) setLoading(false);
       }
     });
 
-    return () => unsubscribe();
+    return () => { generation++; unsubscribe(); };
   }, []);
 
   async function logout() {
