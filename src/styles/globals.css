@@ -39,3 +39,5 @@ a:hover .brand-mark svg,a:focus-visible .brand-mark svg { animation:compass .8s 
 @media(min-width:700px) { .auth-card { display:grid; grid-template-columns:1fr 1fr; column-gap:36px; align-items:start; }.auth-card .auth-welcome { display:contents; }.auth-card .auth-art { grid-column:1; grid-row:1 / span 5; min-height:440px; display:flex; flex-direction:column; justify-content:center; }.auth-card .auth-tabs,.auth-card>h1,.auth-card>form,.auth-card>p { grid-column:2; }.auth-card .auth-art h2 { font-weight:400; }.auth-card .auth-orbit { flex-shrink:0; margin:0 auto; } }
 @media(min-width:700px) { .trip-hero { display:grid; grid-template-columns:minmax(0,1fr) 230px; gap:28px; align-items:center; }.trip-ticket { transform:rotate(2deg); }.trip-hero h1 { font-weight:400; } }
 .trip-nav button { display:inline-flex; align-items:center; gap:8px; }
+
+.expense-form, .expense-record { animation:arrive .25s ease-out; }

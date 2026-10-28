@@ -1,3 +1,4 @@
+import type { AllocationMode } from '@/lib/expenseAllocation';
 import { community } from '@/lib/community';
 import { db } from '@/lib/firebase';
 import {
@@ -19,6 +20,7 @@ export type ExpenseInput = {
   requestId?: string;
   paidByFamilyId: string;
   involvedFamilyIds: string[];
+  allocationMode?: AllocationMode;
   amount: number;
   currency: CurrencyCode;
   comment?: string;
@@ -70,6 +72,7 @@ export async function fetchExpenses(tripId: string): Promise<TripExpense[]> {
       tripId: asString(data.tripId, tripId),
       paidByFamilyId: asString(data.paidByFamilyId, ''),
       involvedFamilyIds: asStringArray(data.involvedFamilyIds),
+      allocationMode: data.allocationMode as AllocationMode | undefined,
       amount: asNumber(data.amount, 0),
       currency: asString(data.currency, 'EUR') as CurrencyCode,
       comment: asString(data.comment, ''),
@@ -131,6 +134,7 @@ export async function fetchExpenseById(
     tripId: asString(data.tripId, ''),
     paidByFamilyId: asString(data.paidByFamilyId, ''),
     involvedFamilyIds: asStringArray(data.involvedFamilyIds),
+    allocationMode: data.allocationMode as AllocationMode | undefined,
     amount: asNumber(data.amount, 0),
     currency: asString(data.currency, 'EUR') as CurrencyCode,
     comment: asString(data.comment, ''),

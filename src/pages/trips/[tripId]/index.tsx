@@ -1,3 +1,4 @@
+import { calculateFamilyShares, totalPurchaseAmount } from '@/lib/expenses';
 import { db } from '@/lib/firebase';
 import { doc, collection, query, where, onSnapshot } from 'firebase/firestore';
 import React from 'react';
@@ -126,6 +127,7 @@ const TripPage: React.FC = () => {
                 ...e,
                 paidByFamilyId: exp.paidByFamilyId,
                 involvedFamilyIds: exp.involvedFamilyIds,
+                allocationMode: exp.allocationMode,
                 amount: exp.amount,
                 currency: exp.currency,
                 comment: exp.comment,
@@ -247,28 +249,10 @@ const TripPage: React.FC = () => {
     [expenses, tripCurrency]
   );
 
-  const perFamilyShare: Record<string, number> = React.useMemo(() => {
-    const result: Record<string, number> = {};
-
-    families.forEach((f) => {
-      result[f.id] = 0;
-    });
-
-    for (const e of expensesInTripCurrency) {
-      const participants = [...new Set(e.involvedFamilyIds?.length ? e.involvedFamilyIds : families.map(f => f.id))].sort();
-
-      if (participants.length === 0) continue;
-
-      const cents = Math.round(e.amount * 100);
-      const share = Math.floor(cents / participants.length);
-      for (const [index, fid] of participants.entries()) {
-        if (result[fid] == null) result[fid] = 0;
-        result[fid] += (share + (index < cents % participants.length ? 1 : 0)) / 100;
-      }
-    }
-
-    return result;
-  }, [families, expensesInTripCurrency]);
+  const perFamilyShare = React.useMemo(
+    () => calculateFamilyShares(families, expenses, tripCurrency),
+    [families, expenses, tripCurrency]
+  );
 
   function formatSummaryAmount(amount: number): string {
     if (showSummaryInEur && tripCurrency !== 'EUR') {
@@ -306,7 +290,7 @@ const TripPage: React.FC = () => {
             if (entry) { entry.open = true; entry.scrollIntoView({ block: 'start' }); entry.querySelector('select')?.focus(); }
           }}
           familiesCount={families.length}
-          total={`${(expensesInTripCurrency.reduce((sum, e) => sum + Math.round(e.amount * 100), 0) / 100).toFixed(2)} ${getCurrencySymbol(tripCurrency)}`}
+          total={`${totalPurchaseAmount(expenses, tripCurrency).toFixed(2)} ${getCurrencySymbol(tripCurrency)}`}
           onAddFamily={() => setShowFamilyModal(true)}
           onOpenLists={() => router.push(`/trips/${tripIdStr}/lists`)}
           onOpenItinerary={() =>

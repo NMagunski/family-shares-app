@@ -1,3 +1,5 @@
+import { validateAllocation } from '@/lib/expenseAllocation';
+import type { TripExpense } from '@/types/trip';
 import type { NextApiRequest, NextApiResponse } from 'next';
 import { adminServices } from '@/server/firebase';
 import { normalizeUsername } from '@/lib/usernames';
@@ -49,9 +51,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         if (typeof amount !== 'number' || !Number.isFinite(amount) || amount <= 0 || amount >= 1e9 || Math.abs(amount * 100 - Math.round(amount * 100)) > .00001 || input.currency !== trip.data()?.currency) throw new Error('Невалидна сума или валута.');
         const paidBy = String(input.paidByFamilyId ?? '');
         const type = input.type ?? 'expense';
-        const involved = Array.isArray(input.involvedFamilyIds) ? [...new Set(input.involvedFamilyIds)] : [];
-        if (!ids.has(paidBy) || involved.some(id => typeof id !== 'string' || !ids.has(id)) || !['expense','settlement'].includes(String(type))) throw new Error('Невалидни семейства или тип.');
-        const payload: Record<string, unknown> = { tripId, amount, currency: input.currency, paidByFamilyId: paidBy, involvedFamilyIds: type === 'settlement' ? [] : involved.length ? involved : [...ids].sort(), comment: String(input.comment ?? '').slice(0, 2000), type };
+        if (!['expense','settlement'].includes(String(type))) throw new Error('Невалидни семейства или тип.');
+        const payload: Record<string, unknown> = { tripId, amount, currency: input.currency, paidByFamilyId: paidBy, involvedFamilyIds: [], comment: String(input.comment ?? '').slice(0, 2000), type };
         if (type === 'settlement') {
           const to = String(input.settlementToFamilyId ?? '');
           if (!ids.has(to) || to === paidBy) throw new Error('Невалидно погасяване.');
@@ -63,6 +64,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         const ref = db.doc(`expenses/${expenseId || `${uid}_${requestId}`}`);
         const old = await tx.get(ref);
         if (expenseId && (!old.exists || old.data()?.tripId !== tripId)) throw new Error('Разходът не съществува.');
+        if (!ids.has(paidBy) && !(expenseId && old.data()?.paidByFamilyId === paidBy)) throw new Error('Невалиден платец.');
+        if (type !== 'settlement') Object.assign(payload, validateAllocation(input, [...ids], old.exists && old.data()?.type !== 'settlement' ? old.data() as TripExpense : undefined));
         if (!expenseId && old.exists) {
           if (Object.entries(payload).some(([key, value]) => JSON.stringify(old.data()?.[key]) !== JSON.stringify(value))) throw new Error('Този запис вече е запазен с други данни. Презареди разходите преди нов опит.');
           return { ...old.data(), id: ref.id };

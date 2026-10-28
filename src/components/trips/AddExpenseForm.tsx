@@ -1,295 +1,108 @@
 import React from 'react';
 import type { CurrencyCode } from '@/lib/currencies';
 import { getCurrencySymbol } from '@/lib/currencies';
+import type { ExpenseInput } from '@/lib/expensesStore';
+import type { TripExpense } from '@/types/trip';
+import { allocationForSave, allocationModeForExpense, type AllocationMode } from '@/lib/expenseAllocation';
+import Button from '@/components/ui/Button';
+import { expenseShares } from '@/lib/expenses';
 
-// 👇 export за базовия input
-export type BaseExpenseInput = {
-  requestId?: string;
-  paidByFamilyId: string;
-  involvedFamilyIds: string[];
-  amount: number;
-  currency: CurrencyCode;
-  comment?: string;
-  type?: 'expense' | 'settlement';
-  settlementFromFamilyId?: string;
-  settlementToFamilyId?: string;
-};
-
+export type BaseExpenseInput = ExpenseInput;
 type Props = {
   families: { id: string; name: string }[];
-  // ❗ вече задължителна – винаги трябва да знаем валутата на пътуването
   tripCurrency: CurrencyCode;
   onAdd: (expense: BaseExpenseInput) => Promise<void>;
+  initialExpense?: TripExpense;
+  onCancel?: () => void;
 };
-
-const AddExpenseForm: React.FC<Props> = ({
-  families,
-  tripCurrency,
-  onAdd,
-}) => {
+const fieldClass = 'w-full rounded-xl border border-eco-border bg-eco-surface-soft px-3 py-2 text-base text-eco-text';
+export default function AddExpenseForm({ families, tripCurrency, onAdd, initialExpense, onCancel }: Props) {
   const formId = React.useId();
-  const [saving, setSaving] = React.useState(false);
-  const [status, setStatus] = React.useState('');
-  const requestId = React.useRef<string | null>(null);
-  const savingRef = React.useRef(false);
-  async function save(payload: BaseExpenseInput) {
-    savingRef.current = true; setSaving(true); setStatus('');
-    try { requestId.current ??= crypto.randomUUID(); await onAdd({ ...payload, requestId: requestId.current }); requestId.current = null; resetForm(); setStatus('✓ Разходът е записан.'); }
-    catch { setStatus('Записът не успя. Данните са запазени — опитай отново.'); }
+  const original = React.useRef(initialExpense).current;
+  const [saving, setSaving] = React.useState(false), [status, setStatus] = React.useState('');
+  const savingRef = React.useRef(false), requestId = React.useRef<string | null>(null);
+  const [paidBy, setPaidBy] = React.useState(original?.paidByFamilyId ?? '');
+  const [involved, setInvolved] = React.useState<string[]>(original?.involvedFamilyIds ?? []);
+  const [mode, setMode] = React.useState<AllocationMode>(original ? allocationModeForExpense(original) : 'all');
+  const [allocationChanged, setAllocationChanged] = React.useState(false);
+  const [amount, setAmount] = React.useState(original ? String(original.amount) : '');
+  const [comment, setComment] = React.useState(original?.comment ?? '');
+  const [isSettlement, setIsSettlement] = React.useState(original?.type === 'settlement');
+  const [settlementTo, setSettlementTo] = React.useState(original?.settlementToFamilyId ?? (original?.type === 'settlement' ? original.involvedFamilyIds?.[0] ?? '' : ''));
+  const currency = original?.currency ?? tripCurrency, symbol = getCurrencySymbol(currency);
+  const allIds = families.map(f => f.id);
+  let allocation: ReturnType<typeof allocationForSave> | null = null;
+  try { allocation = allocationForSave(mode, involved, allIds, original, allocationChanged || !original); } catch { /* Shown on submit; empty explicit selection has no preview. */ }
+  const shares = !isSettlement && allocation && Number(amount) > 0
+    ? expenseShares(allIds, { ...allocation, amount: Number(amount), type: 'expense' }) : {};
+  function reset() {
+    setPaidBy(''); setInvolved([]); setMode('all'); setAllocationChanged(false);
+    setAmount(''); setComment(''); setIsSettlement(false); setSettlementTo('');
+  }
+  async function submit(e: React.FormEvent) {
+    e.preventDefault(); if (savingRef.current) return; setStatus('');
+    try {
+      const numericAmount = Number(amount);
+      if (!paidBy || !Number.isFinite(numericAmount) || numericAmount <= 0 || Math.abs(numericAmount * 100 - Math.round(numericAmount * 100)) > .00001) throw new Error('Избери платец и въведи сума с най-много две цифри след запетаята.');
+      if (isSettlement && (!settlementTo || settlementTo === paidBy)) throw new Error('Избери друго семейство за получател на погасяването.');
+      const payload: BaseExpenseInput = {
+        paidByFamilyId: paidBy, amount: numericAmount, currency, comment,
+        ...(isSettlement ? { involvedFamilyIds: [], type: 'settlement' as const, settlementFromFamilyId: paidBy, settlementToFamilyId: settlementTo }
+          : { ...allocationForSave(mode, involved, allIds, original, allocationChanged || !original || original.type === 'settlement'), type: 'expense' as const }),
+      };
+      savingRef.current = true; setSaving(true);
+      if (!original) { requestId.current ??= crypto.randomUUID(); payload.requestId = requestId.current; }
+      await onAdd(payload);
+      requestId.current = null;
+      if (!original) reset();
+      setStatus('✓ Разходът е записан.');
+    } catch (err) { setStatus(err instanceof Error ? err.message : 'Записът не успя. Данните са запазени — опитай отново.'); }
     finally { savingRef.current = false; setSaving(false); }
   }
-  const [paidBy, setPaidBy] = React.useState('');
-  const [involved, setInvolved] = React.useState<string[]>([]);
-  const [amount, setAmount] = React.useState('');
-  const [comment, setComment] = React.useState('');
-
-  // състояние за "Пито платено"
-  const [isSettlement, setIsSettlement] = React.useState(false);
-  const [settlementTo, setSettlementTo] = React.useState('');
-
-  // ❗ НЯМА fallback към EUR тук – винаги ползваме валутата на пътуването
-  const effectiveCurrency: CurrencyCode = tripCurrency;
-  const currencySymbol = getCurrencySymbol(effectiveCurrency);
-
-  function toggleInvolved(id: string) {
-    setInvolved((prev) =>
-      prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]
-    );
+  function changeMode(value: AllocationMode) {
+    setMode(value); setAllocationChanged(true); setStatus('');
+    if (value === 'single') setInvolved([]);
   }
-
-  function resetForm() {
-    setPaidBy('');
-    setInvolved([]);
-    setAmount('');
-    setComment('');
-    setIsSettlement(false);
-    setSettlementTo('');
-  }
-
-  async function handleSubmit(e: React.FormEvent) {
-    e.preventDefault();
-    if (savingRef.current) return;
-
-    const numericAmount = parseFloat(amount);
-    if (!paidBy || !amount || !Number.isFinite(numericAmount) || numericAmount <= 0) {
-      return;
-    }
-
-    // 👉 Пито платено
-    if (isSettlement) {
-      if (!settlementTo || settlementTo === paidBy) {
-        return;
-      }
-
-      const payload: BaseExpenseInput = {
-        paidByFamilyId: paidBy,
-        involvedFamilyIds: [],
-        amount: numericAmount,
-        currency: effectiveCurrency,
-        comment,
-        type: 'settlement',
-        settlementFromFamilyId: paidBy,
-        settlementToFamilyId: settlementTo,
-      };
-
-      await save(payload);
-      return;
-    }
-
-    // 👉 Нормален разход
-    let finalInvolved = [...involved];
-
-    if (finalInvolved.length === 0) {
-      finalInvolved = families.map((f) => f.id);
-    }
-
-
-    const payload: BaseExpenseInput = {
-      paidByFamilyId: paidBy,
-      involvedFamilyIds: finalInvolved,
-      amount: numericAmount,
-      currency: effectiveCurrency,
-      comment,
-      type: 'expense',
-    };
-
-    await save(payload);
-  }
-
-  return (
-    <form
-      onSubmit={handleSubmit}
-      className="mt-4 mb-6 flex flex-col gap-4 rounded-xl bg-eco-surface p-4 shadow-eco-soft"
-    >
-      <fieldset disabled={saving} className="contents">
-      <h3 className="text-lg font-semibold text-eco-text">Добави нов разход</h3>
-
-      {/* Платено от */}
-      <label htmlFor={`${formId}-payer`} className="text-sm font-medium text-eco-text-muted">
-        Платено от
-      </label>
-      <select
-        className="w-full rounded-lg border border-eco-border bg-eco-surface-soft px-3 py-2 text-base sm:text-sm text-eco-text focus:border-eco-accent focus:outline-none focus:ring-2 focus:ring-eco-accent"
-        id={`${formId}-payer`}
-        required
-        value={paidBy}
-        onChange={(e) => setPaidBy(e.target.value)}
-      >
+  return <form onSubmit={submit} className="expense-form my-4 flex flex-col gap-4 rounded-2xl border border-eco-border bg-eco-surface p-4 shadow-eco-soft">
+    <fieldset disabled={saving} className="contents">
+      <h3 className="text-lg font-semibold">{original ? 'Редактирай разход' : 'Добави нов разход'}</h3>
+      <label htmlFor={`${formId}-payer`}>Платено от</label>
+      <select autoFocus={!!original} id={`${formId}-payer`} className={fieldClass} value={paidBy} onChange={e => setPaidBy(e.target.value)} required>
         <option value="">Избери семейство</option>
-        {families.map((f) => (
-          <option key={f.id} value={f.id}>
-            {f.name}
-          </option>
-        ))}
+        {paidBy && !allIds.includes(paidBy) && <option value={paidBy}>Предишно семейство</option>}
+        {families.map(f => <option key={f.id} value={f.id}>{f.name}</option>)}
       </select>
-
-      {/* Пито платено */}
-      <div className="mt-1 flex items-start gap-2 rounded-lg bg-eco-surface-soft px-3 py-2 border border-eco-border">
-        <input
-          id="settlement"
-          type="checkbox"
-          className="mt-0.5 h-4 w-4 rounded border-eco-border text-eco-accent focus:ring-eco-accent"
-          checked={isSettlement}
-          onChange={(e) => {
-            const checked = e.target.checked;
-            setIsSettlement(checked);
-            if (checked) {
-              setInvolved([]);
-            } else {
-              setSettlementTo('');
-            }
-          }}
-        />
-        <label
-          htmlFor="settlement"
-          className="flex flex-col text-xs sm:text-sm text-eco-text"
-        >
-          <span className="font-medium">Пито платено (погасяване на дълг)</span>
-          <span className="text-eco-text-muted">
-            Използвай това, когато едно семейство реално е платило на друго и
-            искаш да занулиш кой на кого колко дължи.
-          </span>
-        </label>
-      </div>
-
-      {/* Разпределено между – клик за маркиране */}
-      {!isSettlement && (
-        <>
-          <label className="text-sm font-medium text-eco-text-muted">
-            Разпределено между
-          </label>
-          <p className="text-xs text-eco-text-muted mb-1">
-            Ако не избереш никого, разходът ще се разпредели автоматично между
-            всички семейства. Платецът може да бъде изключен от разделянето.
-          </p>
-          <div className="flex flex-col gap-2">
-            {families.map((f) => {
-              const selected = involved.includes(f.id);
-              return (
-                <button
-                  key={f.id}
-                  type="button"
-                  onClick={() => toggleInvolved(f.id)}
-                  aria-pressed={selected}
-                  className={`flex w-full items-center justify-between rounded-lg border px-3 py-2 text-sm transition
-                    ${
-                      selected
-                        ? 'border-eco-accent bg-eco-accent/10 text-eco-text'
-                        : 'border-eco-border bg-eco-surface-soft text-eco-text-muted hover:border-eco-accent/60'
-                    }`}
-                >
-                  <span>{f.name}</span>
-                  {selected && (
-                    <span className="text-xs font-semibold text-eco-accent">
-                      ✓
-                    </span>
-                  )}
-                </button>
-              );
-            })}
-          </div>
-        </>
-      )}
-
-      {/* Към кое семейство е плащането (Пито платено) */}
-      {isSettlement && (
-        <>
-          <label htmlFor={`${formId}-recipient`} className="text-sm font-medium text-eco-text-muted">
-            Към кое семейство е плащането?
-          </label>
-          <select
-            className="w-full rounded-lg border border-eco-border bg-eco-surface-soft px-3 py-2 text-base sm:text-sm text-eco-text focus:border-eco-accent focus:outline-none focus:ring-2 focus:ring-eco-accent"
-            id={`${formId}-recipient`}
-            required
-            value={settlementTo}
-            onChange={(e) => setSettlementTo(e.target.value)}
-          >
-            <option value="">Избери семейство</option>
-            {families.map((f) => (
-              <option key={f.id} value={f.id} disabled={f.id === paidBy}>
-                {f.name}
-                {f.id === paidBy ? ' (същото семейство)' : ''}
-              </option>
-            ))}
-          </select>
-          <p className="text-xs text-eco-text-muted">
-            Това трябва да е семейството, към което реално е направено плащането
-            (на което сте върнали парите).
-          </p>
-        </>
-      )}
-
-      {/* Сума */}
-      <label htmlFor={`${formId}-amount`} className="text-sm font-medium text-eco-text-muted">Сума</label>
-      <div className="flex gap-2 items-center">
-        <input
-          id={`${formId}-amount`}
-          required
-          type="number"
-          placeholder="0.00"
-          step="0.01"
-          min="0.01"
-          className="flex-1 rounded-lg border border-eco-border bg-eco-surface-soft px-3 py-2 text-base sm:text-sm text-eco-text placeholder:text-eco-text-muted focus:border-eco-accent focus:outline-none focus:ring-2 focus:ring-eco-accent"
-          value={amount}
-          onChange={(e) => setAmount(e.target.value)}
-        />
-
-        <div className="min-w-[3.5rem] rounded-lg border border-eco-border bg-eco-surface-soft px-3 py-2 text-sm font-medium text-eco-text text-center">
-          {currencySymbol}
-        </div>
-      </div>
-      <p className="text-xs text-eco-text-muted">
-        Валута на пътуването: {currencySymbol} ({effectiveCurrency}). Всички
-        разходи трябва да са в тази валута, за да са коректни сметките.
-      </p>
-
-      {/* Коментар */}
-      <label htmlFor={`${formId}-comment`} className="text-sm font-medium text-eco-text-muted">
-        Коментар (по избор)
+      <label className="flex items-start gap-3 rounded-xl bg-eco-surface-soft p-3">
+        <input type="checkbox" className="mt-1" checked={isSettlement} onChange={e => { setIsSettlement(e.target.checked); if (original?.type === 'settlement') setAllocationChanged(true); }}/>
+        <span>Пито платено <span className="block text-sm text-eco-text-muted">Погасяване на дълг — не увеличава общите покупки.</span></span>
       </label>
-      <input
-        id={`${formId}-comment`}
-        placeholder={
-          isSettlement
-            ? 'пример: пито платено за дълг към Петрови...'
-            : 'пример: вечеря, бензин, хот-дог...'
-        }
-        className="w-full rounded-lg border border-eco-border bg-eco-surface-soft px-3 py-2 text-base sm:text-sm text-eco-text placeholder:text-eco-text-muted focus:border-eco-accent focus:outline-none focus:ring-2 focus:ring-eco-accent"
-        value={comment}
-        onChange={(e) => setComment(e.target.value)}
-      />
-
-      <button
-        type="submit"
-        disabled={saving}
-        className="mt-2 w-full rounded-lg bg-eco-accent-strong px-4 py-2 text-sm font-semibold text-white shadow-md hover:bg-eco-accent transition"
-      >
-        {saving ? 'Запазване…' : isSettlement ? 'Запиши погасяване' : 'Добави разход'}
-      </button>
-      </fieldset>
-      <p role="status" aria-live="polite">{status}</p>
-    </form>
-  );
-};
-
-export default AddExpenseForm;
+      {!isSettlement ? <fieldset className="grid gap-3">
+        <legend className="mb-3 font-medium">За кого е разходът?</legend>
+        <div className="grid gap-2 sm:grid-cols-3">
+          {([['all','За всички'],['selected','За избрани семейства'],['single','За едно семейство']] as const).map(([value,label]) => <label key={value} className={`flex items-center gap-2 rounded-xl border p-3 transition-colors ${mode === value ? 'border-eco-accent bg-eco-surface-soft' : 'border-eco-border'}`}>
+            <input type="radio" name={`${formId}-mode`} value={value} checked={mode === value} onChange={() => changeMode(value)}/>{label}
+          </label>)}
+        </div>
+        <p className="text-sm text-eco-text-muted">{mode === 'all' ? 'Поравно между всички семейства.' : mode === 'single' ? 'Цялата сума е за избраното семейство.' : 'Поравно само между избраните. Избери поне едно семейство.'} Платецът участва само ако е сред тях.</p>
+        {mode === 'single' && <label className="grid gap-2">Семейство, което поема разхода<select className={fieldClass} required value={involved[0] ?? ''} onChange={e => { setInvolved(e.target.value ? [e.target.value] : []); setAllocationChanged(true); }}>
+          <option value="">Избери семейство</option>
+          {involved[0] && !allIds.includes(involved[0]) && <option value={involved[0]}>Предишно семейство</option>}
+          {families.map(f => <option key={f.id} value={f.id}>{f.name}</option>)}
+        </select></label>}
+        {mode === 'selected' && families.map(f => <label key={f.id} className="flex items-center gap-3 rounded-xl border border-eco-border p-3">
+          <input type="checkbox" checked={involved.includes(f.id)} onChange={e => { setAllocationChanged(true); setInvolved(ids => e.target.checked ? [...ids, f.id] : ids.filter(id => id !== f.id)); }}/>{f.name}
+        </label>)}
+        {original && !allocationChanged && <p className="text-xs text-eco-text-muted">Запазваме първоначалното разпределяне. За нов избор използвай режимите по-горе.</p>}
+      </fieldset> : <label className="grid gap-2">Към кое семейство е плащането?<select className={fieldClass} required value={settlementTo} onChange={e => setSettlementTo(e.target.value)}>
+        <option value="">Избери семейство</option>{families.map(f => <option key={f.id} value={f.id} disabled={f.id === paidBy}>{f.name}</option>)}
+      </select></label>}
+      <label htmlFor={`${formId}-amount`}>Сума · {symbol} ({currency})</label>
+      <input id={`${formId}-amount`} className={fieldClass} type="number" min="0.01" step="0.01" required value={amount} onChange={e => setAmount(e.target.value)} placeholder="0.00"/>
+      {!isSettlement && Object.keys(shares).length > 0 && <div className="rounded-xl bg-eco-surface-soft p-3 text-sm" aria-live="polite"><p className="font-medium mb-2">Кой поема разхода</p>{[...new Set([...Object.keys(shares), ...(paidBy ? [paidBy] : [])])].map(id => <p key={id} className="flex justify-between gap-3"><span>{families.find(f => f.id === id)?.name ?? 'Предишно семейство'}{id === paidBy ? ' (платец)' : ''}</span><span className="tabular-nums">{(shares[id] ?? 0).toFixed(2)} {symbol}</span></p>)}</div>}
+      <label htmlFor={`${formId}-comment`}>Коментар (по избор)</label>
+      <input id={`${formId}-comment`} className={fieldClass} value={comment} onChange={e => setComment(e.target.value)} maxLength={2000}/>
+      <div className="flex flex-wrap gap-3"><Button type="submit" disabled={saving}>{saving ? 'Запазване…' : original ? 'Запази промените' : isSettlement ? 'Запиши погасяване' : 'Добави разход'}</Button>{onCancel && <Button type="button" variant="secondary" onClick={onCancel}>Отказ</Button>}</div>
+    </fieldset>
+    <p role="status" aria-live="polite">{status}</p>
+  </form>;
+}

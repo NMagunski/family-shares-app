@@ -56,3 +56,65 @@ test('invitation rollout defaults off until infrastructure is explicitly enabled
  assert.equal(invitationsEnabled({ emulator: 'true', production: false }), true);
  assert.equal(invitationsEnabled({ emulator: 'true', production: true }), false);
 });
+
+test('30 EUR paid entirely for another family is a purchase, then settlement zeroes balances', async () => {
+ const { expenseShares, calculateFamilyShares, totalPurchaseAmount } = await import('../src/lib/expenses');
+ const purchase = expense({amount:30,involvedFamilyIds:['b'],allocationMode:'single'});
+ assert.deepEqual(expenseShares(['a','b','c'],purchase),{b:30});
+ assert.deepEqual(calculateFamilyShares(families,[purchase],'EUR'),{a:0,b:30,c:0});
+ assert.deepEqual(calculateFamilyBalances(families,[purchase],'EUR'),{a:30,b:-30,c:0});
+ const settlement = expense({type:'settlement',amount:30,paidByFamilyId:'b',involvedFamilyIds:[],settlementFromFamilyId:'b',settlementToFamilyId:'a'});
+ assert.deepEqual(calculateFamilyBalances(families,[purchase,settlement],'EUR'),{a:0,b:0,c:0});
+ assert.deepEqual(calculateFamilyShares(families,[purchase,settlement],'EUR'),{a:0,b:30,c:0});
+ assert.equal(totalPurchaseAmount([purchase,settlement],'EUR'),30);
+ const { expenseHistory } = await import('../src/lib/expenseHistory');
+ const names = [{id:'a',name:'Магунски'},{id:'b',name:'Атанасови'}];
+ assert.equal(expenseHistory(purchase,names).label,'Само за Атанасови');
+ assert.match(expenseHistory(purchase,names).sentence,/Магунски платиха 30,00.*€ за Атанасови/);
+ assert.match(expenseHistory(settlement,names).label,/Пито платено/);
+});
+
+test('self-only purchases leave the payer net balance unchanged', async () => {
+ const { calculateFamilyShares, totalPurchaseAmount } = await import('../src/lib/expenses');
+ const purchase=expense({amount:30,involvedFamilyIds:['a'],allocationMode:'single'});
+ assert.deepEqual(calculateFamilyBalances(families,[purchase],'EUR'),{a:0,b:0,c:0});
+ assert.deepEqual(calculateFamilyShares(families,[purchase],'EUR'),{a:30,b:0,c:0});
+ assert.equal(totalPurchaseAmount([purchase],'EUR'),30);
+});
+
+test('selected recipients exclude payer and distribute every cent consistently', async () => {
+ const { expenseShares, calculateFamilyShares, totalPurchaseAmount } = await import('../src/lib/expenses');
+ const purchase=expense({amount:.05,involvedFamilyIds:['c','b'],allocationMode:'selected'});
+ assert.deepEqual(expenseShares(['a','b','c'],purchase),{b:.03,c:.02});
+ assert.deepEqual(calculateFamilyBalances(families,[purchase],'EUR'),{a:.05,b:-.03,c:-.02});
+ assert.deepEqual(calculateFamilyShares(families,[purchase,purchase],'EUR'),{a:0,b:.06,c:.04});
+ assert.equal(totalPurchaseAmount([purchase,purchase,expense({amount:99,currency:'BGN'})],'EUR'),.10);
+});
+
+test('explicit empty selections are invalid; historical allocations survive editing unchanged', async () => {
+ const { allocationForSave, allocationModeForExpense, validateAllocation } = await import('../src/lib/expenseAllocation');
+ const all=['a','b','c'];
+ for (const mode of ['selected','single'] as const) {
+  assert.throws(()=>allocationForSave(mode,[],all));
+  assert.throws(()=>validateAllocation({allocationMode:mode,involvedFamilyIds:[]},all));
+ }
+ assert.throws(()=>validateAllocation({allocationMode:'all',involvedFamilyIds:[]},all));
+ assert.throws(()=>validateAllocation({involvedFamilyIds:[]},all));
+ assert.throws(()=>validateAllocation({allocationMode:'single',involvedFamilyIds:['a','b']},all));
+ assert.throws(()=>validateAllocation({allocationMode:'selected',involvedFamilyIds:['unknown']},all));
+ assert.deepEqual(allocationForSave('all',[],all),{allocationMode:'all',involvedFamilyIds:all});
+ const old=expense({involvedFamilyIds:['a','b']});
+ assert.equal(allocationModeForExpense(old),'selected');
+ assert.deepEqual(allocationForSave('selected',old.involvedFamilyIds,all,old,false),{involvedFamilyIds:['a','b']});
+ const legacyEmpty=expense({involvedFamilyIds:[]});
+ assert.deepEqual(validateAllocation({involvedFamilyIds:[]},all,legacyEmpty),{involvedFamilyIds:[]});
+ assert.deepEqual(calculateFamilyBalances(families,[legacyEmpty]),{a:6.66,b:-3.33,c:-3.33});
+ const snapshot=expense({allocationMode:'all',involvedFamilyIds:['a','b'],amount:30});
+ assert.deepEqual(calculateFamilyBalances(families,[snapshot]),{a:15,b:-15,c:0});
+ assert.deepEqual(allocationForSave('all',[],all,snapshot,false),{involvedFamilyIds:['a','b'],allocationMode:'all'});
+ const single = allocationForSave('single',['b'],all,old,true);
+ assert.deepEqual(validateAllocation(single,all,old),single);
+ const selected = allocationForSave('selected',['b','c'],all,{...old,...single},true);
+ assert.deepEqual(validateAllocation(selected,all,{...old,...single}),selected);
+ assert.deepEqual(allocationForSave('all',[],all,{...old,...selected},true),{allocationMode:'all',involvedFamilyIds:all});
+});

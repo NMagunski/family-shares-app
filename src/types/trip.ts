@@ -1,3 +1,4 @@
+import type { AllocationMode } from '@/lib/expenseAllocation';
 // src/types/trip.ts
 import type { CurrencyCode } from '@/lib/currencies';
 
@@ -50,6 +51,8 @@ export type TripExpense = {
 
   // между кои семейства се дели (за нормалните разходи)
   involvedFamilyIds: string[];
+  // Optional UI intent; stored IDs remain authoritative for historical records.
+  allocationMode?: AllocationMode;
 
   amount: number;
 

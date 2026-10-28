@@ -84,3 +84,43 @@ test('trusted API: usernames, invitation races, privacy and complete deletion',a
  assert.equal((await call(owner,{action:'deleteTrip',tripId:'race'})).code,200);
  for (const path of ['trips/race','lists/shared','lists/shared/items/item','personalExpenseLists/private','personalExpenseItems/privateitem','tripMemberships/race_guest','tripInvitations/race_guest']) assert.equal((await db.doc(path).get()).exists,false,path);
 });
+
+test('expense allocation API supports other-family purchases, mode edits, legacy records and settlements', async () => {
+ const {db}=adminServices();
+ const actor=await token('allocation-owner');
+ const tripId='allocation-trip';
+ await db.doc(`trips/${tripId}`).set({ownerId:'allocation-owner',currency:'EUR',name:'Разпределяне',archived:false});
+ const families=['alloc-a','alloc-b','alloc-c'].map(id=>({id,name:id,tripId,userId:'allocation-owner'}));
+ for(const family of families) { const {id,...data}=family; await db.doc(`families/${id}`).set(data); }
+ const input={paidByFamilyId:'alloc-a',involvedFamilyIds:['alloc-b'],allocationMode:'single',amount:30,currency:'EUR',type:'expense'};
+ const created=await call(actor,{action:'expense',tripId,requestId:'allocation-create-123',input});
+ assert.equal(created.code,200,JSON.stringify(created.data));
+ const id=String(created.data.id);
+ let stored=(await db.doc(`expenses/${id}`).get()).data()!;
+ assert.deepEqual(stored.involvedFamilyIds,['alloc-b']); assert.equal(stored.type,'expense');
+ const { calculateFamilyBalances, calculateFamilyShares, totalPurchaseAmount }=await import('../src/lib/expenses');
+ type Expense=import('../src/types/trip').TripExpense;
+ const purchase={...stored,id} as Expense;
+ assert.deepEqual(calculateFamilyBalances(families,[purchase],'EUR'),{'alloc-a':30,'alloc-b':-30,'alloc-c':0});
+ for(const [mode,ids] of [['selected',['alloc-b','alloc-c']],['all',['alloc-a','alloc-b','alloc-c']],['single',['alloc-a']]] as const) {
+  const response=await call(actor,{action:'expense',tripId,expenseId:id,input:{...input,allocationMode:mode,involvedFamilyIds:ids}});
+  assert.equal(response.code,200,JSON.stringify(response.data));
+  stored=(await db.doc(`expenses/${id}`).get()).data()!;
+  assert.deepEqual(stored.involvedFamilyIds,[...ids]);
+ }
+ assert.deepEqual(calculateFamilyBalances(families,[{...stored,id} as Expense],'EUR'),{'alloc-a':0,'alloc-b':0,'alloc-c':0});
+ for(const mode of ['selected','single','all']) assert.equal((await call(actor,{action:'expense',tripId,expenseId:id,input:{...input,allocationMode:mode,involvedFamilyIds:[]}})).code,400);
+ assert.deepEqual((await db.doc(`expenses/${id}`).get()).data()?.involvedFamilyIds,['alloc-a']);
+ // A comment-only edit of the legacy [] convention must not expand or reclassify it.
+ await db.doc('expenses/legacy-allocation').set({tripId,paidByFamilyId:'alloc-a',involvedFamilyIds:[],amount:30,currency:'EUR',comment:'old'});
+ const legacy=await call(actor,{action:'expense',tripId,expenseId:'legacy-allocation',input:{...input,allocationMode:undefined,involvedFamilyIds:[],comment:'edited'}});
+ assert.equal(legacy.code,200,JSON.stringify(legacy.data));
+ const legacyData=(await db.doc('expenses/legacy-allocation').get()).data()!;
+ assert.deepEqual(legacyData.involvedFamilyIds,[]); assert.equal(legacyData.allocationMode,undefined);
+ const returned=await call(actor,{action:'expense',tripId,requestId:'allocation-settlement-123',input:{paidByFamilyId:'alloc-b',settlementToFamilyId:'alloc-a',involvedFamilyIds:[],amount:30,currency:'EUR',type:'settlement'}});
+ assert.equal(returned.code,200,JSON.stringify(returned.data));
+ const settlement=returned.data as Expense;
+ assert.deepEqual(calculateFamilyBalances(families,[purchase,settlement],'EUR'),{'alloc-a':0,'alloc-b':0,'alloc-c':0});
+ assert.deepEqual(calculateFamilyShares(families,[purchase,settlement],'EUR'),{'alloc-a':0,'alloc-b':30,'alloc-c':0});
+ assert.equal(totalPurchaseAmount([purchase,settlement],'EUR'),30);
+});

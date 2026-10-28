@@ -3,6 +3,30 @@ import type { CurrencyCode } from '@/lib/currencies';
 export type FamilyBalance = Record<string, number>;
 export type DebtLine = { fromFamilyId: string; toFamilyId: string; amount: number };
 
+type ShareExpense = Pick<TripExpense, 'amount' | 'involvedFamilyIds' | 'allocationMode' | 'type'>;
+export function expenseShares(familyIds: string[], expense: ShareExpense): FamilyBalance {
+  if (expense.type === 'settlement') return {};
+  const amount = Math.round(expense.amount * 100);
+  if (!Number.isSafeInteger(amount) || amount <= 0) return {};
+  // Only old untyped empty arrays mean all; new explicit selections never do.
+  const ids = [...new Set(expense.involvedFamilyIds?.length ? expense.involvedFamilyIds : expense.allocationMode ? [] : familyIds)].sort();
+  if (!ids.length) return {};
+  const share = Math.floor(amount / ids.length), remainder = amount % ids.length;
+  return Object.fromEntries(ids.map((id, index) => [id, (share + (index < remainder ? 1 : 0)) / 100]));
+}
+export function calculateFamilyShares(families: Pick<TripFamily, 'id'>[], expenses: TripExpense[], currency: CurrencyCode): FamilyBalance {
+  const cents: FamilyBalance = Object.fromEntries(families.map(f => [f.id, 0]));
+  for (const expense of expenses) {
+    if (expense.currency !== currency) continue;
+    for (const [id, share] of Object.entries(expenseShares(families.map(f => f.id), expense))) cents[id] = (cents[id] ?? 0) + Math.round(share * 100);
+  }
+  return Object.fromEntries(Object.entries(cents).map(([id, amount]) => [id, amount / 100]));
+}
+export function totalPurchaseAmount(expenses: TripExpense[], currency: CurrencyCode): number {
+  return expenses.filter(e => e.type !== 'settlement' && e.currency === currency && Number.isFinite(e.amount) && e.amount > 0)
+    .reduce((sum, e) => sum + Math.round(e.amount * 100), 0) / 100;
+}
+
 /** All arithmetic uses integer cents. Remainders go to sorted participant IDs. */
 export function calculateFamilyBalances(families: TripFamily[], expenses: TripExpense[], currency?: CurrencyCode): FamilyBalance {
   const cents: FamilyBalance = Object.fromEntries(families.map(f => [f.id, 0]));
@@ -17,11 +41,10 @@ export function calculateFamilyBalances(families: TripFamily[], expenses: TripEx
       if (!to || from === to) continue;
       add(from, amount); add(to, -amount);
     } else {
-      const ids = [...new Set(e.involvedFamilyIds?.length ? e.involvedFamilyIds : families.map(f => f.id))].sort();
-      if (!ids.length) continue;
+      const shares = expenseShares(families.map(f => f.id), e);
+      if (!Object.keys(shares).length) continue;
       add(e.paidByFamilyId, amount);
-      const share = Math.floor(amount / ids.length), remainder = amount % ids.length;
-      ids.forEach((id, i) => add(id, -share - (i < remainder ? 1 : 0)));
+      for (const [id, share] of Object.entries(shares)) add(id, -Math.round(share * 100));
     }
   }
   return Object.fromEntries(Object.entries(cents).map(([id, value]) => [id, value / 100]));
