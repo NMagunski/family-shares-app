@@ -14,9 +14,11 @@ type Props = {
   onAdd: (expense: BaseExpenseInput) => Promise<void>;
   initialExpense?: TripExpense;
   onCancel?: () => void;
+  variant?: 'embedded' | 'standalone';
+  showHeading?: boolean;
 };
 const fieldClass = 'w-full rounded-xl border border-eco-border bg-eco-surface-soft px-3 py-2 text-base text-eco-text';
-export default function AddExpenseForm({ families, tripCurrency, onAdd, initialExpense, onCancel }: Props) {
+export default function AddExpenseForm({ families, tripCurrency, onAdd, initialExpense, onCancel, variant = 'standalone', showHeading = true }: Props) {
   const formId = React.useId();
   const original = React.useRef(initialExpense).current;
   const [saving, setSaving] = React.useState(false), [status, setStatus] = React.useState('');
@@ -63,9 +65,9 @@ export default function AddExpenseForm({ families, tripCurrency, onAdd, initialE
     setMode(value); setAllocationChanged(true); setStatus('');
     if (value === 'single') setInvolved([]);
   }
-  return <form onSubmit={submit} className="expense-form my-4 flex flex-col gap-4 rounded-2xl border border-eco-border bg-eco-surface p-4 shadow-eco-soft">
+  return <form onSubmit={submit} className={`expense-form min-w-0 flex flex-col gap-3 ${variant === 'embedded' ? '' : 'my-4 rounded-2xl border border-eco-border bg-eco-surface p-4 shadow-eco-soft'}`}>
     <fieldset disabled={saving} className="contents">
-      <h3 className="text-lg font-semibold">{original ? 'Редактирай разход' : 'Добави нов разход'}</h3>
+      {showHeading && <h3 className="text-lg font-semibold">{original ? 'Редактирай разход' : 'Добави разход'}</h3>}
       <label htmlFor={`${formId}-payer`}>Платено от</label>
       <select autoFocus={!!original} id={`${formId}-payer`} className={fieldClass} value={paidBy} onChange={e => setPaidBy(e.target.value)} required>
         <option value="">Избери семейство</option>

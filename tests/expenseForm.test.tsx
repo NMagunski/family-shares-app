@@ -92,6 +92,7 @@ test('history opens the complete editor and saves payer and recipient independen
  const fullFamilies=families.map(f=>({...f,tripId:'t',userId:'owner'}));
  render(<Table families={fullFamilies} tripCurrency="EUR" expenses={[original]} onAddExpense={async()=>{}} onDeleteExpense={()=>{}} onUpdateExpense={async(id,input)=>{updates.push({id,input});}}/>);
  try {
+  await user.click(screen.getByRole('button',{name:/Покажи подробности/}));
   await user.click(screen.getByRole('button',{name:'Редактирай'}));
   const {within}=await import('@testing-library/react/pure');
   const editor=within(screen.getByRole('region',{name:'Редакция на разход'}));
@@ -103,5 +104,57 @@ test('history opens the complete editor and saves payer and recipient independen
   assert.deepEqual(updates[0].input.involvedFamilyIds,['b']);
   assert.equal(updates[0].input.type,'expense');
   assert.equal(screen.queryByRole('region',{name:'Редакция на разход'}),null);
+ } finally {cleanup();}
+});
+
+test('compact history hides destructive actions until expanded and keeps delete confirmation', async () => {
+ const {render,screen,cleanup,userEvent}=await harness();
+ const {default:Table}=await import('../src/components/trips/ExpensesTable');
+ const user=userEvent.setup({document:dom.window.document});
+ const data={...original,involvedFamilyIds:['b'],allocationMode:'single' as const};
+ const deleted:string[]=[];
+ let confirms=0;
+ dom.window.confirm=()=>{confirms++;return false;};
+ render(<Table families={families.map(f=>({...f,tripId:'t',userId:'owner'}))} tripCurrency="EUR" expenses={[data]} onAddExpense={async()=>{}} onUpdateExpense={async()=>{}} onDeleteExpense={id=>deleted.push(id)}/>);
+ try {
+  assert.equal(screen.queryByRole('button',{name:'Изтрий'}),null);
+  assert.equal(screen.queryByRole('button',{name:'Редактирай'}),null);
+  assert.ok(screen.getByText('Само за Атанасови'));
+  assert.equal(screen.queryByText(/Магунски платиха/),null);
+  await user.click(screen.getByRole('button',{name:/Покажи подробности/}));
+  assert.ok(screen.getByText(/Магунски платиха/));
+  await user.click(screen.getByRole('button',{name:'Изтрий'}));
+  assert.equal(confirms,1);assert.deepEqual(deleted,[]);
+  dom.window.confirm=()=>true;
+  await user.click(screen.getByRole('button',{name:'Изтрий'}));
+  assert.deepEqual(deleted,['old']);
+ } finally {cleanup();}
+});
+
+test('trip banner uses the family action and renders shared debt values without calculating them', async () => {
+ const {render,screen,cleanup,userEvent}=await harness();
+ const {default:Header}=await import('../src/components/trips/TripHeader');
+ const user=userEvent.setup({document:dom.window.document});
+ let added=0,invited=0;
+ const props={tripName:'Пътуване',total:'57,40 €',familiesCount:3,isOwner:true,onAddFamily:()=>{added++;},onShare:()=>{invited++;},onOpenLists:()=>{},onOpenItinerary:()=>{},onOpenSettings:()=>{}};
+ const lines=Array.from({length:4},(_,i)=>({fromName:`Длъжник ${i}`,toName:'Магунски',amount:`${i+1},00 €`}));
+ const result=render(<Header {...props} balanceState="debts" settlements={lines}/>);
+ try {
+  assert.equal(screen.queryByRole('button',{name:'Добави разход'}),null);
+  await user.click(screen.getByRole('button',{name:'Добави семейство'}));
+  assert.equal(added,1);assert.equal(invited,0);
+  await user.click(screen.getByRole('button',{name:'Покани приятел'}));
+  assert.equal(invited,1);
+  assert.ok(screen.getByText('Длъжник 0 → Магунски'));
+  assert.equal(screen.queryByText('Длъжник 3 → Магунски'),null);
+  assert.equal(screen.getByRole('link',{name:'Виж всички разплащания'}).getAttribute('href'),'#trip-debts');
+  for(const [state,text] of [['loading','Зареждане на разплащанията…'],['error','Разплащанията не могат да се заредят.'],['empty','Все още няма разходи'],['settled','Сметките са уредени']] as const) {
+   result.rerender(<Header {...props} balanceState={state} settlements={[]}/>);
+   assert.ok(screen.getByText(text));
+   if(state==='loading'||state==='error') assert.equal(screen.queryByText('57,40 €'),null);
+  }
+  result.rerender(<Header {...props} isOwner={false} balanceState="settled"/>);
+  assert.equal(screen.queryByRole('button',{name:'Добави семейство'}),null);
+  assert.equal(screen.queryByRole('button',{name:'Покани приятел'}),null);
  } finally {cleanup();}
 });

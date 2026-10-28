@@ -1,5 +1,0 @@
-.base { display:inline-flex; align-items:center; justify-content:center; gap:8px; padding:10px 18px; min-height:44px; border-radius:13px; font-size:15px; font-weight:600; cursor:pointer; }
-.primary { background:var(--eco-accent); color:var(--eco-on); border:1px solid transparent; }
-.secondary { background:var(--eco-surface); color:var(--eco-text); border:1px solid var(--eco-border); }
-.ghost { background:transparent; color:var(--eco-accent); border:1px solid transparent; }
-.danger { background:var(--eco-surface); color:#b52c39; border:1px solid #b52c39; }

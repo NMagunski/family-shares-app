@@ -1,4 +1,4 @@
-import { calculateFamilyBalances, calculateDebts } from '@/lib/expenses';
+import { calculateFamilyBalances, calculateDebts, type FamilyBalance, type DebtLine } from '@/lib/expenses';
 import React from 'react';
 import type { TripFamily, TripExpense } from '@/types/trip';
 import type { CurrencyCode } from '@/lib/currencies';
@@ -8,21 +8,24 @@ type Props = {
   families: TripFamily[];
   expenses: TripExpense[];
   currency: CurrencyCode;
+  balances?: FamilyBalance;
+  settlements?: DebtLine[];
+  status?: 'loading' | 'error' | 'ready';
 };
 
 function formatAmount(amount: number): string { return amount.toFixed(2); }
 
-const DebtsSummary: React.FC<Props> = ({ families, expenses, currency }) => {
+const DebtsSummary: React.FC<Props> = ({ families, expenses, currency, balances: sharedBalances, settlements: sharedSettlements, status = 'ready' }) => {
   const currencySymbol = getCurrencySymbol(currency);
 
   const balances = React.useMemo(
-    () => calculateFamilyBalances(families, expenses, currency),
-    [families, expenses, currency]
+    () => sharedBalances ?? calculateFamilyBalances(families, expenses, currency),
+    [families, expenses, currency, sharedBalances]
   );
 
   const settlements = React.useMemo(
-    () => calculateDebts(families, balances),
-    [families, balances]
+    () => sharedSettlements ?? calculateDebts(families, balances),
+    [families, balances, sharedSettlements]
   );
 
   const hasAnyBalance = Object.values(balances).some(
@@ -33,6 +36,8 @@ const DebtsSummary: React.FC<Props> = ({ families, expenses, currency }) => {
 
   const getFamilyName = (id: string) =>
     families.find((f) => f.id === id)?.name ?? 'Непознато семейство';
+
+  if (status !== 'ready') return <p role="status" className="text-sm text-eco-text-muted">{status === 'loading' ? 'Зареждане на разплащанията…' : 'Разплащанията не могат да се заредят.'}</p>;
 
   return (
     <div className="space-y-4 text-sm">
@@ -77,9 +82,9 @@ const DebtsSummary: React.FC<Props> = ({ families, expenses, currency }) => {
           return (
             <div
               key={family.id}
-              className="flex items-center justify-between py-1"
+              className="flex flex-wrap items-center justify-between gap-2 py-1"
             >
-              <span className="text-eco-text">{family.name}</span>
+              <span className="text-eco-text min-w-0 [overflow-wrap:anywhere]">{family.name}</span>
               <div
                 className={`
                   inline-flex items-center rounded-full border px-3 py-1 text-xs font-medium

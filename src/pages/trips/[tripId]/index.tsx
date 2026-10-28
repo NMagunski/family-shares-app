@@ -1,10 +1,10 @@
-import { calculateFamilyShares, totalPurchaseAmount } from '@/lib/expenses';
+import { calculateFamilyBalances, calculateDebts, calculateFamilyShares, totalPurchaseAmount } from '@/lib/expenses';
 import { db } from '@/lib/firebase';
 import { doc, collection, query, where, onSnapshot } from 'firebase/firestore';
 import React from 'react';
 import { useRouter } from 'next/router';
 import Layout from '@/components/layout/Layout';
-import TripHeader from '@/components/trips/TripHeader';
+import TripHeader, { type TripBalanceState } from '@/components/trips/TripHeader';
 import FamiliesSection from '@/components/trips/FamiliesSection';
 import DebtsSummary from '@/components/trips/DebtsSummary';
 import AddFamilyModal from '@/components/trips/AddFamilyModal';
@@ -254,6 +254,20 @@ const TripPage: React.FC = () => {
     [families, expenses, tripCurrency]
   );
 
+  const balances = React.useMemo(
+    () => calculateFamilyBalances(families, expenses, tripCurrency),
+    [families, expenses, tripCurrency]
+  );
+  const settlements = React.useMemo(() => calculateDebts(families, balances), [families, balances]);
+  const balanceState: TripBalanceState = loadError ? 'error'
+    : !trip || familiesLoading || expensesLoading ? 'loading'
+    : !expenses.length ? 'empty' : settlements.length ? 'debts' : 'settled';
+  const ticketSettlements = settlements.map(line => ({
+    fromName: families.find(family => family.id === line.fromFamilyId)?.name ?? 'Предишно семейство',
+    toName: families.find(family => family.id === line.toFamilyId)?.name ?? 'Предишно семейство',
+    amount: `${line.amount.toLocaleString('bg-BG', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ${getCurrencySymbol(tripCurrency)}`,
+  }));
+
   function formatSummaryAmount(amount: number): string {
     if (showSummaryInEur && tripCurrency !== 'EUR') {
       const eur = convertToEur(amount, tripCurrency);
@@ -285,10 +299,8 @@ const TripPage: React.FC = () => {
         <TripHeader
           tripName={tripName}
           isOwner={trip?.ownerId === user.uid}
-          onAddExpense={() => {
-            const entry = document.getElementById('expense-entry') as HTMLDetailsElement | null;
-            if (entry) { entry.open = true; entry.scrollIntoView({ block: 'start' }); entry.querySelector('select')?.focus(); }
-          }}
+          balanceState={balanceState}
+          settlements={ticketSettlements}
           familiesCount={families.length}
           total={`${totalPurchaseAmount(expenses, tripCurrency).toFixed(2)} ${getCurrencySymbol(tripCurrency)}`}
           onAddFamily={() => setShowFamilyModal(true)}
@@ -346,11 +358,14 @@ const TripPage: React.FC = () => {
 
           {/* Дясна колона */}
           <div className="space-y-6 lg:col-span-1">
-            <SectionCard title="Кой на кого колко дължи" icon={Scale}>
+            <SectionCard id="trip-debts" tabIndex={-1} title="Кой на кого колко дължи" icon={Scale}>
               <DebtsSummary
                 families={families}
                 expenses={expenses}
                 currency={tripCurrency}
+                balances={balances}
+                settlements={settlements}
+                status={balanceState === 'loading' || balanceState === 'error' ? balanceState : 'ready'}
               />
             </SectionCard>
             <SectionCard title="Резюме на пътуването" icon={Info}>

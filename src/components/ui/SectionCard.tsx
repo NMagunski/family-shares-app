@@ -1,58 +1,20 @@
 import React from 'react';
-import Card from '@/components/ui/Card';
 import type { LucideIcon } from 'lucide-react';
 
 type SectionCardProps = {
   title: string;
-  icon?: LucideIcon; // 👉 приемаме компонент, не текст
+  icon?: LucideIcon;
+  id?: string;
+  tabIndex?: number;
   children: React.ReactNode;
 };
-
-const SectionCard: React.FC<SectionCardProps> = ({ title, icon: Icon, children }) => {
-  return (
-    <Card
-      className="
-        mb-6 
-        bg-eco-surface-soft/80 
-        border border-eco-border 
-        shadow-eco-soft
-        p-3 sm:p-4 md:p-5
-        rounded-2xl
-      "
-    >
-      {/* HEADER */}
-      <div className="flex items-center gap-3 mb-3 md:mb-4">
-        {Icon && (
-          <div
-            className="
-              flex items-center justify-center
-              w-10 h-10 md:w-11 md:h-11
-              rounded-xl
-              bg-eco-surface
-              border border-eco-border
-            "
-          >
-            <Icon className="w-5 h-5 md:w-6 md:h-6 text-eco-text" />
-          </div>
-        )}
-
-        <h2
-          className="
-            text-base md:text-lg 
-            font-semibold 
-            text-eco-text
-          "
-        >
-          {title}
-        </h2>
-      </div>
-
-      {/* CONTENT */}
-      <div className="text-sm md:text-base text-eco-text leading-relaxed">
-        {children}
-      </div>
-    </Card>
-  );
-};
-
-export default SectionCard;
+export default function SectionCard({ title, icon: Icon, id, tabIndex, children }: SectionCardProps) {
+  const headingId = React.useId();
+  return <section id={id} tabIndex={tabIndex} aria-labelledby={headingId} className="section-card min-w-0 rounded-2xl border border-eco-border bg-eco-surface p-4 md:p-5 shadow-eco-soft">
+    <div className="flex items-center gap-3 mb-3">
+      {Icon && <span className="flex shrink-0 items-center justify-center w-9 h-9 rounded-xl bg-eco-surface-soft"><Icon aria-hidden="true" className="w-5 h-5"/></span>}
+      <h2 id={headingId} className="min-w-0 text-base md:text-lg font-semibold [overflow-wrap:anywhere]">{title}</h2>
+    </div>
+    <div className="min-w-0 text-sm md:text-base leading-relaxed">{children}</div>
+  </section>;
+}
