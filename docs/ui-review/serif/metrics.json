@@ -1,0 +1,317 @@
+{
+  "results": [
+    {
+      "screen": "trips",
+      "width": 320,
+      "theme": "dark",
+      "overflow": false
+    },
+    {
+      "screen": "trip",
+      "width": 320,
+      "theme": "dark",
+      "overflow": false
+    },
+    {
+      "screen": "expense",
+      "width": 320,
+      "theme": "dark",
+      "overflow": false,
+      "amountFont": "34px",
+      "payerZero": "Кой поема разхода\n\nАтанасови\n30.00 €\n\nМагунски (платец)\n0.00 €"
+    },
+    {
+      "screen": "login",
+      "width": 320,
+      "theme": "dark",
+      "overflow": false
+    },
+    {
+      "screen": "trips",
+      "width": 375,
+      "theme": "dark",
+      "overflow": false
+    },
+    {
+      "screen": "trip",
+      "width": 375,
+      "theme": "dark",
+      "overflow": false
+    },
+    {
+      "screen": "expense",
+      "width": 375,
+      "theme": "dark",
+      "overflow": false,
+      "amountFont": "34px",
+      "payerZero": "Кой поема разхода\n\nАтанасови\n30.00 €\n\nМагунски (платец)\n0.00 €"
+    },
+    {
+      "screen": "login",
+      "width": 375,
+      "theme": "dark",
+      "overflow": false
+    },
+    {
+      "screen": "trips",
+      "width": 390,
+      "theme": "dark",
+      "overflow": false
+    },
+    {
+      "screen": "trip",
+      "width": 390,
+      "theme": "dark",
+      "overflow": false
+    },
+    {
+      "screen": "expense",
+      "width": 390,
+      "theme": "dark",
+      "overflow": false,
+      "amountFont": "34px",
+      "payerZero": "Кой поема разхода\n\nАтанасови\n30.00 €\n\nМагунски (платец)\n0.00 €"
+    },
+    {
+      "screen": "login",
+      "width": 390,
+      "theme": "dark",
+      "overflow": false
+    },
+    {
+      "screen": "trips",
+      "width": 430,
+      "theme": "dark",
+      "overflow": false
+    },
+    {
+      "screen": "trip",
+      "width": 430,
+      "theme": "dark",
+      "overflow": false
+    },
+    {
+      "screen": "expense",
+      "width": 430,
+      "theme": "dark",
+      "overflow": false,
+      "amountFont": "34px",
+      "payerZero": "Кой поема разхода\n\nАтанасови\n30.00 €\n\nМагунски (платец)\n0.00 €"
+    },
+    {
+      "screen": "login",
+      "width": 430,
+      "theme": "dark",
+      "overflow": false
+    },
+    {
+      "screen": "trips",
+      "width": 768,
+      "theme": "dark",
+      "overflow": false
+    },
+    {
+      "screen": "trip",
+      "width": 768,
+      "theme": "dark",
+      "overflow": false
+    },
+    {
+      "screen": "expense",
+      "width": 768,
+      "theme": "dark",
+      "overflow": false,
+      "amountFont": "34px",
+      "payerZero": "Кой поема разхода\n\nАтанасови\n30.00 €\n\nМагунски (платец)\n0.00 €"
+    },
+    {
+      "screen": "login",
+      "width": 768,
+      "theme": "dark",
+      "overflow": false
+    },
+    {
+      "screen": "trips",
+      "width": 1280,
+      "theme": "dark",
+      "overflow": false
+    },
+    {
+      "screen": "trip",
+      "width": 1280,
+      "theme": "dark",
+      "overflow": false
+    },
+    {
+      "screen": "expense",
+      "width": 1280,
+      "theme": "dark",
+      "overflow": false,
+      "amountFont": "34px",
+      "payerZero": "Кой поема разхода\n\nАтанасови\n30.00 €\n\nМагунски (платец)\n0.00 €"
+    },
+    {
+      "screen": "login",
+      "width": 1280,
+      "theme": "dark",
+      "overflow": false
+    },
+    {
+      "screen": "trips",
+      "width": 320,
+      "theme": "light",
+      "overflow": false
+    },
+    {
+      "screen": "trip",
+      "width": 320,
+      "theme": "light",
+      "overflow": false
+    },
+    {
+      "screen": "expense",
+      "width": 320,
+      "theme": "light",
+      "overflow": false,
+      "amountFont": "34px",
+      "payerZero": "Кой поема разхода\n\nАтанасови\n30.00 €\n\nМагунски (платец)\n0.00 €"
+    },
+    {
+      "screen": "login",
+      "width": 320,
+      "theme": "light",
+      "overflow": false
+    },
+    {
+      "screen": "trips",
+      "width": 375,
+      "theme": "light",
+      "overflow": false
+    },
+    {
+      "screen": "trip",
+      "width": 375,
+      "theme": "light",
+      "overflow": false
+    },
+    {
+      "screen": "expense",
+      "width": 375,
+      "theme": "light",
+      "overflow": false,
+      "amountFont": "34px",
+      "payerZero": "Кой поема разхода\n\nАтанасови\n30.00 €\n\nМагунски (платец)\n0.00 €"
+    },
+    {
+      "screen": "login",
+      "width": 375,
+      "theme": "light",
+      "overflow": false
+    },
+    {
+      "screen": "trips",
+      "width": 390,
+      "theme": "light",
+      "overflow": false
+    },
+    {
+      "screen": "trip",
+      "width": 390,
+      "theme": "light",
+      "overflow": false
+    },
+    {
+      "screen": "expense",
+      "width": 390,
+      "theme": "light",
+      "overflow": false,
+      "amountFont": "34px",
+      "payerZero": "Кой поема разхода\n\nАтанасови\n30.00 €\n\nМагунски (платец)\n0.00 €"
+    },
+    {
+      "screen": "login",
+      "width": 390,
+      "theme": "light",
+      "overflow": false
+    },
+    {
+      "screen": "trips",
+      "width": 430,
+      "theme": "light",
+      "overflow": false
+    },
+    {
+      "screen": "trip",
+      "width": 430,
+      "theme": "light",
+      "overflow": false
+    },
+    {
+      "screen": "expense",
+      "width": 430,
+      "theme": "light",
+      "overflow": false,
+      "amountFont": "34px",
+      "payerZero": "Кой поема разхода\n\nАтанасови\n30.00 €\n\nМагунски (платец)\n0.00 €"
+    },
+    {
+      "screen": "login",
+      "width": 430,
+      "theme": "light",
+      "overflow": false
+    },
+    {
+      "screen": "trips",
+      "width": 768,
+      "theme": "light",
+      "overflow": false
+    },
+    {
+      "screen": "trip",
+      "width": 768,
+      "theme": "light",
+      "overflow": false
+    },
+    {
+      "screen": "expense",
+      "width": 768,
+      "theme": "light",
+      "overflow": false,
+      "amountFont": "34px",
+      "payerZero": "Кой поема разхода\n\nАтанасови\n30.00 €\n\nМагунски (платец)\n0.00 €"
+    },
+    {
+      "screen": "login",
+      "width": 768,
+      "theme": "light",
+      "overflow": false
+    },
+    {
+      "screen": "trips",
+      "width": 1280,
+      "theme": "light",
+      "overflow": false
+    },
+    {
+      "screen": "trip",
+      "width": 1280,
+      "theme": "light",
+      "overflow": false
+    },
+    {
+      "screen": "expense",
+      "width": 1280,
+      "theme": "light",
+      "overflow": false,
+      "amountFont": "34px",
+      "payerZero": "Кой поема разхода\n\nАтанасови\n30.00 €\n\nМагунски (платец)\n0.00 €"
+    },
+    {
+      "screen": "login",
+      "width": 1280,
+      "theme": "light",
+      "overflow": false
+    }
+  ],
+  "errors": []
+}

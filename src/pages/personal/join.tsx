@@ -77,7 +77,7 @@ const JoinPersonalListPage: React.FC = () => {
           <p className="text-sm text-eco-text-muted">Зареждане...</p>
         ) : error ? (
           <div>
-            <h1 className="text-xl font-semibold text-red-400 mb-2">Грешка</h1>
+            <h1 className="text-xl font-semibold text-eco-error mb-2">Грешка</h1>
             <p className="text-sm text-eco-text-muted">{error}</p>
           </div>
         ) : list ? (

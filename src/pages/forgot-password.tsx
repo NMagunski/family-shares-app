@@ -1,3 +1,7 @@
+import AuthWelcome from '@/components/auth/AuthWelcome';
+import Button from '@/components/ui/Button';
+import Input from '@/components/ui/Input';
+import Card from '@/components/ui/Card';
 import React from 'react';
 import { sendPasswordResetEmail } from 'firebase/auth';
 import { auth } from '@/lib/firebase';
@@ -58,8 +62,8 @@ const ForgotPasswordPage: React.FC = () => {
 
   return (
     <Layout>
-      <div className="flex min-h-[60vh] items-center justify-center px-4">
-        <div className="w-full max-w-md rounded-2xl border border-eco-border bg-eco-surface-soft px-5 py-6 shadow-eco-soft">
+      <div className="auth-page">
+        <Card className="auth-card auth-recovery"><AuthWelcome mode="recovery"/>
           <h1 className="mb-2 text-xl font-semibold text-eco-text">
             Забравена парола
           </h1>
@@ -69,53 +73,31 @@ const ForgotPasswordPage: React.FC = () => {
           </p>
 
           <form onSubmit={handleSubmit} className="space-y-4">
-            <div className="space-y-1.5">
-              <label
-                htmlFor="email"
-                className="block text-xs font-medium uppercase tracking-wide text-eco-text-muted"
-              >
-                Имейл адрес
-              </label>
-              <input
-                id="email"
-                type="email"
-                className="w-full rounded-xl border border-eco-border bg-eco-surface px-3 py-2 text-sm text-eco-text focus:outline-none focus:ring-2 focus:ring-emerald-500"
-                placeholder="you@example.com"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                autoComplete="email"
-              />
-            </div>
+            <Input label="Имейл адрес" id="email" type="email" placeholder="you@example.com" value={email} onChange={e => setEmail(e.target.value)} autoComplete="email" />
 
             {error && (
-              <p className="text-xs text-red-500 bg-red-500/5 border border-red-500/40 rounded-lg px-3 py-2">
+              <p className="text-xs text-eco-error bg-red-500/5 border border-red-500/40 rounded-lg px-3 py-2">
                 {error}
               </p>
             )}
 
             {message && (
-              <p className="text-xs text-emerald-600 bg-emerald-500/5 border border-emerald-500/40 rounded-lg px-3 py-2">
+              <p className="text-xs text-eco-accent bg-emerald-500/5 border border-emerald-500/40 rounded-lg px-3 py-2">
                 {message}
               </p>
             )}
 
-            <button
-              type="submit"
-              disabled={submitting}
-              className="mt-2 w-full rounded-xl bg-emerald-600 px-4 py-2.5 text-sm font-medium text-white hover:bg-emerald-700 disabled:opacity-60 disabled:cursor-not-allowed transition"
-            >
-              {submitting ? 'Изпращане...' : 'Изпрати линк за нова парола'}
-            </button>
+            <Button type="submit" className="auth-submit" disabled={submitting}>{submitting ? 'Изпращане...' : 'Изпрати линк за нова парола'}</Button>
           </form>
 
           <button
             type="button"
-            className="mt-4 text-xs text-eco-text-muted hover:text-eco-text underline underline-offset-2"
+            className="mt-4 min-h-[44px] text-sm text-eco-text-muted hover:text-eco-text underline underline-offset-2"
             onClick={() => router.push('/login')}
           >
             ← Обратно към вход
           </button>
-        </div>
+        </Card>
       </div>
     </Layout>
   );

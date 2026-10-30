@@ -1,3 +1,4 @@
+import AuthWelcome from '@/components/auth/AuthWelcome';
 import React from 'react';
 import Link from 'next/link';
 import { sendPasswordResetEmail } from 'firebase/auth';
@@ -59,8 +60,8 @@ const ResetPasswordPage: React.FC = () => {
 
   return (
     <Layout>
-      <div className="max-w-md mx-auto mt-12 px-4">
-        <Card className="p-6">
+      <div className="auth-page">
+        <Card className="auth-card auth-recovery"><AuthWelcome mode="recovery"/>
           <h1 className="text-xl font-semibold text-eco-text mb-4">
             Нулиране на парола
           </h1>
@@ -71,17 +72,18 @@ const ResetPasswordPage: React.FC = () => {
 
           <form onSubmit={handleSubmit} className="flex flex-col gap-4">
             <Input
-              label="Email"
+              label="Имейл адрес"
+              autoComplete="email"
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               required
             />
 
-            {error && <p className="text-red-400 text-sm">{error}</p>}
-            {success && <p className="text-emerald-400 text-sm">{success}</p>}
+            {error && <p className="text-eco-error text-sm">{error}</p>}
+            {success && <p className="text-eco-accent text-sm">{success}</p>}
 
-            <Button type="submit" disabled={loading}>
+            <Button className="auth-submit" type="submit" disabled={loading}>
               {loading ? 'Изпращане...' : 'Изпрати линк'}
             </Button>
           </form>

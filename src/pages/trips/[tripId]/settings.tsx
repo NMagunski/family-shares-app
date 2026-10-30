@@ -180,9 +180,9 @@ const TripSettingsPage: React.FC = () => {
         {loading ? (
           <p className="text-sm text-eco-text-muted mt-4">Зареждане...</p>
         ) : error ? (
-          <p className="text-sm text-red-400 mt-4">{error}</p>
+          <p className="text-sm text-eco-error mt-4">{error}</p>
         ) : !trip ? (
-          <p className="text-sm text-red-400 mt-4">
+          <p className="text-sm text-eco-error mt-4">
             Пътуването не беше намерено.
           </p>
         ) : (
@@ -274,7 +274,7 @@ const TripSettingsPage: React.FC = () => {
 
             {/* Опасна зона */}
             <div className="mt-6">
-              <h2 className="text-lg font-semibold text-red-600 mb-2">
+              <h2 className="text-lg font-semibold text-eco-error mb-2">
                 Опасна зона
               </h2>
               <p className="text-sm text-eco-text-muted mb-3">

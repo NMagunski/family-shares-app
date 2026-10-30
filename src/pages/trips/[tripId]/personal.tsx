@@ -216,7 +216,7 @@ const PersonalExpensesPage: React.FC = () => {
             Зареждане на личните разходи...
           </p>
         ) : error ? (
-          <p className="text-sm text-red-400">{error}</p>
+          <p className="text-sm text-eco-error">{error}</p>
         ) : lists.length === 0 ? (
           <p className="text-sm text-eco-text-muted">
             Все още нямаш лични разходни списъци за това пътуване. Започни с
@@ -358,14 +358,14 @@ const PersonalListCard: React.FC<PersonalListCardProps> = ({
           <button
             type="button"
             onClick={handleCopyShareLink}
-            className="px-2 py-1 rounded-lg border border-emerald-500 text-xs font-medium text-emerald-500 hover:bg-emerald-500/10 transition"
+            className="px-2 py-1 rounded-lg border border-emerald-500 text-xs font-medium text-eco-accent hover:bg-emerald-500/10 transition"
           >
             Сподели
           </button>
           <button
             type="button"
             onClick={() => onDeleteList(list.id)}
-            className="text-xs font-medium text-red-600 hover:text-red-400 hover:underline transition"
+            className="text-xs font-medium text-eco-error hover:text-eco-error hover:underline transition"
           >
             Изтрий
           </button>
@@ -429,7 +429,7 @@ const PersonalListCard: React.FC<PersonalListCardProps> = ({
               <button
                 type="button"
                 onClick={() => handleDeleteItem(item.id)}
-                className="text-sm text-eco-text-muted hover:text-red-400 transition"
+                className="text-sm text-eco-text-muted hover:text-eco-error transition"
               >
                 ✕
               </button>
@@ -443,7 +443,7 @@ const PersonalListCard: React.FC<PersonalListCardProps> = ({
         <span className="text-sm font-medium text-eco-text">
           Общо за този списък:
         </span>
-        <span className="text-sm font-semibold text-emerald-500">
+        <span className="text-sm font-semibold text-eco-accent">
           {total.toFixed(2)} {currencySymbol}
         </span>
       </div>

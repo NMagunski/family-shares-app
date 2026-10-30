@@ -52,7 +52,7 @@ const TermsPage: React.FC = () => {
             <h2 className="text-xl font-semibold text-eco-text mb-2">4. Поверителност и сигурност</h2>
             <p className="text-sm text-eco-text-muted leading-relaxed">
               Използването на TripSplitly се подчинява на нашата 
-              <Link href="/privacy" className="text-emerald-500 underline">
+              <Link href="/privacy" className="text-eco-accent underline">
                 {' '}Политика за поверителност
               </Link>.
             </p>

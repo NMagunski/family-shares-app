@@ -1,0 +1,86 @@
+[
+  {
+    "theme": "light",
+    "screen": "trips",
+    "minimum": 5.2,
+    "failures": []
+  },
+  {
+    "theme": "light",
+    "screen": "trip",
+    "minimum": 4.82,
+    "failures": []
+  },
+  {
+    "theme": "light",
+    "screen": "expense",
+    "minimum": 4.82,
+    "failures": []
+  },
+  {
+    "theme": "light",
+    "screen": "login",
+    "minimum": 4.94,
+    "failures": []
+  },
+  {
+    "theme": "light",
+    "screen": "register",
+    "minimum": 4.94,
+    "failures": []
+  },
+  {
+    "theme": "light",
+    "screen": "forgot-password",
+    "minimum": 4.94,
+    "failures": []
+  },
+  {
+    "theme": "light",
+    "screen": "reset-password",
+    "minimum": 5.2,
+    "failures": []
+  },
+  {
+    "theme": "dark",
+    "screen": "trips",
+    "minimum": 5.2,
+    "failures": []
+  },
+  {
+    "theme": "dark",
+    "screen": "trip",
+    "minimum": 7.2,
+    "failures": []
+  },
+  {
+    "theme": "dark",
+    "screen": "expense",
+    "minimum": 7.2,
+    "failures": []
+  },
+  {
+    "theme": "dark",
+    "screen": "login",
+    "minimum": 5.17,
+    "failures": []
+  },
+  {
+    "theme": "dark",
+    "screen": "register",
+    "minimum": 5.17,
+    "failures": []
+  },
+  {
+    "theme": "dark",
+    "screen": "forgot-password",
+    "minimum": 5.17,
+    "failures": []
+  },
+  {
+    "theme": "dark",
+    "screen": "reset-password",
+    "minimum": 5.2,
+    "failures": []
+  }
+]

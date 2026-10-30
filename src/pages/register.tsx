@@ -81,8 +81,8 @@ const RegisterPage: React.FC = () => {
 
   return (
     <Layout>
-      <div className="max-w-4xl mx-auto mt-6 px-4">
-        <Card className="p-6 auth-card"><AuthWelcome mode="register"/>
+      <div className="auth-page">
+        <Card className="auth-card"><AuthWelcome mode="register"/>
           <h1 className="text-xl font-semibold text-eco-text mb-4">
             Регистрация
           </h1>
@@ -91,7 +91,9 @@ const RegisterPage: React.FC = () => {
             {TRIP_INVITATIONS_ENABLED && <><Input label="Username" value={username} onChange={e => setUsername(e.target.value)} required minLength={3} maxLength={24} autoComplete="username"/>
             <p className="text-xs text-eco-text-muted">Латински букви, цифри и _. Започва с буква; главни и малки букви са равнозначни.</p></>}
             <Input
-              label="Email"
+              label="Имейл адрес"
+              autoComplete="email"
+              placeholder="you@example.com"
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
@@ -100,15 +102,16 @@ const RegisterPage: React.FC = () => {
 
             <Input
               label="Парола"
+              autoComplete="new-password"
               type="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               required
             />
 
-            {error && <p className="text-red-400 text-sm">{error}</p>}
+            {error && <p className="text-eco-error text-sm">{error}</p>}
 
-            <Button type="submit" disabled={loading}>
+            <Button className="auth-submit" type="submit" disabled={loading}>
               {loading ? 'Регистриране...' : 'Регистрирай се'}
             </Button>
           </form>

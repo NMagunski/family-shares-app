@@ -5,6 +5,7 @@ import type { ExpenseInput } from '../src/lib/expensesStore';
 import type { TripExpense } from '../src/types/trip';
 
 const dom = new JSDOM('<!doctype html><html><body></body></html>', {url:'http://localhost'});
+Object.defineProperty(globalThis, 'self', {value:dom.window, configurable:true});
 Object.defineProperty(globalThis, 'window', {value:dom.window, configurable:true});
 Object.defineProperty(globalThis, 'document', {value:dom.window.document, configurable:true});
 Object.defineProperty(globalThis, 'navigator', {value:dom.window.navigator, configurable:true});
@@ -141,6 +142,7 @@ test('trip banner uses the family action and renders shared debt values without 
  const result=render(<Header {...props} balanceState="debts" settlements={lines}/>);
  try {
   assert.equal(screen.queryByRole('button',{name:'Добави разход'}),null);
+  await user.click(screen.getByText('Още'));
   await user.click(screen.getByRole('button',{name:'Добави семейство'}));
   assert.equal(added,1);assert.equal(invited,0);
   await user.click(screen.getByRole('button',{name:'Покани приятел'}));
@@ -156,5 +158,36 @@ test('trip banner uses the family action and renders shared debt values without 
   result.rerender(<Header {...props} isOwner={false} balanceState="settled"/>);
   assert.equal(screen.queryByRole('button',{name:'Добави семейство'}),null);
   assert.equal(screen.queryByRole('button',{name:'Покани приятел'}),null);
+ } finally {cleanup();}
+});
+
+test('trip cards keep keyboard expansion, direct opening and owner-only management', async () => {
+ const {render,screen,cleanup,userEvent}=await harness();
+ const {default:Overview}=await import('../src/components/trips/TripsOverview');
+ const user=userEvent.setup({document:dom.window.document});
+ const trips=[{id:'owned',name:'Моето пътуване',type:'beach' as const,ownerId:'me',currency:'EUR' as const,createdAt:'2026-10-30T12:00:00Z'},{id:'shared',name:'Споделено пътуване',type:'other' as const,ownerId:'other',currency:'EUR' as const,createdAt:'2026-10-30T12:00:00Z'}];
+ const calls:string[]=[];
+ render(<Overview activeTrips={trips} archivedTrips={[]} userId="me" loading={false} error={null} onNewTrip={()=>calls.push('new')} onArchive={trip=>calls.push(trip.id)} onDelete={()=>calls.push('delete')}/>);
+ try {
+  await user.click(screen.getByRole('button',{name:'Ново пътуване'}));assert.deepEqual(calls,['new']);
+  const own=screen.getByRole('button',{name:/Моето пътуване/});own.focus();await user.keyboard('{Enter}');assert.equal(own.getAttribute('aria-expanded'),'true');
+  assert.equal(screen.getByRole('link',{name:'Отвори Моето пътуване'}).getAttribute('href'),'/trips/owned');
+  await user.click(screen.getByRole('button',{name:'Архивирай'}));assert.equal(calls.at(-1),'owned');
+  await user.click(screen.getByRole('button',{name:/Споделено пътуване/}));
+  assert.equal(screen.getAllByRole('button',{name:'Изтрий'}).length,1);
+  assert.equal(screen.getAllByRole('link',{name:'Отвори пътуване'}).length,2);
+ } finally {cleanup();}
+});
+
+test('password visibility keeps the value, accessible label and autocomplete', async () => {
+ const {render,screen,cleanup,userEvent}=await harness();
+ const {default:Input}=await import('../src/components/ui/Input');
+ const user=userEvent.setup({document:dom.window.document});
+ render(<Input label="Парола" type="password" autoComplete="current-password" defaultValue="test-value"/>);
+ try {
+  const field=screen.getByLabelText('Парола') as HTMLInputElement;
+  await user.click(screen.getByRole('button',{name:'Покажи паролата'}));
+  assert.equal(field.type,'text');assert.equal(field.value,'test-value');assert.equal(field.autocomplete,'current-password');
+  await user.click(screen.getByRole('button',{name:'Скрий паролата'}));assert.equal(field.type,'password');assert.equal(field.value,'test-value');
  } finally {cleanup();}
 });

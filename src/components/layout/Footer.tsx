@@ -6,8 +6,8 @@ const Footer: React.FC = () => {
   const currentYear = new Date().getFullYear();
 
   return (
-    <footer className="border-t border-eco-border/60 bg-black/30">
-      <div className="mx-auto flex max-w-4xl flex-col gap-3 px-4 py-4 text-xs text-eco-text-muted sm:flex-row sm:items-center sm:justify-between">
+    <footer className="app-footer">
+      <div className="mx-auto flex max-w-4xl flex-col gap-3 px-4 py-6 text-xs text-eco-text-muted sm:flex-row sm:items-center sm:justify-between">
         <div className="flex items-center gap-2">
           <span className="font-semibold text-eco-text">
             TripSplitly

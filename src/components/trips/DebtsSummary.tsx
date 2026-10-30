@@ -87,12 +87,12 @@ const DebtsSummary: React.FC<Props> = ({ families, expenses, currency, balances:
               <span className="text-eco-text min-w-0 [overflow-wrap:anywhere]">{family.name}</span>
               <div
                 className={`
-                  inline-flex items-center rounded-full border px-3 py-1 text-xs font-medium
+                  debt-badge min-w-0 max-w-full [overflow-wrap:anywhere] inline-flex items-center rounded-full border px-3 py-1 text-xs font-medium
                   ${
                     isPositive
                       ? 'border-emerald-500 text-eco-accent bg-emerald-500/10'
                       : isNegative
-                      ? 'border-red-500 text-red-600 bg-red-500/10'
+                      ? 'border-red-500 text-eco-error bg-red-500/10'
                       : 'border-eco-border text-eco-text-muted bg-eco-surface'
                   }
                 `}
@@ -123,7 +123,7 @@ const DebtsSummary: React.FC<Props> = ({ families, expenses, currency, balances:
               return (
                 <li
                   key={`${s.fromFamilyId}-${s.toFamilyId}-${index}`}
-                  className="text-sm text-eco-text"
+                  className="text-sm text-eco-text [overflow-wrap:anywhere]"
                 >
                   <span>{fromName} дължат </span>
                   <span className="font-semibold text-eco-accent">

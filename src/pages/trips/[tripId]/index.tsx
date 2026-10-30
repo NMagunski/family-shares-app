@@ -12,7 +12,7 @@ import ShareTripModal from '@/components/trips/ShareTripModal';
 import SectionCard from '@/components/ui/SectionCard';
 import EditFamilyModal from '@/components/trips/EditFamilyModal';
 import ConfirmModal from '@/components/ui/ConfirmModal';
-//import Button from '@/components/ui/Button';
+import Button from '@/components/ui/Button';
 
 import type { Trip, TripFamily, TripExpense } from '@/types/trip';
 import ExpensesTable from '@/components/trips/ExpensesTable';
@@ -317,10 +317,16 @@ const TripPage: React.FC = () => {
           }
         />
 
-        <div className="grid gap-6 lg:grid-cols-3 lg:items-start">
+        <div className="trip-content-grid grid min-w-0 grid-cols-1 gap-6 lg:grid-cols-3 lg:items-start">
           {/* Лява колона */}
-          <div className="space-y-6 lg:col-span-2">
-            <SectionCard title="Разходи" icon={Receipt}>
+          <div className="min-w-0 space-y-6 lg:col-span-2">
+            <SectionCard id="trip-expenses" tabIndex={-1} title="Разходи" icon={Receipt} action={<Button variant="ghost" aria-controls="expense-entry" onClick={() => {
+              const entry = document.getElementById('expense-entry') as HTMLDetailsElement | null;
+              if (!entry) return;
+              entry.open = true;
+              entry.scrollIntoView({ block: 'start' });
+              entry.querySelector('select')?.focus({ preventScroll: true });
+            }}>+ Добави</Button>}>
               {expensesLoading ? (
                 <p className="text-sm text-eco-text-muted">
                   Зареждане на разходи...
@@ -357,7 +363,7 @@ const TripPage: React.FC = () => {
           </div>
 
           {/* Дясна колона */}
-          <div className="space-y-6 lg:col-span-1">
+          <div className="min-w-0 space-y-6 lg:col-span-1">
             <SectionCard id="trip-debts" tabIndex={-1} title="Кой на кого колко дължи" icon={Scale}>
               <DebtsSummary
                 families={families}
@@ -436,7 +442,7 @@ const TripPage: React.FC = () => {
                           return (
                             <div
                               key={f.id}
-                              className="flex items-center justify-between rounded-lg bg-eco-surface-soft px-3 py-1.5 text-sm"
+                              className="family-share-row flex flex-wrap items-center justify-between gap-2 rounded-lg bg-eco-surface-soft px-3 py-1.5 text-sm"
                             >
                               <span className="text-eco-text">
                                 {f.name}

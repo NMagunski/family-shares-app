@@ -1,7 +1,7 @@
 import React from 'react';
 import type { TripExpense, TripFamily } from '@/types/trip';
 import AddExpenseForm, { type BaseExpenseInput } from './AddExpenseForm';
-import { ChevronDown, ArrowRightLeft, Users } from 'lucide-react';
+import { ChevronDown, ArrowRightLeft, Users, Receipt, Plus } from 'lucide-react';
 import { getCurrencySymbol, type CurrencyCode } from '@/lib/currencies';
 import { expenseHistory } from '@/lib/expenseHistory';
 import { expenseShares } from '@/lib/expenses';
@@ -27,10 +27,10 @@ export default function ExpensesTable({ families, expenses, tripCurrency, onAddE
     if (id) document.getElementById(`expense-${id}-toggle`)?.focus();
   }
   return <div className="min-w-0 space-y-3">
-    <details id="expense-entry" className="expense-entry"><summary>Добави разход</summary>
+    <details id="expense-entry" className="expense-entry"><summary><Plus size={18} aria-hidden="true"/><span>Добави разход</span></summary>
       <AddExpenseForm variant="embedded" showHeading={false} families={families} tripCurrency={tripCurrency} onAdd={async input => { await onAddExpense(input); setPage(1); }}/>
     </details>
-    {editing && <section aria-label="Редакция на разход" className="border-b border-eco-border pb-4"><AddExpenseForm variant="embedded" key={editing.id} families={families} tripCurrency={tripCurrency} initialExpense={editing} onCancel={closeEditor} onAdd={async input => { await onUpdateExpense(editing.id, input); closeEditor(); }}/></section>}
+    {editing && <section aria-label="Редакция на разход" className="expense-editor"><AddExpenseForm variant="embedded" key={editing.id} families={families} tripCurrency={tripCurrency} initialExpense={editing} onCancel={closeEditor} onAdd={async input => { await onUpdateExpense(editing.id, input); closeEditor(); }}/></section>}
     {!expenses.length ? <p className="text-sm text-eco-text-muted">Все още няма разходи.</p> : <ul aria-label="История на разходите">
       {pageExpenses.map(expense => {
         const history = expenseHistory(expense, families), symbol = getCurrencySymbol(expense.currency);
@@ -39,15 +39,17 @@ export default function ExpensesTable({ families, expenses, tripCurrency, onAddE
         const payer = families.find(f => f.id === expense.paidByFamilyId)?.name ?? 'Предишно семейство';
         const otherFamilyOnly = expense.type !== 'settlement' && expense.involvedFamilyIds?.length === 1 && expense.involvedFamilyIds[0] !== expense.paidByFamilyId;
         const amount = `${expense.amount.toLocaleString('bg-BG', {minimumFractionDigits:2, maximumFractionDigits:2})} ${symbol}`;
-        return <li key={expense.id} className="expense-record min-w-0 border-b border-eco-border last:border-b-0">
+        return <li key={expense.id} className="expense-record min-w-0">
           <button id={`expense-${expense.id}-toggle`} type="button" className="expense-row" aria-label={`${payer}, ${amount}${expense.type === 'settlement' ? ', Пито платено' : otherFamilyOnly ? `, ${history.label}` : ''} — ${infoOpen ? 'Скрий' : 'Покажи'} подробности`} aria-describedby={expense.comment ? `expense-${expense.id}-comment` : undefined} aria-expanded={infoOpen} aria-controls={`expense-${expense.id}-details`} onClick={() => setInfoId(infoOpen ? null : expense.id)}>
-            <span className="font-medium min-w-0">{payer}</span>
-            <span className="expense-row-amount flex items-start justify-end gap-2 min-w-0"><span className="min-w-0">{amount}</span><ChevronDown aria-hidden="true" size={16} className={`shrink-0 mt-1 transition-transform ${infoOpen ? 'rotate-180' : ''}`}/></span>
-            <span className="expense-row-secondary">
-              {expense.comment && <span id={`expense-${expense.id}-comment`} className="expense-row-comment">{expense.comment}</span>}
+            <span className="expense-record-icon" aria-hidden="true">{expense.type === 'settlement' ? <ArrowRightLeft size={22}/> : <Receipt size={22}/>}</span>
+            <span className="expense-row-description"><span className="expense-row-title">{expense.comment || (expense.type === 'settlement' ? 'Пито платено' : 'Разход')}</span><span className="expense-row-payer">Платено от {payer}</span></span>
+            <span className="expense-row-amount"><span>{amount}</span>{expense.createdAt && <time dateTime={expense.createdAt} className="expense-row-date">{new Date(expense.createdAt).toLocaleDateString('bg-BG', { day: '2-digit', month: 'short' })}</time>}</span>
+            <ChevronDown aria-hidden="true" size={16} className={`expense-row-chevron ${infoOpen ? 'rotate-180' : ''}`}/>
+            {(expense.type === 'settlement' || otherFamilyOnly) && <span className="expense-row-secondary">
               {expense.type === 'settlement' && <span className="expense-indicator"><ArrowRightLeft aria-hidden="true" size={14}/>Пито платено</span>}
               {otherFamilyOnly && <span className="expense-indicator"><Users aria-hidden="true" size={14}/>{history.label}</span>}
-            </span>
+            </span>}
+            {expense.comment && <span id={`expense-${expense.id}-comment`} className="sr-only">{expense.comment}</span>}
           </button>
           {infoOpen && <div role="region" aria-label="Подробности за разхода" id={`expense-${expense.id}-details`} className="pb-4 text-sm [overflow-wrap:anywhere]">
             <p className="font-medium">{history.sentence}</p>

@@ -158,12 +158,12 @@ const NewTripWizard: React.FC<Props> = ({ isOpen, onClose, onCreateTrip }) => {
 
   return (
     <div
-      className="fixed inset-0 z-40 flex items-center justify-center bg-black/60 px-4"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 px-4"
       onClick={onClose}
     >
-      <div
+      <div role="dialog" aria-modal="true" aria-labelledby="new-trip-title"
         className="
-          relative w-full max-w-lg 
+          relative w-full max-w-lg max-h-[90dvh] overflow-y-auto
           rounded-3xl bg-eco-surface 
           p-5 sm:p-6 
           shadow-2xl
@@ -174,17 +174,18 @@ const NewTripWizard: React.FC<Props> = ({ isOpen, onClose, onCreateTrip }) => {
         <button
           type="button"
           onClick={onClose}
-          className="absolute right-3 top-3 rounded-full bg-eco-surface-soft/80 p-1.5 text-eco-text-muted hover:text-eco-text hover:bg-eco-surface-soft transition"
+          aria-label="Затвори"
+          className="absolute right-3 top-3 min-h-[44px] min-w-[44px] inline-flex items-center justify-center rounded-full bg-eco-surface-soft/80 p-1.5 text-eco-text-muted hover:text-eco-text hover:bg-eco-surface-soft transition"
         >
           <X className="h-4 w-4" />
         </button>
 
         {/* Header */}
         <div className="mb-4">
-          <p className="text-xs font-medium uppercase tracking-wide text-emerald-400">
+          <p className="text-xs font-medium uppercase tracking-wide text-eco-accent">
             НОВО ПЪТУВАНЕ
           </p>
-          <h2 className="mt-1 text-lg sm:text-xl font-semibold text-eco-text">
+          <h2 id="new-trip-title" className="mt-1 text-lg sm:text-xl font-semibold text-eco-text">
             {step === 1 ? 'Избери вид пътуване' : 'Име на пътуването'}
           </h2>
           <p className="mt-1 text-xs sm:text-sm text-eco-text-muted">
@@ -216,7 +217,7 @@ const NewTripWizard: React.FC<Props> = ({ isOpen, onClose, onCreateTrip }) => {
                 >
                   <div
                     className={`
-                      flex h-10 w-10 items-center justify-center rounded-2xl text-emerald-400
+                      flex h-10 w-10 items-center justify-center rounded-2xl text-eco-accent
                       ${active ? 'bg-emerald-500/15' : 'bg-eco-surface'}
                     `}
                   >
@@ -231,7 +232,7 @@ const NewTripWizard: React.FC<Props> = ({ isOpen, onClose, onCreateTrip }) => {
                     </p>
                   </div>
                   {active && (
-                    <span className="text-xs font-semibold text-emerald-400">
+                    <span className="text-xs font-semibold text-eco-accent">
                       Избрано
                     </span>
                   )}
@@ -243,7 +244,7 @@ const NewTripWizard: React.FC<Props> = ({ isOpen, onClose, onCreateTrip }) => {
           <div className="space-y-4">
             {selectedOption && (
               <div className="flex items-center gap-3 rounded-2xl bg-eco-surface-soft px-3 py-2">
-                <div className="flex h-9 w-9 items-center justify-center rounded-2xl bg-eco-surface text-emerald-400">
+                <div className="flex h-9 w-9 items-center justify-center rounded-2xl bg-eco-surface text-eco-accent">
                   <selectedOption.icon className="h-4 w-4" />
                 </div>
                 <div>
@@ -286,7 +287,7 @@ const NewTripWizard: React.FC<Props> = ({ isOpen, onClose, onCreateTrip }) => {
                 autoFocus
               />
               {showNameError && (
-                <p className="mt-1 text-xs text-red-400">
+                <p className="mt-1 text-xs text-eco-error">
                   Полето е задължително.
                 </p>
               )}

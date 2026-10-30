@@ -1,0 +1,50 @@
+[
+  {
+    "theme": "light",
+    "state": "normal",
+    "failures": [],
+    "minimum": 5.2
+  },
+  {
+    "theme": "light",
+    "state": "hover",
+    "failures": [],
+    "minimum": 5.2
+  },
+  {
+    "theme": "light",
+    "state": "expanded",
+    "failures": [],
+    "minimum": 4.83
+  },
+  {
+    "theme": "light",
+    "state": "wizard",
+    "failures": [],
+    "minimum": 5.2
+  },
+  {
+    "theme": "dark",
+    "state": "normal",
+    "failures": [],
+    "minimum": 5.2
+  },
+  {
+    "theme": "dark",
+    "state": "hover",
+    "failures": [],
+    "minimum": 5.2
+  },
+  {
+    "theme": "dark",
+    "state": "expanded",
+    "failures": [],
+    "minimum": 4.83
+  },
+  {
+    "theme": "dark",
+    "state": "wizard",
+    "failures": [],
+    "minimum": 5.2
+  }
+]

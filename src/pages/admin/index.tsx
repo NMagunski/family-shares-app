@@ -61,7 +61,7 @@ const AdminDashboardPage: React.FC = () => {
     <AdminGuard>
       <AdminLayout>
         <div className="mb-6">
-          <h1 className="text-2xl font-bold text-emerald-200">
+          <h1 className="text-2xl font-bold text-eco-accent">
             Admin Dashboard
           </h1>
           <p className="mt-1 text-sm text-eco-text-muted">

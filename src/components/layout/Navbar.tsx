@@ -4,9 +4,12 @@ import { db } from '@/lib/firebase';
 import React from 'react';
 import Link from 'next/link';
 import { useAuth } from '@/context/AuthContext';
-import { Menu, X, LogOut, Compass } from 'lucide-react';
+import { useRouter } from 'next/router';
+import { Menu, X, LogOut, Compass, UserRound } from 'lucide-react';
 
 const Navbar: React.FC = () => {
+  const router = useRouter();
+  const menuToggle = React.useRef<HTMLButtonElement>(null);
   const { user, loading, logout } = useAuth();
   const [needsUsername, setNeedsUsername] = React.useState(false);
   React.useEffect(() => {
@@ -19,6 +22,15 @@ const Navbar: React.FC = () => {
     return onSnapshot(query(collection(db, 'tripInvitations'), where('targetId', '==', user.uid)), snap => setPending(snap.docs.filter(d => d.data().status === 'pending' && d.data().expiresAt > Date.now()).length), () => setPending(0));
   }, [user]);
   const [isMobileOpen, setIsMobileOpen] = React.useState(false);
+
+  React.useEffect(() => {
+    if (!isMobileOpen) return;
+    const onKey = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') { setIsMobileOpen(false); menuToggle.current?.focus(); }
+    };
+    document.addEventListener('keydown', onKey);
+    return () => document.removeEventListener('keydown', onKey);
+  }, [isMobileOpen]);
 
   const handleToggleMobile = () => setIsMobileOpen((prev) => !prev);
   const handleCloseMobile = () => setIsMobileOpen(false);
@@ -33,13 +45,13 @@ const Navbar: React.FC = () => {
 
   const isAdmin = user?.isAdmin === true;
 
-  const baseLink = 'text-sm font-medium transition-colors';
+  const baseLink = 'min-h-[44px] inline-flex items-center text-sm font-medium transition-colors';
   const primaryButton =
-    'inline-flex items-center justify-center rounded-full px-4 py-1.5 text-sm font-semibold ' +
-    'bg-eco-accent-strong text-eco-bg hover:bg-eco-accent focus:outline-none focus:ring-2 ' +
+    'inline-flex items-center justify-center min-h-[44px] rounded-full px-4 py-1.5 text-sm font-semibold ' +
+    'bg-eco-accent-strong text-eco-bg hover:brightness-95 focus:outline-none focus:ring-2 ' +
     'focus:ring-eco-accent/70 focus:ring-offset-2 focus:ring-offset-eco-surface';
   const ghostButton =
-    'inline-flex items-center justify-center rounded-full px-3 py-1.5 text-sm font-medium ' +
+    'inline-flex items-center justify-center min-h-[44px] rounded-full px-3 py-1.5 text-sm font-medium ' +
     'border border-eco-border text-eco-text hover:bg-eco-surface-soft focus:outline-none ' +
     'focus:ring-2 focus:ring-eco-accent/70 focus:ring-offset-2 focus:ring-offset-eco-surface';
 
@@ -49,7 +61,7 @@ const Navbar: React.FC = () => {
     if (user) {
       const containerClass =
         variant === 'desktop'
-          ? 'hidden md:flex items-center gap-3'
+          ? 'hidden lg:flex items-center gap-3'
           : 'flex flex-col items-start gap-2 mt-3';
 
       return (
@@ -96,7 +108,7 @@ const Navbar: React.FC = () => {
       <div
         className={
           variant === 'desktop'
-            ? 'hidden md:flex items-center gap-3'
+            ? 'hidden lg:flex items-center gap-3'
             : 'flex flex-col items-start gap-2 mt-3'
         }
       >
@@ -120,42 +132,33 @@ const Navbar: React.FC = () => {
   };
 
   return (
-    <header
-      className="
-        sticky top-0 z-40
-        border-b border-eco-border/60
-        bg-eco-surface/70
-        backdrop-blur-xl
-        shadow-sm
-        relative overflow-hidden
-      "
-    >
+    <header className="app-header">
       {/* Основно съдържание */}
-      <div className="relative max-w-5xl mx-auto px-4 py-3 flex items-center justify-between gap-4">
+      <div className="relative max-w-5xl mx-auto px-4 min-h-16 flex items-center justify-between gap-3">
         {/* Лого */}
         <Link
           href="/"
-          className="flex items-center gap-2 text-eco-text hover:text-eco-accent transition-colors"
+          className="flex min-h-[44px] items-center gap-2 text-eco-text hover:text-eco-accent transition-colors"
           onClick={handleCloseMobile}
         >
-          <div className="flex items-center justify-center rounded-xl bg-eco-surface-soft/90 border border-eco-border/70 p-1.5 shadow-eco-soft">
+          <div className="flex items-center justify-center">
             <span className="brand-mark"><Compass aria-hidden="true" size={24} /></span>
           </div>
 
-          <span className="text-lg font-semibold tracking-tight">
-            TripSplitly
-          </span>
+          <span className="brand-title">TripSplitly{(router.pathname === '/' || router.pathname.startsWith('/trips/')) && <span className="brand-context">{router.pathname === '/' ? 'Пътувания' : 'Разходи'}</span>}</span>
         </Link>
 
         {/* Auth desktop (вкл. Admin бутон) */}
         {renderAuthContent('desktop')}
 
         {/* Mobile toggler */}
-        <button
+        <div className="flex items-center gap-1 lg:hidden">
+        {user && TRIP_INVITATIONS_ENABLED && <Link href="/profile" className="mobile-profile" aria-label={needsUsername ? 'Избери username' : 'Профил'}><UserRound size={20} aria-hidden="true" /></Link>}
+        <button ref={menuToggle}
           type="button"
           className="
-            md:hidden inline-flex items-center justify-center
-            p-2 rounded-lg border border-eco-border/70
+            lg:hidden inline-flex items-center justify-center
+            min-h-[44px] min-w-[44px] p-2 rounded-full
             bg-eco-surface-soft/60
             hover:bg-eco-surface-soft
             focus:outline-none focus:ring-2 focus:ring-eco-accent/70
@@ -164,6 +167,7 @@ const Navbar: React.FC = () => {
           onClick={handleToggleMobile}
           aria-label="Навигационно меню"
           aria-expanded={isMobileOpen}
+          aria-controls="navigation-menu"
         >
           {isMobileOpen ? (
             <X className="h-5 w-5 text-eco-text" />
@@ -171,17 +175,18 @@ const Navbar: React.FC = () => {
             <Menu className="h-5 w-5 text-eco-text" />
           )}
         </button>
+        </div>
       </div>
 
       {/* Mobile menu */}
-      <div
+      <div id="navigation-menu"
         inert={!isMobileOpen}
         aria-hidden={!isMobileOpen}
         className={`
-          md:hidden border-t border-eco-border/60
+          lg:hidden border-t border-eco-border/60
           bg-eco-surface/80 backdrop-blur-xl
           transition-[max-height,opacity] duration-200 overflow-hidden
-          ${isMobileOpen ? 'max-h-64 opacity-100' : 'max-h-0 opacity-0'}
+          ${isMobileOpen ? 'max-h-[70dvh] overflow-y-auto opacity-100' : 'max-h-0 opacity-0'}
         `}
       >
         <div className="max-w-5xl mx-auto px-4 pb-4 pt-2">

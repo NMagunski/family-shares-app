@@ -1,0 +1,14 @@
+{
+  "baseline": "295.90 €",
+  "report": [
+    "Single-family purchase saved once, payer share 0, purchase total +30.",
+    "Subsequent settlement leaves purchase total unchanged.",
+    "Real edit changes single to selected recipients while preserving payer.",
+    "Create, archive, restore, cancel delete and confirmed delete work against emulators.",
+    "Owner controls and username invitation dialog remain accessible; modal hides dock.",
+    "Footer and existing balance anchor remain reachable.",
+    "Participant has no owner management controls.",
+    "Admin link respects actual custom claim."
+  ],
+  "errors": []
+}

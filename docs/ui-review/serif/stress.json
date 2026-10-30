@@ -1,0 +1,38 @@
+[
+  {
+    "screen": "register",
+    "overflow": false
+  },
+  {
+    "screen": "forgot-password",
+    "overflow": false
+  },
+  {
+    "screen": "reset-password",
+    "overflow": false
+  },
+  {
+    "authTabPreservesRedirect": true
+  },
+  {
+    "openMenuOverflow": false
+  },
+  {
+    "simulatedKeyboardHidesDock": true
+  },
+  {
+    "formHidesDock": true,
+    "inputFont16": true
+  },
+  {
+    "keyboardExpansion": true,
+    "menuFocusRestored": true,
+    "reducedMotion": "none"
+  },
+  {
+    "longNamesBigAmountOverflow": false
+  },
+  {
+    "largeTextOverflow": false
+  }
+]

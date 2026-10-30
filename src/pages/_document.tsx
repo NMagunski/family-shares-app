@@ -21,7 +21,7 @@ class MyDocument extends Document {
           <link rel="manifest" href="/manifest.webmanifest" />
 
           {/* Цвет на адрес бара / статус бара */}
-          <meta name="theme-color" content="#059669" />
+          <meta name="theme-color" content="#0F1419" />
 
           {/* iOS икона */}
           <link
@@ -41,7 +41,7 @@ class MyDocument extends Document {
             href="/tripsplitly-logo.png"
           />
         </Head>
-        <body className="bg-[#020a08]">
+        <body>
           <Main />
           <NextScript />
         </body>

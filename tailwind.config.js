@@ -12,6 +12,15 @@ module.exports = {
       colors: {
         // 🌿 Eco green dark палитра
         'eco-bg': 'var(--eco-bg)',
+        'eco-lowest': 'var(--eco-lowest)',
+        'eco-low': 'var(--eco-low)',
+        'eco-highest': 'var(--eco-highest)',
+        'eco-error': 'var(--eco-error)',
+        'eco-error-container': 'var(--eco-error-container)',
+        'eco-outline': 'var(--eco-outline)',
+        'eco-on': 'var(--eco-on)',
+        'eco-secondary': 'var(--eco-secondary)',
+        'eco-gold': 'var(--eco-gold)',
         'eco-surface': 'var(--eco-surface)',
         'eco-surface-soft': 'var(--eco-surface-soft)',
         'eco-border': 'var(--eco-border)',
@@ -21,7 +30,7 @@ module.exports = {
         'eco-text-muted': 'var(--eco-text-muted)',
       },
       borderRadius: {
-        '2xl': '1rem',
+        '2xl': '0.75rem',
       },
       boxShadow: {
         'eco-soft': '0 10px 30px rgba(23,63,48,0.07)',

@@ -1,0 +1,134 @@
+{
+  "results": [
+    {
+      "width": 320,
+      "theme": "light",
+      "overflow": false,
+      "background": "rgb(244, 247, 246)",
+      "bottomNavVisible": true,
+      "motion": "none"
+    },
+    {
+      "width": 375,
+      "theme": "light",
+      "overflow": false,
+      "background": "rgb(244, 247, 246)",
+      "bottomNavVisible": true,
+      "motion": "none"
+    },
+    {
+      "width": 390,
+      "theme": "light",
+      "overflow": false,
+      "background": "rgb(244, 247, 246)",
+      "bottomNavVisible": true,
+      "motion": "none"
+    },
+    {
+      "width": 430,
+      "theme": "light",
+      "overflow": false,
+      "background": "rgb(244, 247, 246)",
+      "bottomNavVisible": true,
+      "motion": "none"
+    },
+    {
+      "width": 768,
+      "theme": "light",
+      "overflow": false,
+      "background": "rgb(244, 247, 246)",
+      "bottomNavVisible": false,
+      "motion": "none"
+    },
+    {
+      "width": 1280,
+      "theme": "light",
+      "overflow": false,
+      "background": "rgb(244, 247, 246)",
+      "bottomNavVisible": false,
+      "motion": "none"
+    },
+    {
+      "width": 320,
+      "theme": "dark",
+      "overflow": false,
+      "background": "rgb(15, 20, 25)",
+      "bottomNavVisible": true,
+      "motion": "none"
+    },
+    {
+      "width": 375,
+      "theme": "dark",
+      "overflow": false,
+      "background": "rgb(15, 20, 25)",
+      "bottomNavVisible": true,
+      "motion": "none"
+    },
+    {
+      "width": 390,
+      "theme": "dark",
+      "overflow": false,
+      "background": "rgb(15, 20, 25)",
+      "bottomNavVisible": true,
+      "motion": "none"
+    },
+    {
+      "width": 430,
+      "theme": "dark",
+      "overflow": false,
+      "background": "rgb(15, 20, 25)",
+      "bottomNavVisible": true,
+      "motion": "none"
+    },
+    {
+      "width": 768,
+      "theme": "dark",
+      "overflow": false,
+      "background": "rgb(15, 20, 25)",
+      "bottomNavVisible": false,
+      "motion": "none"
+    },
+    {
+      "width": 1280,
+      "theme": "dark",
+      "overflow": false,
+      "background": "rgb(15, 20, 25)",
+      "bottomNavVisible": false,
+      "motion": "none"
+    },
+    {
+      "modalDockHidden": true
+    },
+    {
+      "menuFocusRestored": true
+    },
+    {
+      "state": "empty",
+      "overflow": false
+    },
+    {
+      "state": "many",
+      "overflow": false
+    },
+    {
+      "state": "loading",
+      "overflow": false
+    },
+    {
+      "state": "error",
+      "overflow": false
+    },
+    {
+      "state": "long",
+      "overflow": false
+    },
+    {
+      "state": "admin",
+      "overflow": false
+    },
+    {
+      "largeTextOverflow": false
+    }
+  ],
+  "errors": []
+}

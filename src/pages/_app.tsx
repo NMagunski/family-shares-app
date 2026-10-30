@@ -1,8 +1,12 @@
+import localFont from 'next/font/local';
 import type { AppProps } from 'next/app';
 import { useEffect } from 'react';
 import { AuthProvider } from '@/context/AuthContext';
 import { ToastProvider } from '@/context/ToastContext';
 import '@/styles/globals.css';
+
+const inter = localFont({ src: '../styles/fonts/Inter.ttf', weight: '100 900', variable: '--font-inter', display: 'swap', fallback: ['Arial', 'sans-serif'] });
+const serif = localFont({ src: '../styles/fonts/Lora.ttf', weight: '400 700', variable: '--font-serif', display: 'swap', fallback: ['Georgia', 'serif'] });
 
 export default function MyApp({ Component, pageProps }: AppProps) {
   // 👉 Регистрация на Service Worker (PWA)
@@ -22,10 +26,12 @@ export default function MyApp({ Component, pageProps }: AppProps) {
   }, []);
 
   return (
+    <div className={`${inter.variable} ${serif.variable}`}>
     <AuthProvider>
       <ToastProvider>
         <Component {...pageProps} />
       </ToastProvider>
     </AuthProvider>
+    </div>
   );
 }

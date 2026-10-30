@@ -25,7 +25,7 @@ const AdminGuard: React.FC<Props> = ({ children }) => {
     return (
       <Layout>
         <div className="flex flex-col items-center justify-center py-16">
-          <p className="text-xl font-semibold text-red-400">
+          <p className="text-xl font-semibold text-eco-error">
             Нямаш достъп до тази страница.
           </p>
           <p className="mt-2 text-sm text-eco-text">

@@ -25,7 +25,7 @@ const FamiliesSection: React.FC<Props> = ({
           <div
             key={f.id}
             className="
-              flex items-center justify-between
+              family-row flex flex-wrap items-center justify-between
               gap-3
               px-3 py-2.5
               rounded-xl 
@@ -35,10 +35,10 @@ const FamiliesSection: React.FC<Props> = ({
             "
           >
             {/* LEFT SIDE */}
-            <div className="flex items-center gap-2.5 min-w-0">
-              <Users className="h-5 w-5 text-eco-text-muted" />
+            <div className="family-identity flex flex-1 items-center gap-2.5 min-w-0">
+              <Users className="h-5 w-5 shrink-0 text-eco-text-muted" />
 
-              <span className="text-eco-text font-medium truncate">
+              <span className="family-name text-eco-text font-medium min-w-0 [overflow-wrap:anywhere]">
                 {f.name}
               </span>
 
@@ -61,31 +61,33 @@ const FamiliesSection: React.FC<Props> = ({
 
             {/* ACTION BUTTONS */}
             <div className="flex items-center gap-2 shrink-0">
-              <button
+              {onEditFamily && <button
                 type="button"
                 title="Редактирай"
+                aria-label={`Редактирай ${f.name}`}
                 onClick={() => onEditFamily?.(f)}
                 className="
-                  p-1 rounded-md
+                  min-h-[44px] min-w-[44px] inline-flex items-center justify-center rounded-md
                   text-eco-text-muted hover:text-eco-accent
                   transition
                 "
               >
                 <Pencil className="h-4 w-4" />
-              </button>
+              </button>}
 
-              <button
+              {onDeleteFamily && <button
                 type="button"
                 title="Изтрий"
+                aria-label={`Изтрий ${f.name}`}
                 onClick={() => onDeleteFamily?.(f)}
                 className="
-                  p-1 rounded-md
-                  text-eco-text-muted hover:text-red-400
+                  min-h-[44px] min-w-[44px] inline-flex items-center justify-center rounded-md
+                  text-eco-text-muted hover:text-eco-error
                   transition
                 "
               >
                 <Trash2 className="h-4 w-4" />
-              </button>
+              </button>}
             </div>
           </div>
         );

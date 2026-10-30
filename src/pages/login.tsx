@@ -77,13 +77,15 @@ const LoginPage: React.FC = () => {
 
   return (
     <Layout>
-      <div className="max-w-4xl mx-auto mt-6 px-4">
-        <Card className="p-6 auth-card"><AuthWelcome mode="login"/>
+      <div className="auth-page">
+        <Card className="auth-card"><AuthWelcome mode="login"/>
           <h1 className="text-xl font-semibold text-eco-text mb-4">Вход</h1>
 
           <form onSubmit={handleSubmit} className="flex flex-col gap-4">
             <Input
-              label="Email"
+              label="Имейл адрес"
+              autoComplete="email"
+              placeholder="you@example.com"
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
@@ -92,6 +94,8 @@ const LoginPage: React.FC = () => {
 
             <Input
               label="Парола"
+              labelAction={<Link href="/forgot-password" className="text-xs text-eco-accent hover:underline">Забравена парола?</Link>}
+              autoComplete="current-password"
               type="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
@@ -99,22 +103,15 @@ const LoginPage: React.FC = () => {
             />
 
             {error && (
-              <p className="text-sm text-red-500 bg-red-500/5 border border-red-500/40 rounded-lg px-3 py-2">
+              <p className="text-sm text-eco-error bg-red-500/5 border border-red-500/40 rounded-lg px-3 py-2">
                 {error}
               </p>
             )}
 
-            <p className="text-right -mt-2 mb-2">
-              <Link
-                href="/forgot-password"
-                className="text-xs text-eco-accent hover:underline"
-              >
-                Забравена парола?
-              </Link>
-            </p>
 
-            <Button type="submit" disabled={loading}>
-              {loading ? 'Влизане...' : 'Влез'}
+
+            <Button className="auth-submit" type="submit" disabled={loading}>
+              {loading ? 'Влизане...' : <>Влез в профила <span aria-hidden="true">→</span></>}
             </Button>
           </form>
 

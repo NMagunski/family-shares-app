@@ -107,7 +107,7 @@ const AdminTripsPage: React.FC = () => {
       <AdminLayout>
         <div className="mb-6 flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
           <div>
-            <h1 className="text-2xl font-bold text-emerald-200">Trips</h1>
+            <h1 className="text-2xl font-bold text-eco-accent">Trips</h1>
             <p className="mt-1 text-sm text-eco-text-muted">
               Управлявай всички пътувания в системата. Виж кой ги е създал и какъв е статусът им.
             </p>

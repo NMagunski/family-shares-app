@@ -1,32 +1,19 @@
 import React from 'react';
+import { Eye, EyeOff, LockKeyhole, Mail, UserRound } from 'lucide-react';
 
-type InputProps = React.InputHTMLAttributes<HTMLInputElement> & {
-  label?: string;
-};
+type InputProps = React.InputHTMLAttributes<HTMLInputElement> & { label?: string; labelAction?: React.ReactNode };
 
-const Input: React.FC<InputProps> = ({ label, className = '', ...props }) => {
+export default function Input({ label, labelAction, className = '', type, ...props }: InputProps) {
   const generatedId = React.useId();
   const inputId = props.id ?? generatedId;
-  const baseInputClasses =
-    'w-full rounded-lg border border-eco-border bg-eco-surface-soft ' +
-    'px-3 py-2 text-base text-eco-text placeholder:text-eco-text-muted ' +
-    'focus:outline-none focus:ring-2 focus:ring-eco-accent focus:border-eco-accent ' +
-    'transition-colors';
-
-  const inputClassName = `${baseInputClasses} ${className}`.trim();
-
-  if (!label) {
-    return <input {...props} id={inputId} className={inputClassName} />;
-  }
-
-  return (
-    <div className="flex flex-col gap-1 mb-2">
-      <label htmlFor={inputId} className="text-xs font-medium text-eco-text-muted">
-        {label}
-      </label>
-      <input {...props} id={inputId} className={inputClassName} />
+  const [showPassword, setShowPassword] = React.useState(false);
+  const Icon = type === 'email' ? Mail : type === 'password' ? LockKeyhole : props.autoComplete === 'username' ? UserRound : null;
+  return <div className="input-group">
+    {label && <div className="input-label-row"><label htmlFor={inputId}>{label}</label>{labelAction}</div>}
+    <div className={`input-shell ${Icon ? 'has-icon' : ''} ${type === 'password' ? 'has-toggle' : ''}`}>
+      {Icon && <Icon size={20} aria-hidden="true" className="input-icon" />}
+      <input {...props} type={type === 'password' && showPassword ? 'text' : type} id={inputId} className={`input-control ${className}`} />
+      {type === 'password' && <button type="button" className="password-toggle" aria-label={showPassword ? 'Скрий паролата' : 'Покажи паролата'} aria-pressed={showPassword} onClick={() => setShowPassword(value => !value)}>{showPassword ? <EyeOff size={20} aria-hidden="true" /> : <Eye size={20} aria-hidden="true" />}</button>}
     </div>
-  );
-};
-
-export default Input;
+  </div>;
+}

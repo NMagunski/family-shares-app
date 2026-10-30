@@ -271,7 +271,7 @@ const TripListsPage: React.FC = () => {
         {loading ? (
           <p className="text-sm text-eco-text-muted">Зареждане на списъците...</p>
         ) : error ? (
-          <p className="text-sm text-red-400">{error}</p>
+          <p className="text-sm text-eco-error">{error}</p>
         ) : lists.length === 0 ? (
           <p className="text-sm text-eco-text-muted">
             Все още нямаш списъци за това пътуване. Започни с „Нов списък“ –
@@ -338,7 +338,7 @@ const ListCard: React.FC<ListCardProps> = ({
         <button
           type="button"
           onClick={() => onDeleteList(list.id)}
-          className="text-xs font-medium text-red-600 hover:text-red-400 hover:underline transition"
+          className="text-xs font-medium text-eco-error hover:text-eco-error hover:underline transition"
         >
           Изтрий списъка
         </button>
@@ -381,7 +381,7 @@ const ListCard: React.FC<ListCardProps> = ({
                   type="checkbox"
                   checked={item.done}
                   onChange={() => onToggleItem(list.id, item.id)}
-                  className="mt-1 h-4 w-4 rounded border-eco-border bg-eco-bg text-emerald-500 focus:ring-emerald-500"
+                  className="mt-1 h-4 w-4 rounded border-eco-border bg-eco-bg text-eco-accent focus:ring-emerald-500"
                 />
                 <span
                   className={`text-sm ${
@@ -396,7 +396,7 @@ const ListCard: React.FC<ListCardProps> = ({
               <button
                 type="button"
                 onClick={() => onDeleteItem(list.id, item.id)}
-                className="text-sm text-eco-text-muted hover:text-red-400 transition"
+                className="text-sm text-eco-text-muted hover:text-eco-error transition"
               >
                 ✕
               </button>

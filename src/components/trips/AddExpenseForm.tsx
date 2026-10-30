@@ -1,4 +1,5 @@
 import React from 'react';
+import { Users, UserRound, ListChecks, HandCoins, CircleCheck } from 'lucide-react';
 import type { CurrencyCode } from '@/lib/currencies';
 import { getCurrencySymbol } from '@/lib/currencies';
 import type { ExpenseInput } from '@/lib/expensesStore';
@@ -17,7 +18,7 @@ type Props = {
   variant?: 'embedded' | 'standalone';
   showHeading?: boolean;
 };
-const fieldClass = 'w-full rounded-xl border border-eco-border bg-eco-surface-soft px-3 py-2 text-base text-eco-text';
+const fieldClass = 'expense-field';
 export default function AddExpenseForm({ families, tripCurrency, onAdd, initialExpense, onCancel, variant = 'standalone', showHeading = true }: Props) {
   const formId = React.useId();
   const original = React.useRef(initialExpense).current;
@@ -65,27 +66,33 @@ export default function AddExpenseForm({ families, tripCurrency, onAdd, initialE
     setMode(value); setAllocationChanged(true); setStatus('');
     if (value === 'single') setInvolved([]);
   }
-  return <form onSubmit={submit} className={`expense-form min-w-0 flex flex-col gap-3 ${variant === 'embedded' ? '' : 'my-4 rounded-2xl border border-eco-border bg-eco-surface p-4 shadow-eco-soft'}`}>
+  return <form onSubmit={submit} className={`expense-form min-w-0 flex flex-col gap-3 ${variant === 'embedded' ? '' : 'expense-form-standalone'}`}>
     <fieldset disabled={saving} className="contents">
       {showHeading && <h3 className="text-lg font-semibold">{original ? 'Редактирай разход' : 'Добави разход'}</h3>}
-      <label htmlFor={`${formId}-payer`}>Платено от</label>
+      <label className="expense-label" htmlFor={`${formId}-payer`}>Платено от</label>
       <select autoFocus={!!original} id={`${formId}-payer`} className={fieldClass} value={paidBy} onChange={e => setPaidBy(e.target.value)} required>
         <option value="">Избери семейство</option>
         {paidBy && !allIds.includes(paidBy) && <option value={paidBy}>Предишно семейство</option>}
         {families.map(f => <option key={f.id} value={f.id}>{f.name}</option>)}
       </select>
-      <label className="flex items-start gap-3 rounded-xl bg-eco-surface-soft p-3">
+      <label className="settlement-choice">
         <input type="checkbox" className="mt-1" checked={isSettlement} onChange={e => { setIsSettlement(e.target.checked); if (original?.type === 'settlement') setAllocationChanged(true); }}/>
-        <span>Пито платено <span className="block text-sm text-eco-text-muted">Погасяване на дълг — не увеличава общите покупки.</span></span>
+        <span><span className="expense-choice-title">Пито платено <HandCoins size={18} aria-hidden="true" /></span><span className="block text-sm text-eco-text-muted mt-1">Погасяване на дълг — не увеличава общите покупки.</span></span>
       </label>
-      {!isSettlement ? <fieldset className="grid gap-3">
-        <legend className="mb-3 font-medium">За кого е разходът?</legend>
-        <div className="grid gap-2 sm:grid-cols-3">
-          {([['all','За всички'],['selected','За избрани семейства'],['single','За едно семейство']] as const).map(([value,label]) => <label key={value} className={`flex items-center gap-2 rounded-xl border p-3 transition-colors ${mode === value ? 'border-eco-accent bg-eco-surface-soft' : 'border-eco-border'}`}>
-            <input type="radio" name={`${formId}-mode`} value={value} checked={mode === value} onChange={() => changeMode(value)}/>{label}
-          </label>)}
+      {!isSettlement ? <fieldset className="expense-allocation grid gap-3">
+        <legend className="expense-label mb-3">За кого е разходът?</legend>
+        <div className="expense-mode-options">
+          {([['all','За всички'],['selected','За избрани семейства'],['single','За едно семейство']] as const).map(([value,label]) => {
+            const Icon = value === 'all' ? Users : value === 'selected' ? ListChecks : UserRound;
+            return <label key={value} className={`expense-mode-option ${mode === value ? 'is-selected' : ''}`}>
+              <input aria-label={label} aria-describedby={`${formId}-allocation-help`} type="radio" name={`${formId}-mode`} value={value} checked={mode === value} onChange={() => changeMode(value)}/>
+              <span className="expense-choice-title">{label}</span>
+              <Icon size={19} aria-hidden="true" className="expense-mode-icon"/>
+              {mode === value && <span className="expense-mode-detail">{value === 'all' ? `Поравно между ${families.length} семейства.` : value === 'selected' ? 'Поравно само между избраните семейства.' : 'Цялата сума е за избраното семейство.'}</span>}
+            </label>;
+          })}
         </div>
-        <p className="text-sm text-eco-text-muted">{mode === 'all' ? 'Поравно между всички семейства.' : mode === 'single' ? 'Цялата сума е за избраното семейство.' : 'Поравно само между избраните. Избери поне едно семейство.'} Платецът участва само ако е сред тях.</p>
+        <p id={`${formId}-allocation-help`} className="text-sm text-eco-text-muted">{mode === 'all' ? 'Поравно между всички семейства.' : mode === 'single' ? 'Цялата сума е за избраното семейство.' : 'Поравно само между избраните. Избери поне едно семейство.'} Платецът участва само ако е сред тях.</p>
         {mode === 'single' && <label className="grid gap-2">Семейство, което поема разхода<select className={fieldClass} required value={involved[0] ?? ''} onChange={e => { setInvolved(e.target.value ? [e.target.value] : []); setAllocationChanged(true); }}>
           <option value="">Избери семейство</option>
           {involved[0] && !allIds.includes(involved[0]) && <option value={involved[0]}>Предишно семейство</option>}
@@ -98,13 +105,13 @@ export default function AddExpenseForm({ families, tripCurrency, onAdd, initialE
       </fieldset> : <label className="grid gap-2">Към кое семейство е плащането?<select className={fieldClass} required value={settlementTo} onChange={e => setSettlementTo(e.target.value)}>
         <option value="">Избери семейство</option>{families.map(f => <option key={f.id} value={f.id} disabled={f.id === paidBy}>{f.name}</option>)}
       </select></label>}
-      <label htmlFor={`${formId}-amount`}>Сума · {symbol} ({currency})</label>
-      <input id={`${formId}-amount`} className={fieldClass} type="number" min="0.01" step="0.01" required value={amount} onChange={e => setAmount(e.target.value)} placeholder="0.00"/>
-      {!isSettlement && Object.keys(shares).length > 0 && <div className="rounded-xl bg-eco-surface-soft p-3 text-sm" aria-live="polite"><p className="font-medium mb-2">Кой поема разхода</p>{[...new Set([...Object.keys(shares), ...(paidBy ? [paidBy] : [])])].map(id => <p key={id} className="flex justify-between gap-3"><span>{families.find(f => f.id === id)?.name ?? 'Предишно семейство'}{id === paidBy ? ' (платец)' : ''}</span><span className="tabular-nums">{(shares[id] ?? 0).toFixed(2)} {symbol}</span></p>)}</div>}
-      <label htmlFor={`${formId}-comment`}>Коментар (по избор)</label>
-      <input id={`${formId}-comment`} className={fieldClass} value={comment} onChange={e => setComment(e.target.value)} maxLength={2000}/>
-      <div className="flex flex-wrap gap-3"><Button type="submit" disabled={saving}>{saving ? 'Запазване…' : original ? 'Запази промените' : isSettlement ? 'Запиши погасяване' : 'Добави разход'}</Button>{onCancel && <Button type="button" variant="secondary" onClick={onCancel}>Отказ</Button>}</div>
+      <label className="expense-label" htmlFor={`${formId}-amount`}>Сума · {symbol} ({currency})</label>
+      <div className="expense-amount-shell"><span aria-hidden="true">{symbol}</span><input inputMode="decimal" id={`${formId}-amount`} className="expense-amount-input" type="number" min="0.01" step="0.01" required value={amount} onChange={e => setAmount(e.target.value)} placeholder="0.00"/></div>
+      {!isSettlement && Object.keys(shares).length > 0 && <div className="expense-shares" aria-live="polite"><p className="font-medium mb-2">Кой поема разхода</p>{[...new Set([...Object.keys(shares), ...(paidBy ? [paidBy] : [])])].map(id => <p key={id} className="expense-share-row"><span>{families.find(f => f.id === id)?.name ?? 'Предишно семейство'}{id === paidBy ? ' (платец)' : ''}</span><span className="tabular-nums">{(shares[id] ?? 0).toFixed(2)} {symbol}</span></p>)}</div>}
+      <label className="expense-label" htmlFor={`${formId}-comment`}>Коментар (по избор)</label>
+      <input id={`${formId}-comment`} className={fieldClass} value={comment} onChange={e => setComment(e.target.value)} maxLength={2000} placeholder="Описание на покупката"/>
+      <div className="expense-form-actions"><Button className="expense-save" type="submit" disabled={saving}><CircleCheck size={20} aria-hidden="true"/>{saving ? 'Запазване…' : original ? 'Запази промените' : isSettlement ? 'Запиши погасяване' : 'Добави разход'}</Button>{onCancel && <Button type="button" variant="secondary" onClick={onCancel}>Отказ</Button>}</div>
     </fieldset>
-    <p role="status" aria-live="polite">{status}</p>
+    <p className="expense-form-status" role="status" aria-live="polite">{status}</p>
   </form>;
 }
